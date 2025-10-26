@@ -35,7 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange }) => 
         <img
           src="/src/assets/MinSoftCTRM.png"
           alt="MineSoft CTRM Logo"
-          className="w-full h-16 mb-4"
+          className="w-full h-auto mb-4"
         />
         <h1 className="text-xl font-bold text-emerald-400">Commodity Trade Core</h1>
         <p className="text-sm text-slate-400 mt-1">Plataforma de Trading</p>
