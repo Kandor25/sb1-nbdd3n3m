@@ -1,11 +1,23 @@
 import React, { useState } from 'react';
-import { Calculator, Plus, Search, Filter, DollarSign, FileText, Eye, CheckCircle } from 'lucide-react';
+import { Calculator, Plus, Search, Filter, DollarSign, FileText, Eye, CheckCircle, AlertTriangle, TrendingDown } from 'lucide-react';
 import { mockSettlements, mockContracts, mockCounterparties } from '../../data/mockData';
 import type { Settlement } from '../../types';
 
 interface SettlementListProps {
   onCreateNew: () => void;
   onViewDetails: (settlement: Settlement) => void;
+}
+
+interface OverdueItem {
+  id: string;
+  type: string;
+  shipment: string;
+  quantity: number;
+  commodity: string;
+  client: string;
+  contract: string;
+  quota: string;
+  scheduledDate: Date;
 }
 
 const SettlementList: React.FC<SettlementListProps> = ({ onCreateNew, onViewDetails }) => {
@@ -17,10 +29,50 @@ const SettlementList: React.FC<SettlementListProps> = ({ onCreateNew, onViewDeta
   const settlementsWithDetails = mockSettlements.map(settlement => ({
     ...settlement,
     contract: mockContracts.find(c => c.id === settlement.contractId),
-    counterparty: mockCounterparties.find(cp => 
+    counterparty: mockCounterparties.find(cp =>
       mockContracts.find(c => c.id === settlement.contractId)?.counterpartyId === cp.id
     )
   }));
+
+  // Mock overdue payments and collections
+  const overduePayments: OverdueItem[] = [
+    {
+      id: '1',
+      type: 'Ensayes laboratorios SGS Peru Jul.25',
+      shipment: '10102015',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Jul.25',
+      scheduledDate: new Date('2025-10-03')
+    }
+  ];
+
+  const overdueCollections: OverdueItem[] = [
+    {
+      id: '2',
+      type: 'Pago provisional',
+      shipment: '10102015',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Jul.25',
+      scheduledDate: new Date('2025-10-07')
+    },
+    {
+      id: '3',
+      type: 'Pago provisional',
+      shipment: '17112015',
+      quantity: 70,
+      commodity: 'Concentrado Cu',
+      client: 'Peñasquito',
+      contract: 'Contrato 10',
+      quota: 'Oct.25',
+      scheduledDate: new Date('2029-01-10')
+    }
+  ];
 
   const filteredSettlements = settlementsWithDetails.filter(settlement => {
     const matchesSearch = settlement.contract?.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -74,6 +126,87 @@ const SettlementList: React.FC<SettlementListProps> = ({ onCreateNew, onViewDeta
             Nueva Liquidación
           </button>
         </div>
+      </div>
+
+      {/* Overdue Payments and Collections Section */}
+      <div className="space-y-6">
+        {/* Overdue Payments */}
+        {overduePayments.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center mb-4">
+              <AlertTriangle className="w-5 h-5 text-red-600 mr-2" />
+              <h2 className="text-lg font-bold text-gray-800">Pagos Vencidos</h2>
+              <span className="ml-auto bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {overduePayments.length}
+              </span>
+            </div>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {overduePayments.map((item) => (
+                <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 w-48">
+                      <h3 className="text-base font-bold text-gray-900 mb-2">Embarque {item.shipment}</h3>
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="bg-red-500 text-white px-2 py-0.5 rounded text-xs font-medium">Vencido</span>
+                        <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">Pago</span>
+                      </div>
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="text-sm space-y-1.5">
+                        <p>
+                          <span className="font-semibold text-gray-900">Tipo:</span> {item.type} <span className="mx-2">=⇒</span> Embarque {item.shipment} / <span className="font-semibold">{item.quantity}dmt</span> / {item.commodity} / Cliente {item.client} / {item.contract} / Cuota {item.quota}
+                        </p>
+                        <p className="text-gray-700">
+                          <span className="font-semibold">ETA Programada =⇒</span> {item.scheduledDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }).replace('.', '')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Overdue Collections */}
+        {overdueCollections.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center mb-4">
+              <TrendingDown className="w-5 h-5 text-orange-600 mr-2" />
+              <h2 className="text-lg font-bold text-gray-800">Cobros Vencidos</h2>
+              <span className="ml-auto bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {overdueCollections.length}
+              </span>
+            </div>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {overdueCollections.map((item) => (
+                <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 w-48">
+                      <h3 className="text-base font-bold text-gray-900 mb-2">Embarque {item.shipment}</h3>
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-xs font-medium">Vencido</span>
+                        <span className="bg-emerald-500 text-white px-2 py-0.5 rounded text-xs font-medium">Cobro</span>
+                      </div>
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="text-sm space-y-1.5">
+                        <p>
+                          <span className="font-semibold text-gray-900">Tipo:</span> {item.type} <span className="mx-2">=⇒</span> Embarque {item.shipment} / <span className="font-semibold">{item.quantity}dmt</span> / {item.commodity} / Cliente {item.client} / {item.contract} / Cuota {item.quota}
+                        </p>
+                        <p className="text-gray-700">
+                          <span className="font-semibold">Programada =⇒</span> {item.scheduledDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }).replace('.', '')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Summary Cards */}
