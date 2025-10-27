@@ -151,9 +151,6 @@ const LogisticsList: React.FC<LogisticsListProps> = ({ onCreateNew, onViewDetail
                       <span className="font-medium">Operador:</span> {op.carrier} • <span className="font-medium">Placas:</span> {op.vehiclePlate}
                     </div>
                   </div>
-
-                  {/* Action Button */}
-                  <button className="flex-shrink-0 w-7 h-7 rounded-full border-2 border-gray-300 hover:border-gray-400 transition-colors" />
                 </div>
 
                 {/* Quality Specs */}
@@ -237,9 +234,6 @@ const LogisticsList: React.FC<LogisticsListProps> = ({ onCreateNew, onViewDetail
                       <span className="font-medium">Operador:</span> {op.carrier} • <span className="font-medium">Placas:</span> {op.vehiclePlate}
                     </div>
                   </div>
-
-                  {/* Action Button */}
-                  <button className="flex-shrink-0 w-7 h-7 rounded-full border-2 border-gray-300 hover:border-gray-400 transition-colors" />
                 </div>
 
                 {/* Quality Specs */}

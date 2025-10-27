@@ -110,8 +110,6 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
                         )}
                       </div>
                     </div>
-
-                    <button className="flex-shrink-0 w-7 h-7 rounded-full border-2 border-gray-300 hover:border-gray-400 transition-colors" />
                   </div>
 
                   <div className="mt-3 pt-3 border-t border-gray-200">
