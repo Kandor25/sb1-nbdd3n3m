@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Truck, Plus, Search, Filter, MapPin, Calendar, FileText, Eye } from 'lucide-react';
+import { Truck, Plus, Search, Filter, MapPin, Calendar, FileText, Eye, Package } from 'lucide-react';
 import { mockShipments, mockContracts, mockCounterparties } from '../../data/mockData';
 import type { Shipment } from '../../types';
 
@@ -17,7 +17,7 @@ const LogisticsList: React.FC<LogisticsListProps> = ({ onCreateNew, onViewDetail
   const shipmentsWithDetails = mockShipments.map(shipment => ({
     ...shipment,
     contract: mockContracts.find(c => c.id === shipment.contractId),
-    counterparty: mockCounterparties.find(cp => 
+    counterparty: mockCounterparties.find(cp =>
       mockContracts.find(c => c.id === shipment.contractId)?.counterpartyId === cp.id
     )
   }));
@@ -31,6 +31,10 @@ const LogisticsList: React.FC<LogisticsListProps> = ({ onCreateNew, onViewDetail
     return matchesSearch && matchesStatus && matchesType;
   });
 
+  // Get operations for status cards
+  const patioOperations = shipmentsWithDetails.filter(s => s.status === 'planned').slice(0, 2);
+  const transitOperations = shipmentsWithDetails.filter(s => s.status === 'in_transit');
+
   const getStatusColor = (status: string) => {
     const colors = {
       planned: 'bg-yellow-100 text-yellow-800',
@@ -42,14 +46,26 @@ const LogisticsList: React.FC<LogisticsListProps> = ({ onCreateNew, onViewDetail
   };
 
   const getTypeColor = (type: string) => {
-    return type === 'inbound' 
-      ? 'text-emerald-600 bg-emerald-50' 
+    return type === 'inbound'
+      ? 'text-emerald-600 bg-emerald-50'
       : 'text-blue-600 bg-blue-50';
   };
 
   const getTransportIcon = (mode: string) => {
     // For simplicity, using Truck for all transport modes
     return Truck;
+  };
+
+  const formatDateTime = (date: Date) => {
+    return date.toLocaleDateString('es-ES', {
+      day: '2digit',
+      month: 'short',
+      year: '2digit'
+    }) + ' @ ' + date.toLocaleTimeString('es-ES', {
+      hour: '2digit',
+      minute: '2digit',
+      hour12: false
+    }) + 'hrs';
   };
 
   return (
@@ -69,6 +85,103 @@ const LogisticsList: React.FC<LogisticsListProps> = ({ onCreateNew, onViewDetail
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Embarque
         </button>
+      </div>
+
+      {/* Operation Status Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* En Patio de Salidas */}
+        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl shadow-lg p-6">
+          <div className="flex items-center mb-4">
+            <Package className="w-6 h-6 text-yellow-700 mr-2" />
+            <h2 className="text-xl font-bold text-yellow-900">En Patio de Salidas</h2>
+            <span className="ml-auto bg-yellow-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+              {patioOperations.length}
+            </span>
+          </div>
+          <div className="space-y-3">
+            {patioOperations.map((op) => (
+              <div key={op.id} className="bg-white rounded-lg p-4 shadow-sm border border-yellow-100 hover:shadow-md transition-shadow">
+                <div className="text-sm text-gray-600 space-y-1.5">
+                  <div className="flex items-start">
+                    <span className="font-semibold text-gray-900 mr-2">Operación:</span>
+                    <span className="flex-1">{op.number}</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="font-semibold text-gray-900 mr-2">Carga:</span>
+                    <span className="flex-1">{op.weight}dmt / {op.contract?.commodity.name}</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="font-semibold text-gray-900 mr-2">Cliente:</span>
+                    <span className="flex-1">{op.counterparty?.name}</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="font-semibold text-gray-900 mr-2">Contrato:</span>
+                    <span className="flex-1">{op.contract?.number} / {op.deliveryQuota}</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="font-semibold text-gray-900 mr-2">Ubicación:</span>
+                    <span className="flex-1">{op.origin.street}</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="font-semibold text-gray-900 mr-2">ETA Programado:</span>
+                    <span className="flex-1">{formatDateTime(op.scheduledDate)}</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="font-semibold text-gray-900 mr-2">Operador:</span>
+                    <span className="flex-1">{op.carrier} / Placas {op.vehiclePlate}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* En Tránsito */}
+        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-xl shadow-lg p-6">
+          <div className="flex items-center mb-4">
+            <Truck className="w-6 h-6 text-blue-700 mr-2" />
+            <h2 className="text-xl font-bold text-blue-900">En Tránsito</h2>
+            <span className="ml-auto bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+              {transitOperations.length}
+            </span>
+          </div>
+          <div className="space-y-3">
+            {transitOperations.map((op) => (
+              <div key={op.id} className="bg-white rounded-lg p-4 shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
+                <div className="text-sm text-gray-600 space-y-1.5">
+                  <div className="flex items-start">
+                    <span className="font-semibold text-gray-900 mr-2">Operación:</span>
+                    <span className="flex-1">{op.number}</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="font-semibold text-gray-900 mr-2">Carga:</span>
+                    <span className="flex-1">{op.weight}dmt / {op.contract?.commodity.name}</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="font-semibold text-gray-900 mr-2">Cliente:</span>
+                    <span className="flex-1">{op.counterparty?.name}</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="font-semibold text-gray-900 mr-2">Contrato:</span>
+                    <span className="flex-1">{op.contract?.number} / {op.deliveryQuota}</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="font-semibold text-gray-900 mr-2">Ubicación:</span>
+                    <span className="flex-1">{op.currentLocation}</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="font-semibold text-gray-900 mr-2">ETA Programado:</span>
+                    <span className="flex-1">{formatDateTime(op.scheduledDate)}</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="font-semibold text-gray-900 mr-2">Operador:</span>
+                    <span className="flex-1">{op.carrier} / Placas {op.vehiclePlate}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -188,7 +301,7 @@ const LogisticsList: React.FC<LogisticsListProps> = ({ onCreateNew, onViewDetail
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredShipments.map((shipment) => {
                 const TransportIcon = getTransportIcon(shipment.transportMode);
-                
+
                 return (
                   <tr key={shipment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">

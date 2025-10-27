@@ -144,11 +144,15 @@ export interface Shipment {
   type: 'inbound' | 'outbound';
   transportMode: 'truck' | 'rail' | 'ship' | 'air';
   carrier: string;
+  vehiclePlate?: string;
   origin: Address;
   destination: Address;
   status: 'planned' | 'in_transit' | 'delivered' | 'delayed';
   scheduledDate: Date;
   actualDate?: Date;
+  deliveryQuota?: string;
+  weight?: number;
+  currentLocation?: string;
   documents: Document[];
 }
 
