@@ -90,46 +90,80 @@ const LogisticsList: React.FC<LogisticsListProps> = ({ onCreateNew, onViewDetail
       {/* Operation Status Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* En Patio de Salidas */}
-        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl shadow-lg p-6">
-          <div className="flex items-center mb-4">
-            <Package className="w-6 h-6 text-yellow-700 mr-2" />
-            <h2 className="text-xl font-bold text-yellow-900">En Patio de Salidas</h2>
-            <span className="ml-auto bg-yellow-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+          <div className="flex items-center mb-5">
+            <Package className="w-6 h-6 text-yellow-600 mr-2" />
+            <h2 className="text-xl font-bold text-gray-800">En Patio de Salidas</h2>
+            <span className="ml-auto bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold">
               {patioOperations.length}
             </span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {patioOperations.map((op) => (
-              <div key={op.id} className="bg-white rounded-lg p-4 shadow-sm border border-yellow-100 hover:shadow-md transition-shadow">
-                <div className="text-sm text-gray-600 space-y-1.5">
-                  <div className="flex items-start">
-                    <span className="font-semibold text-gray-900 mr-2">Operación:</span>
-                    <span className="flex-1">{op.number}</span>
+              <div key={op.id} className="bg-gray-50 rounded-lg p-5 border border-gray-200 hover:shadow-md transition-all relative">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">{op.contract?.number}</h3>
+                    <div className="flex gap-2 mt-2">
+                      <span className="bg-emerald-500 text-white px-3 py-1 rounded text-xs font-medium">Activo</span>
+                      <span className="bg-orange-500 text-white px-3 py-1 rounded text-xs font-medium">Salida</span>
+                    </div>
                   </div>
-                  <div className="flex items-start">
-                    <span className="font-semibold text-gray-900 mr-2">Carga:</span>
-                    <span className="flex-1">{op.weight}dmt / {op.contract?.commodity.name}</span>
+                  <button className="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-gray-400 transition-colors" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-8 gap-y-3 mb-4">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Cliente</p>
+                    <p className="text-sm font-semibold text-gray-900">{op.counterparty?.name}</p>
                   </div>
-                  <div className="flex items-start">
-                    <span className="font-semibold text-gray-900 mr-2">Cliente:</span>
-                    <span className="flex-1">{op.counterparty?.name}</span>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Commodity</p>
+                    <p className="text-sm font-semibold text-gray-900">{op.contract?.commodity.name}</p>
                   </div>
-                  <div className="flex items-start">
-                    <span className="font-semibold text-gray-900 mr-2">Contrato:</span>
-                    <span className="flex-1">{op.contract?.number} / {op.deliveryQuota}</span>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Cantidad</p>
+                    <p className="text-sm font-semibold text-gray-900">{op.weight} TM</p>
                   </div>
-                  <div className="flex items-start">
-                    <span className="font-semibold text-gray-900 mr-2">Ubicación:</span>
-                    <span className="flex-1">{op.origin.street}</span>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Fecha de Entrega</p>
+                    <p className="text-sm font-semibold text-gray-900">{op.scheduledDate.toLocaleDateString('es-ES')}</p>
                   </div>
-                  <div className="flex items-start">
-                    <span className="font-semibold text-gray-900 mr-2">ETA Programado:</span>
-                    <span className="flex-1">{formatDateTime(op.scheduledDate)}</span>
+                </div>
+
+                <div className="border-t border-gray-200 pt-3 mb-3">
+                  <div className="grid grid-cols-3 gap-3 text-xs">
+                    <div>
+                      <span className="text-gray-500">Operación:</span>
+                      <p className="font-medium text-gray-900 mt-1">{op.number}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Incoterm:</span>
+                      <p className="font-medium text-gray-900 mt-1">{op.contract?.incoterms}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Destino:</span>
+                      <p className="font-medium text-gray-900 mt-1">{op.destination.street}</p>
+                    </div>
                   </div>
-                  <div className="flex items-start">
-                    <span className="font-semibold text-gray-900 mr-2">Operador:</span>
-                    <span className="flex-1">{op.carrier} / Placas {op.vehiclePlate}</span>
+                </div>
+
+                <div className="bg-white rounded p-3 text-xs">
+                  <p className="text-gray-500 mb-2">Especificaciones de Calidad:</p>
+                  <div className="flex gap-4 flex-wrap">
+                    {op.contract?.qualitySpecs.slice(0, 3).map((spec, idx) => (
+                      <div key={idx}>
+                        <span className="font-semibold text-gray-900">{spec.element}:</span>{' '}
+                        <span className="text-gray-700">
+                          {spec.type === 'penalty' && spec.maxValue ? `≤${spec.maxValue}` : `≥${spec.minValue}`}{spec.unit}
+                        </span>
+                      </div>
+                    ))}
                   </div>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-600">
+                  <span className="font-medium">Operador:</span> {op.carrier} • <span className="font-medium">Placas:</span> {op.vehiclePlate} • <span className="font-medium">Ubicación:</span> {op.origin.street}
                 </div>
               </div>
             ))}
@@ -137,46 +171,80 @@ const LogisticsList: React.FC<LogisticsListProps> = ({ onCreateNew, onViewDetail
         </div>
 
         {/* En Tránsito */}
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-xl shadow-lg p-6">
-          <div className="flex items-center mb-4">
-            <Truck className="w-6 h-6 text-blue-700 mr-2" />
-            <h2 className="text-xl font-bold text-blue-900">En Tránsito</h2>
-            <span className="ml-auto bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+          <div className="flex items-center mb-5">
+            <Truck className="w-6 h-6 text-blue-600 mr-2" />
+            <h2 className="text-xl font-bold text-gray-800">En Tránsito</h2>
+            <span className="ml-auto bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
               {transitOperations.length}
             </span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {transitOperations.map((op) => (
-              <div key={op.id} className="bg-white rounded-lg p-4 shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
-                <div className="text-sm text-gray-600 space-y-1.5">
-                  <div className="flex items-start">
-                    <span className="font-semibold text-gray-900 mr-2">Operación:</span>
-                    <span className="flex-1">{op.number}</span>
+              <div key={op.id} className="bg-gray-50 rounded-lg p-5 border border-gray-200 hover:shadow-md transition-all relative">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">{op.contract?.number}</h3>
+                    <div className="flex gap-2 mt-2">
+                      <span className="bg-emerald-500 text-white px-3 py-1 rounded text-xs font-medium">Activo</span>
+                      <span className="bg-blue-500 text-white px-3 py-1 rounded text-xs font-medium">En Tránsito</span>
+                    </div>
                   </div>
-                  <div className="flex items-start">
-                    <span className="font-semibold text-gray-900 mr-2">Carga:</span>
-                    <span className="flex-1">{op.weight}dmt / {op.contract?.commodity.name}</span>
+                  <button className="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-gray-400 transition-colors" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-8 gap-y-3 mb-4">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Cliente</p>
+                    <p className="text-sm font-semibold text-gray-900">{op.counterparty?.name}</p>
                   </div>
-                  <div className="flex items-start">
-                    <span className="font-semibold text-gray-900 mr-2">Cliente:</span>
-                    <span className="flex-1">{op.counterparty?.name}</span>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Commodity</p>
+                    <p className="text-sm font-semibold text-gray-900">{op.contract?.commodity.name}</p>
                   </div>
-                  <div className="flex items-start">
-                    <span className="font-semibold text-gray-900 mr-2">Contrato:</span>
-                    <span className="flex-1">{op.contract?.number} / {op.deliveryQuota}</span>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Cantidad</p>
+                    <p className="text-sm font-semibold text-gray-900">{op.weight} TM</p>
                   </div>
-                  <div className="flex items-start">
-                    <span className="font-semibold text-gray-900 mr-2">Ubicación:</span>
-                    <span className="flex-1">{op.currentLocation}</span>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">ETA Programado</p>
+                    <p className="text-sm font-semibold text-gray-900">{formatDateTime(op.scheduledDate)}</p>
                   </div>
-                  <div className="flex items-start">
-                    <span className="font-semibold text-gray-900 mr-2">ETA Programado:</span>
-                    <span className="flex-1">{formatDateTime(op.scheduledDate)}</span>
+                </div>
+
+                <div className="border-t border-gray-200 pt-3 mb-3">
+                  <div className="grid grid-cols-3 gap-3 text-xs">
+                    <div>
+                      <span className="text-gray-500">Operación:</span>
+                      <p className="font-medium text-gray-900 mt-1">{op.number}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Incoterm:</span>
+                      <p className="font-medium text-gray-900 mt-1">{op.contract?.incoterms}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Ubicación:</span>
+                      <p className="font-medium text-blue-600 mt-1">{op.currentLocation}</p>
+                    </div>
                   </div>
-                  <div className="flex items-start">
-                    <span className="font-semibold text-gray-900 mr-2">Operador:</span>
-                    <span className="flex-1">{op.carrier} / Placas {op.vehiclePlate}</span>
+                </div>
+
+                <div className="bg-white rounded p-3 text-xs">
+                  <p className="text-gray-500 mb-2">Especificaciones de Calidad:</p>
+                  <div className="flex gap-4 flex-wrap">
+                    {op.contract?.qualitySpecs.slice(0, 3).map((spec, idx) => (
+                      <div key={idx}>
+                        <span className="font-semibold text-gray-900">{spec.element}:</span>{' '}
+                        <span className="text-gray-700">
+                          {spec.type === 'penalty' && spec.maxValue ? `≤${spec.maxValue}` : `≥${spec.minValue}`}{spec.unit}
+                        </span>
+                      </div>
+                    ))}
                   </div>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-600">
+                  <span className="font-medium">Operador:</span> {op.carrier} • <span className="font-medium">Placas:</span> {op.vehiclePlate} • <span className="font-medium">Cuota:</span> {op.deliveryQuota}
                 </div>
               </div>
             ))}
