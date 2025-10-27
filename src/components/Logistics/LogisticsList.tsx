@@ -58,12 +58,12 @@ const LogisticsList: React.FC<LogisticsListProps> = ({ onCreateNew, onViewDetail
 
   const formatDateTime = (date: Date) => {
     return date.toLocaleDateString('es-ES', {
-      day: '2digit',
+      day: '2-digit',
       month: 'short',
-      year: '2digit'
+      year: '2-digit'
     }) + ' @ ' + date.toLocaleTimeString('es-ES', {
-      hour: '2digit',
-      minute: '2digit',
+      hour: '2-digit',
+      minute: '2-digit',
       hour12: false
     }) + 'hrs';
   };
