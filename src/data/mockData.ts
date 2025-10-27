@@ -178,6 +178,32 @@ export const mockContracts: Contract[] = [
     status: 'active',
     createdAt: new Date('2024-11-10'),
     updatedAt: new Date('2024-11-20')
+  },
+  {
+    id: '3',
+    number: 'CONT-2026-001',
+    type: 'purchase',
+    counterpartyId: '2',
+    commodity: mockCommodities[0],
+    quantity: 1200,
+    tolerance: 10,
+    qualitySpecs: [
+      { element: 'Cu', type: 'payable', expectedValue: 28.0, minValue: 25, unit: '%' },
+      { element: 'As', type: 'penalty', expectedValue: 0.5, maxValue: 1.0, unit: '%' }
+    ],
+    pricing: {
+      type: 'formula',
+      formula: 'LME Cu M+1 - 120',
+      currency: 'USD'
+    },
+    deliveryPeriod: {
+      start: new Date('2026-01-01'),
+      end: new Date('2026-12-31')
+    },
+    incoterms: 'FOB Valparaiso',
+    status: 'draft',
+    createdAt: new Date('2024-12-05'),
+    updatedAt: new Date('2024-12-05')
   }
 ];
 

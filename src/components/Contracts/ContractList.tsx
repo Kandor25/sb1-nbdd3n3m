@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
+import { FileText, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import { mockContracts, mockCounterparties } from '../../data/mockData';
 import type { Contract } from '../../types';
 
@@ -18,6 +18,9 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
     ...contract,
     counterparty: mockCounterparties.find(cp => cp.id === contract.counterpartyId)
   }));
+
+  // Separate pending confirmation contracts
+  const pendingContracts = contractsWithCounterparties.filter(c => c.status === 'draft');
 
   const filteredContracts = contractsWithCounterparties.filter(contract => {
     const matchesSearch = contract.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -66,6 +69,62 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
           Nuevo Contrato
         </button>
       </div>
+
+      {/* Pending Confirmation Section */}
+      {pendingContracts.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          <div className="flex items-center mb-4">
+            <AlertCircle className="w-5 h-5 text-amber-600 mr-2" />
+            <h2 className="text-lg font-bold text-gray-800">Por Confirmar</h2>
+            <span className="ml-auto bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+              {pendingContracts.length}
+            </span>
+          </div>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {pendingContracts.map((contract) => {
+              const daysDelayed = Math.floor((Date.now() - contract.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+              const deliveryPeriodText = `${contract.deliveryPeriod.start.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })} - ${contract.deliveryPeriod.end.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}`;
+
+              return (
+                <div key={contract.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 w-40">
+                      <h3 className="text-base font-bold text-gray-900 mb-2">{contract.number}</h3>
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="bg-amber-500 text-white px-2 py-0.5 rounded text-xs font-medium">Por Confirmar</span>
+                        <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">
+                          {contract.type === 'purchase' ? 'Compra' : 'Venta'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="text-sm space-y-1.5">
+                        <p>
+                          <span className="font-semibold text-gray-900">{contract.commodity.name}</span> / {deliveryPeriodText} / Total <span className="font-semibold">{contract.quantity.toLocaleString()} dmt</span> / Type: <span className="font-medium">Renovación</span> / Cliente: <span className="font-medium">{contract.counterparty?.name}</span>
+                        </p>
+                        {daysDelayed > 0 && (
+                          <p className="text-red-600">
+                            <span className="font-semibold">Delayed:</span> {daysDelayed} días atraso
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <button className="flex-shrink-0 w-7 h-7 rounded-full border-2 border-gray-300 hover:border-gray-400 transition-colors" />
+                  </div>
+
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <div className="text-xs text-gray-700">
+                      <span className="font-semibold">Action:</span> Falta confirmar versión 2.0 <span className="mx-2">=⇒</span> <span className="font-medium">{contract.counterparty?.name}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Search and Filter Bar */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
