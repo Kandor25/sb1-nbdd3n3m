@@ -88,82 +88,87 @@ const LogisticsList: React.FC<LogisticsListProps> = ({ onCreateNew, onViewDetail
       </div>
 
       {/* Operation Status Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-6">
         {/* En Patio de Salidas */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-          <div className="flex items-center mb-5">
-            <Package className="w-6 h-6 text-yellow-600 mr-2" />
-            <h2 className="text-xl font-bold text-gray-800">En Patio de Salidas</h2>
-            <span className="ml-auto bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          <div className="flex items-center mb-4">
+            <Package className="w-5 h-5 text-yellow-600 mr-2" />
+            <h2 className="text-lg font-bold text-gray-800">En Patio de Salidas</h2>
+            <span className="ml-auto bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-full text-xs font-semibold">
               {patioOperations.length}
             </span>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {patioOperations.map((op) => (
-              <div key={op.id} className="bg-gray-50 rounded-lg p-5 border border-gray-200 hover:shadow-md transition-all relative">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">{op.contract?.number}</h3>
-                    <div className="flex gap-2 mt-2">
-                      <span className="bg-emerald-500 text-white px-3 py-1 rounded text-xs font-medium">Activo</span>
-                      <span className="bg-orange-500 text-white px-3 py-1 rounded text-xs font-medium">Salida</span>
+              <div key={op.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                <div className="flex items-start gap-4">
+                  {/* Left Section - Contract & Status */}
+                  <div className="flex-shrink-0 w-40">
+                    <h3 className="text-base font-bold text-gray-900 mb-2">{op.contract?.number}</h3>
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="bg-emerald-500 text-white px-2 py-0.5 rounded text-xs font-medium">Activo</span>
+                      <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-xs font-medium">Salida</span>
                     </div>
                   </div>
-                  <button className="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-gray-400 transition-colors" />
-                </div>
 
-                <div className="grid grid-cols-2 gap-x-8 gap-y-3 mb-4">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Cliente</p>
-                    <p className="text-sm font-semibold text-gray-900">{op.counterparty?.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Commodity</p>
-                    <p className="text-sm font-semibold text-gray-900">{op.contract?.commodity.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Cantidad</p>
-                    <p className="text-sm font-semibold text-gray-900">{op.weight} TM</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Fecha de Entrega</p>
-                    <p className="text-sm font-semibold text-gray-900">{op.scheduledDate.toLocaleDateString('es-ES')}</p>
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-200 pt-3 mb-3">
-                  <div className="grid grid-cols-3 gap-3 text-xs">
+                  {/* Middle Section - Main Info */}
+                  <div className="flex-1 grid grid-cols-4 gap-4">
                     <div>
-                      <span className="text-gray-500">Operación:</span>
-                      <p className="font-medium text-gray-900 mt-1">{op.number}</p>
+                      <p className="text-xs text-gray-500 mb-0.5">Cliente</p>
+                      <p className="text-sm font-semibold text-gray-900">{op.counterparty?.name}</p>
                     </div>
                     <div>
-                      <span className="text-gray-500">Incoterm:</span>
-                      <p className="font-medium text-gray-900 mt-1">{op.contract?.incoterms}</p>
+                      <p className="text-xs text-gray-500 mb-0.5">Commodity</p>
+                      <p className="text-sm font-semibold text-gray-900">{op.contract?.commodity.name}</p>
                     </div>
                     <div>
-                      <span className="text-gray-500">Destino:</span>
-                      <p className="font-medium text-gray-900 mt-1">{op.destination.street}</p>
+                      <p className="text-xs text-gray-500 mb-0.5">Cantidad</p>
+                      <p className="text-sm font-semibold text-gray-900">{op.weight} TM</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-0.5">Fecha</p>
+                      <p className="text-sm font-semibold text-gray-900">{op.scheduledDate.toLocaleDateString('es-ES')}</p>
                     </div>
                   </div>
+
+                  {/* Right Section - Details */}
+                  <div className="flex-1">
+                    <div className="grid grid-cols-3 gap-3 text-xs mb-2">
+                      <div>
+                        <span className="text-gray-500">Op:</span>
+                        <p className="font-medium text-gray-900">{op.number}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Incoterm:</span>
+                        <p className="font-medium text-gray-900">{op.contract?.incoterms}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Destino:</span>
+                        <p className="font-medium text-gray-900">{op.destination.street}</p>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600 border-t border-gray-200 pt-2">
+                      <span className="font-medium">Operador:</span> {op.carrier} • <span className="font-medium">Placas:</span> {op.vehiclePlate}
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <button className="flex-shrink-0 w-7 h-7 rounded-full border-2 border-gray-300 hover:border-gray-400 transition-colors" />
                 </div>
 
-                <div className="bg-white rounded p-3 text-xs">
-                  <p className="text-gray-500 mb-2">Especificaciones de Calidad:</p>
-                  <div className="flex gap-4 flex-wrap">
+                {/* Quality Specs */}
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <div className="flex items-center gap-4 text-xs">
+                    <span className="text-gray-500 font-medium">Calidad:</span>
                     {op.contract?.qualitySpecs.slice(0, 3).map((spec, idx) => (
-                      <div key={idx}>
-                        <span className="font-semibold text-gray-900">{spec.element}:</span>{' '}
+                      <div key={idx} className="flex items-center gap-1">
+                        <span className="font-semibold text-gray-900">{spec.element}:</span>
                         <span className="text-gray-700">
                           {spec.type === 'penalty' && spec.maxValue ? `≤${spec.maxValue}` : `≥${spec.minValue}`}{spec.unit}
                         </span>
                       </div>
                     ))}
                   </div>
-                </div>
-
-                <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-600">
-                  <span className="font-medium">Operador:</span> {op.carrier} • <span className="font-medium">Placas:</span> {op.vehiclePlate} • <span className="font-medium">Ubicación:</span> {op.origin.street}
                 </div>
               </div>
             ))}
@@ -171,80 +176,85 @@ const LogisticsList: React.FC<LogisticsListProps> = ({ onCreateNew, onViewDetail
         </div>
 
         {/* En Tránsito */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-          <div className="flex items-center mb-5">
-            <Truck className="w-6 h-6 text-blue-600 mr-2" />
-            <h2 className="text-xl font-bold text-gray-800">En Tránsito</h2>
-            <span className="ml-auto bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          <div className="flex items-center mb-4">
+            <Truck className="w-5 h-5 text-blue-600 mr-2" />
+            <h2 className="text-lg font-bold text-gray-800">En Tránsito</h2>
+            <span className="ml-auto bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold">
               {transitOperations.length}
             </span>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {transitOperations.map((op) => (
-              <div key={op.id} className="bg-gray-50 rounded-lg p-5 border border-gray-200 hover:shadow-md transition-all relative">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">{op.contract?.number}</h3>
-                    <div className="flex gap-2 mt-2">
-                      <span className="bg-emerald-500 text-white px-3 py-1 rounded text-xs font-medium">Activo</span>
-                      <span className="bg-blue-500 text-white px-3 py-1 rounded text-xs font-medium">En Tránsito</span>
+              <div key={op.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                <div className="flex items-start gap-4">
+                  {/* Left Section - Contract & Status */}
+                  <div className="flex-shrink-0 w-40">
+                    <h3 className="text-base font-bold text-gray-900 mb-2">{op.contract?.number}</h3>
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="bg-emerald-500 text-white px-2 py-0.5 rounded text-xs font-medium">Activo</span>
+                      <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">Tránsito</span>
                     </div>
                   </div>
-                  <button className="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-gray-400 transition-colors" />
-                </div>
 
-                <div className="grid grid-cols-2 gap-x-8 gap-y-3 mb-4">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Cliente</p>
-                    <p className="text-sm font-semibold text-gray-900">{op.counterparty?.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Commodity</p>
-                    <p className="text-sm font-semibold text-gray-900">{op.contract?.commodity.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Cantidad</p>
-                    <p className="text-sm font-semibold text-gray-900">{op.weight} TM</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">ETA Programado</p>
-                    <p className="text-sm font-semibold text-gray-900">{formatDateTime(op.scheduledDate)}</p>
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-200 pt-3 mb-3">
-                  <div className="grid grid-cols-3 gap-3 text-xs">
+                  {/* Middle Section - Main Info */}
+                  <div className="flex-1 grid grid-cols-4 gap-4">
                     <div>
-                      <span className="text-gray-500">Operación:</span>
-                      <p className="font-medium text-gray-900 mt-1">{op.number}</p>
+                      <p className="text-xs text-gray-500 mb-0.5">Cliente</p>
+                      <p className="text-sm font-semibold text-gray-900">{op.counterparty?.name}</p>
                     </div>
                     <div>
-                      <span className="text-gray-500">Incoterm:</span>
-                      <p className="font-medium text-gray-900 mt-1">{op.contract?.incoterms}</p>
+                      <p className="text-xs text-gray-500 mb-0.5">Commodity</p>
+                      <p className="text-sm font-semibold text-gray-900">{op.contract?.commodity.name}</p>
                     </div>
                     <div>
-                      <span className="text-gray-500">Ubicación:</span>
-                      <p className="font-medium text-blue-600 mt-1">{op.currentLocation}</p>
+                      <p className="text-xs text-gray-500 mb-0.5">Cantidad</p>
+                      <p className="text-sm font-semibold text-gray-900">{op.weight} TM</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-0.5">ETA</p>
+                      <p className="text-sm font-semibold text-gray-900">{formatDateTime(op.scheduledDate)}</p>
                     </div>
                   </div>
+
+                  {/* Right Section - Details */}
+                  <div className="flex-1">
+                    <div className="grid grid-cols-3 gap-3 text-xs mb-2">
+                      <div>
+                        <span className="text-gray-500">Op:</span>
+                        <p className="font-medium text-gray-900">{op.number}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Incoterm:</span>
+                        <p className="font-medium text-gray-900">{op.contract?.incoterms}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Ubicación:</span>
+                        <p className="font-medium text-blue-600">{op.currentLocation}</p>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600 border-t border-gray-200 pt-2">
+                      <span className="font-medium">Operador:</span> {op.carrier} • <span className="font-medium">Placas:</span> {op.vehiclePlate}
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <button className="flex-shrink-0 w-7 h-7 rounded-full border-2 border-gray-300 hover:border-gray-400 transition-colors" />
                 </div>
 
-                <div className="bg-white rounded p-3 text-xs">
-                  <p className="text-gray-500 mb-2">Especificaciones de Calidad:</p>
-                  <div className="flex gap-4 flex-wrap">
+                {/* Quality Specs */}
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <div className="flex items-center gap-4 text-xs">
+                    <span className="text-gray-500 font-medium">Calidad:</span>
                     {op.contract?.qualitySpecs.slice(0, 3).map((spec, idx) => (
-                      <div key={idx}>
-                        <span className="font-semibold text-gray-900">{spec.element}:</span>{' '}
+                      <div key={idx} className="flex items-center gap-1">
+                        <span className="font-semibold text-gray-900">{spec.element}:</span>
                         <span className="text-gray-700">
                           {spec.type === 'penalty' && spec.maxValue ? `≤${spec.maxValue}` : `≥${spec.minValue}`}{spec.unit}
                         </span>
                       </div>
                     ))}
                   </div>
-                </div>
-
-                <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-600">
-                  <span className="font-medium">Operador:</span> {op.carrier} • <span className="font-medium">Placas:</span> {op.vehiclePlate} • <span className="font-medium">Cuota:</span> {op.deliveryQuota}
                 </div>
               </div>
             ))}
