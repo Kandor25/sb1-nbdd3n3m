@@ -116,7 +116,7 @@ interface GTCOrder {
 
 const Dashboard: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
-    contratos: true,
+    contratos: false,
     logistica: false,
     ensayos: false,
     pagos: false,
@@ -679,27 +679,15 @@ const Dashboard: React.FC = () => {
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {pendingContracts.map((contract) => (
                   <div key={contract.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-40">
-                        <h3 className="text-base font-bold text-gray-900 mb-2">{contract.client}</h3>
-                        <div className="flex flex-wrap gap-1.5">
-                          <span className="bg-amber-500 text-white px-2 py-0.5 rounded text-xs font-medium">Por Confirmar</span>
-                          <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">{contract.type}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex-1">
-                        <div className="text-sm space-y-1.5">
-                          <p>
-                            <span className="font-semibold text-gray-900">{contract.commodity}</span> / {contract.deliveryPeriod} / Total <span className="font-semibold">{contract.quantity.toLocaleString()}dmt</span> / Type: <span className="font-medium">{contract.type}</span> / Cliente {contract.client}
-                          </p>
-                          {contract.delayed > 0 && (
-                            <p className="text-red-600">
-                              <span className="font-semibold">Delayed:</span> {contract.delayed} días atraso
-                            </p>
-                          )}
-                        </div>
-                      </div>
+                    <div className="text-sm space-y-1.5">
+                      <p>
+                        <span className="font-semibold text-gray-900">{contract.commodity}</span> / {contract.deliveryPeriod} / Total <span className="font-semibold">{contract.quantity.toLocaleString()}dmt</span> / Type: <span className="font-medium">{contract.type}</span> / Cliente {contract.client}
+                      </p>
+                      {contract.delayed > 0 && (
+                        <p className="text-red-600">
+                          <span className="font-semibold">Delayed:</span> {contract.delayed} días atraso
+                        </p>
+                      )}
                     </div>
 
                     <div className="mt-3 pt-3 border-t border-gray-200">
