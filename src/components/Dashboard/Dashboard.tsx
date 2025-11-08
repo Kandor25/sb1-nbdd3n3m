@@ -1027,28 +1027,16 @@ const Dashboard: React.FC = () => {
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {overduePayments.map((payment) => (
                         <div key={payment.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                          <div className="flex items-start gap-4">
-                            <div className="flex-shrink-0 w-48">
-                              <h4 className="text-base font-bold text-gray-900 mb-2">Embarque {payment.shipmentNumber}</h4>
-                              <div className="flex flex-wrap gap-1.5">
-                                <span className="bg-red-500 text-white px-2 py-0.5 rounded text-xs font-medium">Vencido</span>
-                                <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">Pago</span>
-                              </div>
-                            </div>
-
-                            <div className="flex-1">
-                              <div className="text-sm space-y-1">
-                                <p className="text-gray-900">
-                                  <span className="font-semibold">Tipo:</span> {payment.type}
-                                </p>
-                                <p className="text-gray-700">
-                                  <span className="font-semibold">==&gt;</span> Embarque {payment.shipmentNumber} / <span className="font-semibold">{payment.quantity}dmt</span> / {payment.commodity} / Cliente {payment.client} / {payment.contract} / Cuota {payment.quota}
-                                </p>
-                                <p className="text-gray-600 text-xs">
-                                  <span className="font-semibold">ETA Programada ==&gt;</span> {payment.etaScheduled}
-                                </p>
-                              </div>
-                            </div>
+                          <div className="text-sm space-y-1">
+                            <p className="text-gray-900">
+                              <span className="font-semibold">Tipo:</span> {payment.type}
+                            </p>
+                            <p className="text-gray-700">
+                              <span className="font-semibold">==&gt;</span> Embarque {payment.shipmentNumber} / <span className="font-semibold">{payment.quantity}dmt</span> / {payment.commodity} / Cliente {payment.client} / {payment.contract} / Cuota {payment.quota}
+                            </p>
+                            <p className="text-gray-600 text-xs">
+                              <span className="font-semibold">ETA Programada ==&gt;</span> {payment.etaScheduled}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -1082,28 +1070,16 @@ const Dashboard: React.FC = () => {
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {overdueCollections.map((collection) => (
                         <div key={collection.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                          <div className="flex items-start gap-4">
-                            <div className="flex-shrink-0 w-48">
-                              <h4 className="text-base font-bold text-gray-900 mb-2">Embarque {collection.shipmentNumber}</h4>
-                              <div className="flex flex-wrap gap-1.5">
-                                <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-xs font-medium">Vencido</span>
-                                <span className="bg-teal-500 text-white px-2 py-0.5 rounded text-xs font-medium">Cobro</span>
-                              </div>
-                            </div>
-
-                            <div className="flex-1">
-                              <div className="text-sm space-y-1">
-                                <p className="text-gray-900">
-                                  <span className="font-semibold">Tipo:</span> {collection.type}
-                                </p>
-                                <p className="text-gray-700">
-                                  <span className="font-semibold">==&gt;</span> Embarque {collection.shipmentNumber} / <span className="font-semibold">{collection.quantity}dmt</span> / {collection.commodity} / Cliente {collection.client} / {collection.contract} / Cuota {collection.quota}
-                                </p>
-                                <p className="text-gray-600 text-xs">
-                                  <span className="font-semibold">Programada ==&gt;</span> {collection.scheduled}
-                                </p>
-                              </div>
-                            </div>
+                          <div className="text-sm space-y-1">
+                            <p className="text-gray-900">
+                              <span className="font-semibold">Tipo:</span> {collection.type}
+                            </p>
+                            <p className="text-gray-700">
+                              <span className="font-semibold">==&gt;</span> Embarque {collection.shipmentNumber} / <span className="font-semibold">{collection.quantity}dmt</span> / {collection.commodity} / Cliente {collection.client} / {collection.contract} / Cuota {collection.quota}
+                            </p>
+                            <p className="text-gray-600 text-xs">
+                              <span className="font-semibold">Programada ==&gt;</span> {collection.scheduled}
+                            </p>
                           </div>
                         </div>
                       ))}
