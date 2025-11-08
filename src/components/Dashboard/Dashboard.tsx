@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Package, Truck, DollarSign, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Scale, FlaskConical } from 'lucide-react';
+import { FileText, Package, Truck, DollarSign, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Scale, FlaskConical, MapPin, TruckIcon } from 'lucide-react';
 import MetricCard from './MetricCard';
 import { mockDashboardMetrics, mockContracts, mockInventoryLots, mockShipments } from '../../data/mockData';
 
@@ -746,8 +746,11 @@ const Dashboard: React.FC = () => {
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
                 >
                   <div className="flex items-center">
-                    <span className="bg-emerald-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">En Patio de Salidas</span>
-                    <span className="text-gray-600 text-sm">({patioOperations.length})</span>
+                    <MapPin className="w-4 h-4 text-emerald-500 mr-2" />
+                    <span className="font-bold text-gray-900">En Patio de Salidas</span>
+                    <span className="ml-2 bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                      {patioOperations.length}
+                    </span>
                   </div>
                   {expandedLogistics.patio ? (
                     <ChevronUp className="w-4 h-4 text-gray-400" />
@@ -761,27 +764,16 @@ const Dashboard: React.FC = () => {
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {patioOperations.map((op) => (
                         <div key={op.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                          <div className="flex items-start gap-4">
-                            <div className="flex-shrink-0 w-32">
-                              <h4 className="text-base font-bold text-gray-900 mb-2">#Nro Op: {op.opNumber}</h4>
-                              <div className="flex flex-wrap gap-1.5">
-                                <span className="bg-emerald-500 text-white px-2 py-0.5 rounded text-xs font-medium">Patio</span>
-                              </div>
-                            </div>
-
-                            <div className="flex-1">
-                              <div className="text-sm space-y-1">
-                                <p>
-                                  <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
-                                </p>
-                                <p className="text-gray-700">
-                                  <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> {op.eta}
-                                </p>
-                                <p className="text-gray-600 text-xs">
-                                  <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
-                                </p>
-                              </div>
-                            </div>
+                          <div className="text-sm space-y-1">
+                            <p>
+                              #Nro Op: {op.opNumber} / <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
+                            </p>
+                            <p className="text-gray-700">
+                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> {op.eta}
+                            </p>
+                            <p className="text-gray-600 text-xs">
+                              <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -797,8 +789,11 @@ const Dashboard: React.FC = () => {
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
                 >
                   <div className="flex items-center">
-                    <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">En Tránsito</span>
-                    <span className="text-gray-600 text-sm">({transitOperations.length})</span>
+                    <TruckIcon className="w-4 h-4 text-blue-500 mr-2" />
+                    <span className="font-bold text-gray-900">En Tránsito</span>
+                    <span className="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                      {transitOperations.length}
+                    </span>
                   </div>
                   {expandedLogistics.transito ? (
                     <ChevronUp className="w-4 h-4 text-gray-400" />
@@ -812,27 +807,16 @@ const Dashboard: React.FC = () => {
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {transitOperations.map((op) => (
                         <div key={op.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                          <div className="flex items-start gap-4">
-                            <div className="flex-shrink-0 w-32">
-                              <h4 className="text-base font-bold text-gray-900 mb-2">#Nro Op: {op.opNumber}</h4>
-                              <div className="flex flex-wrap gap-1.5">
-                                <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">Tránsito</span>
-                              </div>
-                            </div>
-
-                            <div className="flex-1">
-                              <div className="text-sm space-y-1">
-                                <p>
-                                  <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
-                                </p>
-                                <p className="text-gray-700">
-                                  <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> {op.eta}
-                                </p>
-                                <p className="text-gray-600 text-xs">
-                                  <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
-                                </p>
-                              </div>
-                            </div>
+                          <div className="text-sm space-y-1">
+                            <p>
+                              #Nro Op: {op.opNumber} / <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
+                            </p>
+                            <p className="text-gray-700">
+                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> {op.eta}
+                            </p>
+                            <p className="text-gray-600 text-xs">
+                              <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
+                            </p>
                           </div>
                         </div>
                       ))}
