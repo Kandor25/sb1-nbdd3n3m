@@ -124,18 +124,18 @@ const Dashboard: React.FC = () => {
   });
 
   const [expandedLogistics, setExpandedLogistics] = useState<{ [key: string]: boolean }>({
-    patio: true,
-    transito: true
+    patio: false,
+    transito: false
   });
 
   const [expandedAssays, setExpandedAssays] = useState<{ [key: string]: boolean }>({
-    weights: true,
-    assays: true
+    weights: false,
+    assays: false
   });
 
   const [expandedPayments, setExpandedPayments] = useState<{ [key: string]: boolean }>({
-    payments: true,
-    collections: true
+    payments: false,
+    collections: false
   });
 
   const [expandedFixings, setExpandedFixings] = useState<{ [key: string]: boolean }>({
