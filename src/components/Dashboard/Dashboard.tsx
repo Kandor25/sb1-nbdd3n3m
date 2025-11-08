@@ -28,6 +28,32 @@ interface LogisticsOperation {
   plate: string;
 }
 
+interface WeightReport {
+  id: string;
+  shipmentNumber: string;
+  quantity: number;
+  commodity: string;
+  client: string;
+  contract: string;
+  quota: string;
+  etaScheduled: string;
+  delayed: boolean;
+}
+
+interface AssayReport {
+  id: string;
+  shipmentNumber: string;
+  quantity: number;
+  commodity: string;
+  client: string;
+  contract: string;
+  quota: string;
+  laboratory: string;
+  etaScheduled: string;
+  comments: string;
+  delayed: boolean;
+}
+
 const Dashboard: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     contratos: true,
@@ -42,6 +68,11 @@ const Dashboard: React.FC = () => {
     transito: true
   });
 
+  const [expandedAssays, setExpandedAssays] = useState<{ [key: string]: boolean }>({
+    weights: true,
+    assays: true
+  });
+
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({
       ...prev,
@@ -51,6 +82,13 @@ const Dashboard: React.FC = () => {
 
   const toggleLogistics = (section: string) => {
     setExpandedLogistics(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const toggleAssays = (section: string) => {
+    setExpandedAssays(prev => ({
       ...prev,
       [section]: !prev[section]
     }));
@@ -198,6 +236,108 @@ const Dashboard: React.FC = () => {
       eta: '9Oct2025@08:00hrs',
       operator: 'Roberto Silva',
       plate: 'MNOP-456'
+    }
+  ];
+
+  const unreportedWeights: WeightReport[] = [
+    {
+      id: '1',
+      shipmentNumber: '10102018',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Sep.25',
+      etaScheduled: '7Oct2025',
+      delayed: true
+    },
+    {
+      id: '2',
+      shipmentNumber: '10102019',
+      quantity: 30,
+      commodity: 'Concentrado Zn',
+      client: 'Peñasquito',
+      contract: 'Contrato 5',
+      quota: 'Sep.25',
+      etaScheduled: '5Oct2025',
+      delayed: true
+    },
+    {
+      id: '3',
+      shipmentNumber: '10102020',
+      quantity: 28,
+      commodity: 'Concentrado Cu',
+      client: 'Glencore',
+      contract: 'Contrato 8',
+      quota: 'Oct.25',
+      etaScheduled: '12Oct2025',
+      delayed: false
+    },
+    {
+      id: '4',
+      shipmentNumber: '10102021',
+      quantity: 32,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Oct.25',
+      etaScheduled: '14Oct2025',
+      delayed: false
+    }
+  ];
+
+  const unreportedAssays: AssayReport[] = [
+    {
+      id: '1',
+      shipmentNumber: '10102018',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Sep.25',
+      laboratory: 'SGS',
+      etaScheduled: '7Oct2025',
+      comments: '*ver detalles x elemento',
+      delayed: true
+    },
+    {
+      id: '2',
+      shipmentNumber: '10102019',
+      quantity: 30,
+      commodity: 'Concentrado Zn',
+      client: 'Peñasquito',
+      contract: 'Contrato 5',
+      quota: 'Sep.25',
+      laboratory: 'ALS',
+      etaScheduled: '8Oct2025',
+      comments: '*ver detalles x elemento',
+      delayed: true
+    },
+    {
+      id: '3',
+      shipmentNumber: '10102020',
+      quantity: 28,
+      commodity: 'Concentrado Cu',
+      client: 'Glencore',
+      contract: 'Contrato 8',
+      quota: 'Oct.25',
+      laboratory: 'SGS',
+      etaScheduled: '15Oct2025',
+      comments: '*ver detalles x elemento',
+      delayed: false
+    },
+    {
+      id: '4',
+      shipmentNumber: '10102015',
+      quantity: 22,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Sep.25',
+      laboratory: 'Intertek',
+      etaScheduled: '10Oct2025',
+      comments: '*ver detalles x elemento',
+      delayed: false
     }
   ];
 
@@ -443,6 +583,12 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center">
               <Package className="w-5 h-5 text-emerald-600 mr-3" />
               <h2 className="text-lg font-bold text-gray-900">3. Ensayos & Pesos</h2>
+              <span className="ml-3 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {unreportedWeights.length} Pesos No Reportados
+              </span>
+              <span className="ml-2 bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {unreportedAssays.length} Ensayes No Reportados
+              </span>
             </div>
             {expandedSections.ensayos ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -452,8 +598,111 @@ const Dashboard: React.FC = () => {
           </button>
 
           {expandedSections.ensayos && (
-            <div className="px-6 pb-5">
-              <p className="text-gray-500 text-sm">Contenido de Ensayos & Pesos próximamente...</p>
+            <div className="px-6 pb-5 space-y-3">
+              {/* Pesos no reportados */}
+              <div className="bg-gray-50 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => toggleAssays('weights')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <span className="bg-red-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">Pesos no reportados</span>
+                    <span className="text-gray-600 text-sm">({unreportedWeights.length})</span>
+                  </div>
+                  {expandedAssays.weights ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+
+                {expandedAssays.weights && (
+                  <div className="px-4 pb-4">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {unreportedWeights.map((weight) => (
+                        <div key={weight.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-40">
+                              <h4 className="text-base font-bold text-gray-900 mb-2">Embarque {weight.shipmentNumber}</h4>
+                              <div className="flex flex-wrap gap-1.5">
+                                <span className="bg-red-500 text-white px-2 py-0.5 rounded text-xs font-medium">Sin Pesos</span>
+                                {weight.delayed && (
+                                  <span className="bg-red-600 text-white px-2 py-0.5 rounded text-xs font-medium">ATRASADO</span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex-1">
+                              <div className="text-sm space-y-1">
+                                <p>
+                                  <span className="font-semibold">{weight.quantity}dmt</span> / {weight.commodity} / Cliente {weight.client} / {weight.contract} / Cuota {weight.quota}
+                                </p>
+                                <p className={weight.delayed ? "text-red-600 font-semibold" : "text-gray-700"}>
+                                  <span className="font-semibold">ETA Programada ==&gt;</span> {weight.etaScheduled} {weight.delayed && "ATRASADO"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Ensayes no reportados */}
+              <div className="bg-gray-50 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => toggleAssays('assays')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">Ensayes no reportados</span>
+                    <span className="text-gray-600 text-sm">({unreportedAssays.length})</span>
+                  </div>
+                  {expandedAssays.assays ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+
+                {expandedAssays.assays && (
+                  <div className="px-4 pb-4">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {unreportedAssays.map((assay) => (
+                        <div key={assay.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-40">
+                              <h4 className="text-base font-bold text-gray-900 mb-2">Embarque {assay.shipmentNumber}</h4>
+                              <div className="flex flex-wrap gap-1.5">
+                                <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-xs font-medium">Sin Ensayes</span>
+                                {assay.delayed && (
+                                  <span className="bg-red-600 text-white px-2 py-0.5 rounded text-xs font-medium">ATRASADO</span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex-1">
+                              <div className="text-sm space-y-1">
+                                <p>
+                                  <span className="font-semibold">{assay.quantity}dmt</span> / {assay.commodity} / Cliente {assay.client} / {assay.contract} / Cuota {assay.quota} / {assay.laboratory}
+                                </p>
+                                <p className={assay.delayed ? "text-red-600 font-semibold" : "text-gray-700"}>
+                                  <span className="font-semibold">ETA Programada ==&gt;</span> {assay.etaScheduled}
+                                </p>
+                                <p className="text-gray-600 text-xs">
+                                  <span className="font-semibold">Comentarios:</span> {assay.comments} {assay.delayed && <span className="text-red-600 font-semibold">ATRASADO</span>}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
