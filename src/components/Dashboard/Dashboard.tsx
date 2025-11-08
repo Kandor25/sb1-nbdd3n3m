@@ -78,6 +78,42 @@ interface OverdueCollection {
   scheduled: string;
 }
 
+interface UpcomingFixing {
+  id: string;
+  shipmentNumber: string;
+  quantity: number;
+  commodity: string;
+  client: string;
+  contract: string;
+  quota: string;
+  terms: {
+    metals: string;
+    period: string;
+    quantities: string;
+    grades: string;
+  };
+}
+
+interface GTCOrder {
+  id: string;
+  shipmentNumber: string;
+  quantity: number;
+  commodity: string;
+  client: string;
+  contract: string;
+  quota: string;
+  actions: Array<{
+    metal: string;
+    action: string;
+    quantity: string;
+    price: string;
+    period: string;
+    expiration: string;
+    exchange: string;
+    reference: string;
+  }>;
+}
+
 const Dashboard: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     contratos: true,
@@ -100,6 +136,11 @@ const Dashboard: React.FC = () => {
   const [expandedPayments, setExpandedPayments] = useState<{ [key: string]: boolean }>({
     payments: true,
     collections: true
+  });
+
+  const [expandedFixings, setExpandedFixings] = useState<{ [key: string]: boolean }>({
+    upcoming: true,
+    gtc: true
   });
 
   const toggleSection = (section: string) => {
@@ -125,6 +166,13 @@ const Dashboard: React.FC = () => {
 
   const togglePayments = (section: string) => {
     setExpandedPayments(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const toggleFixings = (section: string) => {
+    setExpandedFixings(prev => ({
       ...prev,
       [section]: !prev[section]
     }));
@@ -468,6 +516,98 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Sep.25',
       scheduled: '15Oct2025'
+    }
+  ];
+
+  const upcomingFixings: UpcomingFixing[] = [
+    {
+      id: '1',
+      shipmentNumber: '10102015',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Oct.25',
+      terms: {
+        metals: 'CU/AU/AG ==> Promedio Nov.25',
+        period: 'Promedio Nov.25',
+        quantities: '4fmt Cu / 1000oz Ag / 45oz Au',
+        grades: 'Leyes Cu SGS Provisional / Ag SGS Final / Au SGS Final'
+      }
+    },
+    {
+      id: '2',
+      shipmentNumber: '10102016',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Sep.25',
+      terms: {
+        metals: 'CU/AU/AG ==> Oficial 15Oct.25',
+        period: 'Oficial 15Oct.25',
+        quantities: '4fmt Cu / 1000oz Ag / 45oz Au',
+        grades: 'Leyes Cu SGS Final / Ag SGS Final / Au SGS Final'
+      }
+    },
+    {
+      id: '3',
+      shipmentNumber: '10102017',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Sep.25',
+      terms: {
+        metals: 'CU/AU/AG ==> Oficial 16Oct.25',
+        period: 'Oficial 16Oct.25',
+        quantities: '4fmt Cu / 1000oz Ag / 45oz Au',
+        grades: 'Leyes Cu SGS Provisional / Ag SGS Provisional / Au SGS Final'
+      }
+    }
+  ];
+
+  const gtcOrders: GTCOrder[] = [
+    {
+      id: '1',
+      shipmentNumber: '101019997',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Sep.25',
+      actions: [
+        {
+          metal: 'Cu',
+          action: 'Vender',
+          quantity: '11fmt',
+          price: '10,350',
+          period: 'Promedio Nov.25',
+          expiration: '31Oct2025',
+          exchange: 'LME Select',
+          reference: '1234'
+        },
+        {
+          metal: 'Ag',
+          action: 'Vender',
+          quantity: '1,000oz',
+          price: '55',
+          period: 'Promedio Nov.25',
+          expiration: '31Oct2025',
+          exchange: 'LME Select',
+          reference: '1235'
+        },
+        {
+          metal: 'Au',
+          action: 'Vender',
+          quantity: '55oz',
+          price: '4,100',
+          period: 'Promedio Nov.25',
+          expiration: '31Oct2025',
+          exchange: 'LME Select',
+          reference: '1237'
+        }
+      ]
     }
   ];
 
@@ -984,6 +1124,12 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center">
               <TrendingUp className="w-5 h-5 text-orange-600 mr-3" />
               <h2 className="text-lg font-bold text-gray-900">5. Fijaciones</h2>
+              <span className="ml-3 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {upcomingFixings.length} Próximas Fijaciones
+              </span>
+              <span className="ml-2 bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {gtcOrders.length} GTC Abiertas
+              </span>
             </div>
             {expandedSections.fijaciones ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -993,8 +1139,114 @@ const Dashboard: React.FC = () => {
           </button>
 
           {expandedSections.fijaciones && (
-            <div className="px-6 pb-5">
-              <p className="text-gray-500 text-sm">Contenido de Fijaciones próximamente...</p>
+            <div className="px-6 pb-5 space-y-3">
+              {/* Próximas fijaciones */}
+              <div className="bg-gray-50 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => toggleFixings('upcoming')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">Próximas fijaciones</span>
+                    <span className="text-gray-600 text-sm">({upcomingFixings.length})</span>
+                  </div>
+                  {expandedFixings.upcoming ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+
+                {expandedFixings.upcoming && (
+                  <div className="px-4 pb-4">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {upcomingFixings.map((fixing) => (
+                        <div key={fixing.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-40">
+                              <h4 className="text-base font-bold text-gray-900 mb-2">Embarque {fixing.shipmentNumber}</h4>
+                            </div>
+
+                            <div className="flex-1">
+                              <div className="text-sm space-y-1">
+                                <p className="text-gray-700">
+                                  <span className="font-semibold">{fixing.quantity}dmt</span> / {fixing.commodity} / Cliente {fixing.client} / {fixing.contract} / Cuota {fixing.quota}
+                                </p>
+                                <div className="mt-2 space-y-1 text-xs bg-gray-50 p-2 rounded">
+                                  <p className="text-gray-900">
+                                    <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
+                                  </p>
+                                  <p className="text-gray-700">
+                                    {fixing.terms.quantities}
+                                  </p>
+                                  <p className="text-gray-600">
+                                    {fixing.terms.grades}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* GTC abiertas */}
+              <div className="bg-gray-50 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => toggleFixings('gtc')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <span className="bg-green-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">GTC abiertas</span>
+                    <span className="text-gray-600 text-sm">({gtcOrders.length})</span>
+                  </div>
+                  {expandedFixings.gtc ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+
+                {expandedFixings.gtc && (
+                  <div className="px-4 pb-4">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {gtcOrders.map((order) => (
+                        <div key={order.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-40">
+                              <h4 className="text-base font-bold text-gray-900 mb-2">Embarque {order.shipmentNumber}</h4>
+                            </div>
+
+                            <div className="flex-1">
+                              <div className="text-sm space-y-2">
+                                <p className="text-gray-700">
+                                  <span className="font-semibold">{order.quantity}dmt</span> / {order.commodity} / Cliente {order.client} / {order.contract} / Cuota {order.quota}
+                                </p>
+                                <div className="mt-2 space-y-2">
+                                  <p className="font-semibold text-gray-900 text-xs">Actions:</p>
+                                  {order.actions.map((action, index) => (
+                                    <div key={index} className="text-xs bg-gray-50 p-2 rounded">
+                                      <p className="text-gray-900">
+                                        <span className="font-semibold">{action.metal}</span> ==&gt; {action.action} {action.quantity}@{action.price} {action.period}
+                                      </p>
+                                      <p className="text-gray-600 mt-0.5">
+                                        Exp {action.expiration} {action.exchange} / Referencia {action.reference}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
