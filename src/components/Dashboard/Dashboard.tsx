@@ -1162,28 +1162,20 @@ const Dashboard: React.FC = () => {
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {upcomingFixings.map((fixing) => (
                         <div key={fixing.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                          <div className="flex items-start gap-4">
-                            <div className="flex-shrink-0 w-40">
-                              <h4 className="text-base font-bold text-gray-900 mb-2">Embarque {fixing.shipmentNumber}</h4>
-                            </div>
-
-                            <div className="flex-1">
-                              <div className="text-sm space-y-1">
-                                <p className="text-gray-700">
-                                  <span className="font-semibold">{fixing.quantity}dmt</span> / {fixing.commodity} / Cliente {fixing.client} / {fixing.contract} / Cuota {fixing.quota}
-                                </p>
-                                <div className="mt-2 space-y-1 text-xs bg-gray-50 p-2 rounded">
-                                  <p className="text-gray-900">
-                                    <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
-                                  </p>
-                                  <p className="text-gray-700">
-                                    {fixing.terms.quantities}
-                                  </p>
-                                  <p className="text-gray-600">
-                                    {fixing.terms.grades}
-                                  </p>
-                                </div>
-                              </div>
+                          <div className="text-sm space-y-1">
+                            <p className="text-gray-700">
+                              Embarque {fixing.shipmentNumber} / <span className="font-semibold">{fixing.quantity}dmt</span> / {fixing.commodity} / Cliente {fixing.client} / {fixing.contract} / Cuota {fixing.quota}
+                            </p>
+                            <div className="mt-2 space-y-1 text-xs bg-gray-50 p-2 rounded">
+                              <p className="text-gray-900">
+                                <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
+                              </p>
+                              <p className="text-gray-700">
+                                {fixing.terms.quantities}
+                              </p>
+                              <p className="text-gray-600">
+                                {fixing.terms.grades}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -1215,30 +1207,22 @@ const Dashboard: React.FC = () => {
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {gtcOrders.map((order) => (
                         <div key={order.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                          <div className="flex items-start gap-4">
-                            <div className="flex-shrink-0 w-40">
-                              <h4 className="text-base font-bold text-gray-900 mb-2">Embarque {order.shipmentNumber}</h4>
-                            </div>
-
-                            <div className="flex-1">
-                              <div className="text-sm space-y-2">
-                                <p className="text-gray-700">
-                                  <span className="font-semibold">{order.quantity}dmt</span> / {order.commodity} / Cliente {order.client} / {order.contract} / Cuota {order.quota}
-                                </p>
-                                <div className="mt-2 space-y-2">
-                                  <p className="font-semibold text-gray-900 text-xs">Actions:</p>
-                                  {order.actions.map((action, index) => (
-                                    <div key={index} className="text-xs bg-gray-50 p-2 rounded">
-                                      <p className="text-gray-900">
-                                        <span className="font-semibold">{action.metal}</span> ==&gt; {action.action} {action.quantity}@{action.price} {action.period}
-                                      </p>
-                                      <p className="text-gray-600 mt-0.5">
-                                        Exp {action.expiration} {action.exchange} / Referencia {action.reference}
-                                      </p>
-                                    </div>
-                                  ))}
+                          <div className="text-sm space-y-2">
+                            <p className="text-gray-700">
+                              Embarque {order.shipmentNumber} / <span className="font-semibold">{order.quantity}dmt</span> / {order.commodity} / Cliente {order.client} / {order.contract} / Cuota {order.quota}
+                            </p>
+                            <div className="mt-2 space-y-2">
+                              <p className="font-semibold text-gray-900 text-xs">Actions:</p>
+                              {order.actions.map((action, index) => (
+                                <div key={index} className="text-xs bg-gray-50 p-2 rounded">
+                                  <p className="text-gray-900">
+                                    <span className="font-semibold">{action.metal}</span> ==&gt; {action.action} {action.quantity}@{action.price} {action.period}
+                                  </p>
+                                  <p className="text-gray-600 mt-0.5">
+                                    Exp {action.expiration} {action.exchange} / Referencia {action.reference}
+                                  </p>
                                 </div>
-                              </div>
+                              ))}
                             </div>
                           </div>
                         </div>
