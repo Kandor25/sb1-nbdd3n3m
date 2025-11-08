@@ -14,6 +14,20 @@ interface PendingContract {
   action: string;
 }
 
+interface LogisticsOperation {
+  id: string;
+  opNumber: string;
+  quantity: number;
+  commodity: string;
+  client: string;
+  contract: string;
+  quota: string;
+  location: string;
+  eta: string;
+  operator: string;
+  plate: string;
+}
+
 const Dashboard: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     contratos: true,
@@ -61,6 +75,117 @@ const Dashboard: React.FC = () => {
       client: 'Glencore',
       delayed: 15,
       action: 'Falta confirmar versión 3.0 ==> Cliente Glencore'
+    }
+  ];
+
+  // Mock data for logistics operations
+  const patioOperations: LogisticsOperation[] = [
+    {
+      id: '1',
+      opNumber: '10102025',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Oct.25',
+      location: 'Patio A',
+      eta: '10Oct2025@16:00hrs',
+      operator: 'Jaime Camil',
+      plate: 'ABCD-234'
+    },
+    {
+      id: '2',
+      opNumber: '10102027',
+      quantity: 30,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Oct.25P',
+      location: 'Patio B',
+      eta: '16Oct2025@16:00hrs',
+      operator: 'Jaime Camil',
+      plate: 'ABCD-234'
+    },
+    {
+      id: '3',
+      opNumber: '10102028',
+      quantity: 28,
+      commodity: 'Concentrado Zn',
+      client: 'Peñasquito',
+      contract: 'Contrato 5',
+      quota: 'Nov.25',
+      location: 'Patio C',
+      eta: '18Oct2025@14:00hrs',
+      operator: 'Carlos Ruiz',
+      plate: 'EFGH-567'
+    },
+    {
+      id: '4',
+      opNumber: '10102029',
+      quantity: 35,
+      commodity: 'Concentrado Cu',
+      client: 'Glencore',
+      contract: 'Contrato 8',
+      quota: 'Nov.25',
+      location: 'Patio A',
+      eta: '20Oct2025@10:00hrs',
+      operator: 'Luis Martinez',
+      plate: 'IJKL-890'
+    }
+  ];
+
+  const transitOperations: LogisticsOperation[] = [
+    {
+      id: '5',
+      opNumber: '10102022',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Oct.25',
+      location: 'En ruta',
+      eta: '8Oct2025@20:00hrs',
+      operator: 'Jose Camil',
+      plate: 'ABCD-233'
+    },
+    {
+      id: '6',
+      opNumber: '10102023',
+      quantity: 22,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Oct.25',
+      location: 'En ruta',
+      eta: '8Oct2025@21:00hrs',
+      operator: 'Fernando Camil',
+      plate: 'ABCD-232'
+    },
+    {
+      id: '7',
+      opNumber: '10102024',
+      quantity: 23,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Oct.25',
+      location: 'En ruta',
+      eta: '8Oct2025@19:00hrs',
+      operator: 'Alberto Camil',
+      plate: 'ABCD-231'
+    },
+    {
+      id: '8',
+      opNumber: '10102026',
+      quantity: 27,
+      commodity: 'Concentrado Zn',
+      client: 'Peñasquito',
+      contract: 'Contrato 5',
+      quota: 'Oct.25',
+      location: 'En ruta',
+      eta: '9Oct2025@08:00hrs',
+      operator: 'Roberto Silva',
+      plate: 'MNOP-456'
     }
   ];
 
@@ -176,6 +301,12 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center">
               <Truck className="w-5 h-5 text-blue-600 mr-3" />
               <h2 className="text-lg font-bold text-gray-900">2. Logística</h2>
+              <span className="ml-3 bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {patioOperations.length} En Patio
+              </span>
+              <span className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {transitOperations.length} En Tránsito
+              </span>
             </div>
             {expandedSections.logistica ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -185,8 +316,78 @@ const Dashboard: React.FC = () => {
           </button>
 
           {expandedSections.logistica && (
-            <div className="px-6 pb-5">
-              <p className="text-gray-500 text-sm">Contenido de Logística próximamente...</p>
+            <div className="px-6 pb-5 space-y-4">
+              {/* En Patio de Salidas */}
+              <div>
+                <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center">
+                  <span className="bg-emerald-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">En Patio de Salidas</span>
+                  <span className="text-gray-500">({patioOperations.length})</span>
+                </h3>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {patioOperations.map((op) => (
+                    <div key={op.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 w-32">
+                          <h4 className="text-base font-bold text-gray-900 mb-2">#Nro Op: {op.opNumber}</h4>
+                          <div className="flex flex-wrap gap-1.5">
+                            <span className="bg-emerald-500 text-white px-2 py-0.5 rounded text-xs font-medium">Patio</span>
+                          </div>
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="text-sm space-y-1">
+                            <p>
+                              <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
+                            </p>
+                            <p className="text-gray-700">
+                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> {op.eta}
+                            </p>
+                            <p className="text-gray-600 text-xs">
+                              <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* En Tránsito */}
+              <div>
+                <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center">
+                  <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">En Tránsito</span>
+                  <span className="text-gray-500">({transitOperations.length})</span>
+                </h3>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {transitOperations.map((op) => (
+                    <div key={op.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 w-32">
+                          <h4 className="text-base font-bold text-gray-900 mb-2">#Nro Op: {op.opNumber}</h4>
+                          <div className="flex flex-wrap gap-1.5">
+                            <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">Tránsito</span>
+                          </div>
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="text-sm space-y-1">
+                            <p>
+                              <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
+                            </p>
+                            <p className="text-gray-700">
+                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> {op.eta}
+                            </p>
+                            <p className="text-gray-600 text-xs">
+                              <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
