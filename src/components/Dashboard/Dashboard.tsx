@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Package, Truck, DollarSign, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Scale, FlaskConical, MapPin, TruckIcon } from 'lucide-react';
+import { FileText, Package, Truck, DollarSign, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Scale, FlaskConical, MapPin, TruckIcon, Calendar, ListChecks } from 'lucide-react';
 import MetricCard from './MetricCard';
 import { mockDashboardMetrics, mockContracts, mockInventoryLots, mockShipments } from '../../data/mockData';
 
@@ -139,8 +139,8 @@ const Dashboard: React.FC = () => {
   });
 
   const [expandedFixings, setExpandedFixings] = useState<{ [key: string]: boolean }>({
-    upcoming: true,
-    gtc: true
+    upcoming: false,
+    gtc: false
   });
 
   const toggleSection = (section: string) => {
@@ -1073,8 +1073,11 @@ const Dashboard: React.FC = () => {
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
                 >
                   <div className="flex items-center">
-                    <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">Próximas fijaciones</span>
-                    <span className="text-gray-600 text-sm">({upcomingFixings.length})</span>
+                    <Calendar className="w-4 h-4 text-blue-500 mr-2" />
+                    <span className="font-bold text-gray-900">Próximas Fijaciones</span>
+                    <span className="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                      {upcomingFixings.length}
+                    </span>
                   </div>
                   {expandedFixings.upcoming ? (
                     <ChevronUp className="w-4 h-4 text-gray-400" />
@@ -1118,8 +1121,11 @@ const Dashboard: React.FC = () => {
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
                 >
                   <div className="flex items-center">
-                    <span className="bg-green-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">GTC abiertas</span>
-                    <span className="text-gray-600 text-sm">({gtcOrders.length})</span>
+                    <ListChecks className="w-4 h-4 text-green-500 mr-2" />
+                    <span className="font-bold text-gray-900">GTC Abiertas</span>
+                    <span className="ml-2 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                      {gtcOrders.length}
+                    </span>
                   </div>
                   {expandedFixings.gtc ? (
                     <ChevronUp className="w-4 h-4 text-gray-400" />
