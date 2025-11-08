@@ -1,9 +1,69 @@
-import React from 'react';
-import { FileText, Package, Truck, DollarSign, TrendingUp, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { FileText, Package, Truck, DollarSign, TrendingUp, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import MetricCard from './MetricCard';
 import { mockDashboardMetrics, mockContracts, mockInventoryLots, mockShipments } from '../../data/mockData';
 
+interface PendingContract {
+  id: string;
+  commodity: string;
+  deliveryPeriod: string;
+  quantity: number;
+  type: string;
+  client: string;
+  delayed: number;
+  action: string;
+}
+
 const Dashboard: React.FC = () => {
+  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
+    contratos: true,
+    logistica: false,
+    ensayos: false,
+    pagos: false,
+    fijaciones: false
+  });
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  // Mock data for pending contracts
+  const pendingContracts: PendingContract[] = [
+    {
+      id: '1',
+      commodity: 'Concentrado Cu',
+      deliveryPeriod: 'Ene-Dec 2026',
+      quantity: 1200,
+      type: 'Renovación',
+      client: 'Trader A',
+      delayed: 10,
+      action: 'Falta confirmar versión 2.0 ==> Cliente Trader A'
+    },
+    {
+      id: '2',
+      commodity: 'Concentrado Zn',
+      deliveryPeriod: 'Mar-Sep 2026',
+      quantity: 800,
+      type: 'Nuevo',
+      client: 'Peñasquito',
+      delayed: 5,
+      action: 'Falta confirmar versión 1.0 ==> Cliente Peñasquito'
+    },
+    {
+      id: '3',
+      commodity: 'Concentrado Cu',
+      deliveryPeriod: 'Jun-Dec 2026',
+      quantity: 1500,
+      type: 'Renovación',
+      client: 'Glencore',
+      delayed: 15,
+      action: 'Falta confirmar versión 3.0 ==> Cliente Glencore'
+    }
+  ];
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -43,6 +103,165 @@ const Dashboard: React.FC = () => {
           icon={Truck}
           color="red"
         />
+      </div>
+
+      {/* Category Panels */}
+      <div className="space-y-4">
+        {/* 1. Contratos */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <button
+            onClick={() => toggleSection('contratos')}
+            className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center">
+              <FileText className="w-5 h-5 text-blue-600 mr-3" />
+              <h2 className="text-lg font-bold text-gray-900">1. Contratos</h2>
+              <span className="ml-3 bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {pendingContracts.length} Por Confirmar
+              </span>
+            </div>
+            {expandedSections.contratos ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+
+          {expandedSections.contratos && (
+            <div className="px-6 pb-5">
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {pendingContracts.map((contract) => (
+                  <div key={contract.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 w-40">
+                        <h3 className="text-base font-bold text-gray-900 mb-2">{contract.client}</h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          <span className="bg-amber-500 text-white px-2 py-0.5 rounded text-xs font-medium">Por Confirmar</span>
+                          <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">{contract.type}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex-1">
+                        <div className="text-sm space-y-1.5">
+                          <p>
+                            <span className="font-semibold text-gray-900">{contract.commodity}</span> / {contract.deliveryPeriod} / Total <span className="font-semibold">{contract.quantity.toLocaleString()}dmt</span> / Type: <span className="font-medium">{contract.type}</span> / Cliente {contract.client}
+                          </p>
+                          {contract.delayed > 0 && (
+                            <p className="text-red-600">
+                              <span className="font-semibold">Delayed:</span> {contract.delayed} días atraso
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="text-xs text-gray-700">
+                        <span className="font-semibold">Action:</span> {contract.action}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 2. Logística */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <button
+            onClick={() => toggleSection('logistica')}
+            className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center">
+              <Truck className="w-5 h-5 text-blue-600 mr-3" />
+              <h2 className="text-lg font-bold text-gray-900">2. Logística</h2>
+            </div>
+            {expandedSections.logistica ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+
+          {expandedSections.logistica && (
+            <div className="px-6 pb-5">
+              <p className="text-gray-500 text-sm">Contenido de Logística próximamente...</p>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Ensayos & Pesos */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <button
+            onClick={() => toggleSection('ensayos')}
+            className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center">
+              <Package className="w-5 h-5 text-emerald-600 mr-3" />
+              <h2 className="text-lg font-bold text-gray-900">3. Ensayos & Pesos</h2>
+            </div>
+            {expandedSections.ensayos ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+
+          {expandedSections.ensayos && (
+            <div className="px-6 pb-5">
+              <p className="text-gray-500 text-sm">Contenido de Ensayos & Pesos próximamente...</p>
+            </div>
+          )}
+        </div>
+
+        {/* 4. Pagos & Cobros */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <button
+            onClick={() => toggleSection('pagos')}
+            className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center">
+              <DollarSign className="w-5 h-5 text-green-600 mr-3" />
+              <h2 className="text-lg font-bold text-gray-900">4. Pagos & Cobros</h2>
+            </div>
+            {expandedSections.pagos ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+
+          {expandedSections.pagos && (
+            <div className="px-6 pb-5">
+              <p className="text-gray-500 text-sm">Contenido de Pagos & Cobros próximamente...</p>
+            </div>
+          )}
+        </div>
+
+        {/* 5. Fijaciones */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <button
+            onClick={() => toggleSection('fijaciones')}
+            className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center">
+              <TrendingUp className="w-5 h-5 text-orange-600 mr-3" />
+              <h2 className="text-lg font-bold text-gray-900">5. Fijaciones</h2>
+            </div>
+            {expandedSections.fijaciones ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+
+          {expandedSections.fijaciones && (
+            <div className="px-6 pb-5">
+              <p className="text-gray-500 text-sm">Contenido de Fijaciones próximamente...</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Recent Activity Grid */}
