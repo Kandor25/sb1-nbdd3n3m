@@ -37,8 +37,20 @@ const Dashboard: React.FC = () => {
     fijaciones: false
   });
 
+  const [expandedLogistics, setExpandedLogistics] = useState<{ [key: string]: boolean }>({
+    patio: true,
+    transito: true
+  });
+
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const toggleLogistics = (section: string) => {
+    setExpandedLogistics(prev => ({
       ...prev,
       [section]: !prev[section]
     }));
@@ -316,77 +328,107 @@ const Dashboard: React.FC = () => {
           </button>
 
           {expandedSections.logistica && (
-            <div className="px-6 pb-5 space-y-4">
+            <div className="px-6 pb-5 space-y-3">
               {/* En Patio de Salidas */}
-              <div>
-                <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center">
-                  <span className="bg-emerald-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">En Patio de Salidas</span>
-                  <span className="text-gray-500">({patioOperations.length})</span>
-                </h3>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {patioOperations.map((op) => (
-                    <div key={op.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-32">
-                          <h4 className="text-base font-bold text-gray-900 mb-2">#Nro Op: {op.opNumber}</h4>
-                          <div className="flex flex-wrap gap-1.5">
-                            <span className="bg-emerald-500 text-white px-2 py-0.5 rounded text-xs font-medium">Patio</span>
-                          </div>
-                        </div>
+              <div className="bg-gray-50 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => toggleLogistics('patio')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <span className="bg-emerald-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">En Patio de Salidas</span>
+                    <span className="text-gray-600 text-sm">({patioOperations.length})</span>
+                  </div>
+                  {expandedLogistics.patio ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
 
-                        <div className="flex-1">
-                          <div className="text-sm space-y-1">
-                            <p>
-                              <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
-                            </p>
-                            <p className="text-gray-700">
-                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> {op.eta}
-                            </p>
-                            <p className="text-gray-600 text-xs">
-                              <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
-                            </p>
+                {expandedLogistics.patio && (
+                  <div className="px-4 pb-4">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {patioOperations.map((op) => (
+                        <div key={op.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-32">
+                              <h4 className="text-base font-bold text-gray-900 mb-2">#Nro Op: {op.opNumber}</h4>
+                              <div className="flex flex-wrap gap-1.5">
+                                <span className="bg-emerald-500 text-white px-2 py-0.5 rounded text-xs font-medium">Patio</span>
+                              </div>
+                            </div>
+
+                            <div className="flex-1">
+                              <div className="text-sm space-y-1">
+                                <p>
+                                  <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
+                                </p>
+                                <p className="text-gray-700">
+                                  <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> {op.eta}
+                                </p>
+                                <p className="text-gray-600 text-xs">
+                                  <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
               </div>
 
               {/* En Tránsito */}
-              <div>
-                <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center">
-                  <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">En Tránsito</span>
-                  <span className="text-gray-500">({transitOperations.length})</span>
-                </h3>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {transitOperations.map((op) => (
-                    <div key={op.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-32">
-                          <h4 className="text-base font-bold text-gray-900 mb-2">#Nro Op: {op.opNumber}</h4>
-                          <div className="flex flex-wrap gap-1.5">
-                            <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">Tránsito</span>
-                          </div>
-                        </div>
+              <div className="bg-gray-50 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => toggleLogistics('transito')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">En Tránsito</span>
+                    <span className="text-gray-600 text-sm">({transitOperations.length})</span>
+                  </div>
+                  {expandedLogistics.transito ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
 
-                        <div className="flex-1">
-                          <div className="text-sm space-y-1">
-                            <p>
-                              <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
-                            </p>
-                            <p className="text-gray-700">
-                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> {op.eta}
-                            </p>
-                            <p className="text-gray-600 text-xs">
-                              <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
-                            </p>
+                {expandedLogistics.transito && (
+                  <div className="px-4 pb-4">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {transitOperations.map((op) => (
+                        <div key={op.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-32">
+                              <h4 className="text-base font-bold text-gray-900 mb-2">#Nro Op: {op.opNumber}</h4>
+                              <div className="flex flex-wrap gap-1.5">
+                                <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">Tránsito</span>
+                              </div>
+                            </div>
+
+                            <div className="flex-1">
+                              <div className="text-sm space-y-1">
+                                <p>
+                                  <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
+                                </p>
+                                <p className="text-gray-700">
+                                  <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> {op.eta}
+                                </p>
+                                <p className="text-gray-600 text-xs">
+                                  <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
