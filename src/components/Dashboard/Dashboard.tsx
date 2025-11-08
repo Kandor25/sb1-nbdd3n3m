@@ -54,6 +54,30 @@ interface AssayReport {
   delayed: boolean;
 }
 
+interface OverduePayment {
+  id: string;
+  type: string;
+  shipmentNumber: string;
+  quantity: number;
+  commodity: string;
+  client: string;
+  contract: string;
+  quota: string;
+  etaScheduled: string;
+}
+
+interface OverdueCollection {
+  id: string;
+  type: string;
+  shipmentNumber: string;
+  quantity: number;
+  commodity: string;
+  client: string;
+  contract: string;
+  quota: string;
+  scheduled: string;
+}
+
 const Dashboard: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     contratos: true,
@@ -73,6 +97,11 @@ const Dashboard: React.FC = () => {
     assays: true
   });
 
+  const [expandedPayments, setExpandedPayments] = useState<{ [key: string]: boolean }>({
+    payments: true,
+    collections: true
+  });
+
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({
       ...prev,
@@ -89,6 +118,13 @@ const Dashboard: React.FC = () => {
 
   const toggleAssays = (section: string) => {
     setExpandedAssays(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const togglePayments = (section: string) => {
+    setExpandedPayments(prev => ({
       ...prev,
       [section]: !prev[section]
     }));
@@ -338,6 +374,100 @@ const Dashboard: React.FC = () => {
       etaScheduled: '10Oct2025',
       comments: '*ver detalles x elemento',
       delayed: false
+    }
+  ];
+
+  const overduePayments: OverduePayment[] = [
+    {
+      id: '1',
+      type: 'Ensayes laboratorios SGS Peru Jul.25',
+      shipmentNumber: '10102015',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Jul.25',
+      etaScheduled: '3Oct-2025'
+    },
+    {
+      id: '2',
+      type: 'Ensayes laboratorios ALS Mexico Aug.25',
+      shipmentNumber: '10102018',
+      quantity: 30,
+      commodity: 'Concentrado Zn',
+      client: 'Peñasquito',
+      contract: 'Contrato 5',
+      quota: 'Aug.25',
+      etaScheduled: '5Oct-2025'
+    },
+    {
+      id: '3',
+      type: 'Transporte terrestre Sep.25',
+      shipmentNumber: '10102020',
+      quantity: 28,
+      commodity: 'Concentrado Cu',
+      client: 'Glencore',
+      contract: 'Contrato 8',
+      quota: 'Sep.25',
+      etaScheduled: '8Oct-2025'
+    },
+    {
+      id: '4',
+      type: 'Ensayes laboratorios Intertek Chile Sep.25',
+      shipmentNumber: '10102022',
+      quantity: 22,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Sep.25',
+      etaScheduled: '10Oct-2025'
+    }
+  ];
+
+  const overdueCollections: OverdueCollection[] = [
+    {
+      id: '1',
+      type: 'Pago provisional',
+      shipmentNumber: '10102015',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Jul.25',
+      scheduled: '7Oct2025'
+    },
+    {
+      id: '2',
+      type: 'Pago provisional',
+      shipmentNumber: '17112015',
+      quantity: 70,
+      commodity: 'Concentrado Cu',
+      client: 'Peñasquito',
+      contract: 'Contrato 10',
+      quota: 'Oct.25',
+      scheduled: '10Jan2029'
+    },
+    {
+      id: '3',
+      type: 'Pago final',
+      shipmentNumber: '10102018',
+      quantity: 30,
+      commodity: 'Concentrado Zn',
+      client: 'Glencore',
+      contract: 'Contrato 8',
+      quota: 'Aug.25',
+      scheduled: '12Oct2025'
+    },
+    {
+      id: '4',
+      type: 'Pago provisional',
+      shipmentNumber: '10102020',
+      quantity: 28,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Sep.25',
+      scheduled: '15Oct2025'
     }
   ];
 
@@ -716,6 +846,12 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center">
               <DollarSign className="w-5 h-5 text-green-600 mr-3" />
               <h2 className="text-lg font-bold text-gray-900">4. Pagos & Cobros</h2>
+              <span className="ml-3 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {overduePayments.length} Pagos Vencidos
+              </span>
+              <span className="ml-2 bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {overdueCollections.length} Cobros Vencidos
+              </span>
             </div>
             {expandedSections.pagos ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -725,8 +861,116 @@ const Dashboard: React.FC = () => {
           </button>
 
           {expandedSections.pagos && (
-            <div className="px-6 pb-5">
-              <p className="text-gray-500 text-sm">Contenido de Pagos & Cobros próximamente...</p>
+            <div className="px-6 pb-5 space-y-3">
+              {/* Pagos vencidos */}
+              <div className="bg-gray-50 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => togglePayments('payments')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <AlertCircle className="w-4 h-4 text-red-500 mr-2" />
+                    <span className="font-bold text-gray-900">Pagos Vencidos</span>
+                    <span className="ml-2 bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                      {overduePayments.length}
+                    </span>
+                  </div>
+                  {expandedPayments.payments ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+
+                {expandedPayments.payments && (
+                  <div className="px-4 pb-4">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {overduePayments.map((payment) => (
+                        <div key={payment.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-48">
+                              <h4 className="text-base font-bold text-gray-900 mb-2">Embarque {payment.shipmentNumber}</h4>
+                              <div className="flex flex-wrap gap-1.5">
+                                <span className="bg-red-500 text-white px-2 py-0.5 rounded text-xs font-medium">Vencido</span>
+                                <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">Pago</span>
+                              </div>
+                            </div>
+
+                            <div className="flex-1">
+                              <div className="text-sm space-y-1">
+                                <p className="text-gray-900">
+                                  <span className="font-semibold">Tipo:</span> {payment.type}
+                                </p>
+                                <p className="text-gray-700">
+                                  <span className="font-semibold">==&gt;</span> Embarque {payment.shipmentNumber} / <span className="font-semibold">{payment.quantity}dmt</span> / {payment.commodity} / Cliente {payment.client} / {payment.contract} / Cuota {payment.quota}
+                                </p>
+                                <p className="text-gray-600 text-xs">
+                                  <span className="font-semibold">ETA Programada ==&gt;</span> {payment.etaScheduled}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Cobros vencidos */}
+              <div className="bg-gray-50 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => togglePayments('collections')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <TrendingUp className="w-4 h-4 text-orange-500 mr-2" />
+                    <span className="font-bold text-gray-900">Cobros Vencidos</span>
+                    <span className="ml-2 bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                      {overdueCollections.length}
+                    </span>
+                  </div>
+                  {expandedPayments.collections ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+
+                {expandedPayments.collections && (
+                  <div className="px-4 pb-4">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {overdueCollections.map((collection) => (
+                        <div key={collection.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-48">
+                              <h4 className="text-base font-bold text-gray-900 mb-2">Embarque {collection.shipmentNumber}</h4>
+                              <div className="flex flex-wrap gap-1.5">
+                                <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-xs font-medium">Vencido</span>
+                                <span className="bg-teal-500 text-white px-2 py-0.5 rounded text-xs font-medium">Cobro</span>
+                              </div>
+                            </div>
+
+                            <div className="flex-1">
+                              <div className="text-sm space-y-1">
+                                <p className="text-gray-900">
+                                  <span className="font-semibold">Tipo:</span> {collection.type}
+                                </p>
+                                <p className="text-gray-700">
+                                  <span className="font-semibold">==&gt;</span> Embarque {collection.shipmentNumber} / <span className="font-semibold">{collection.quantity}dmt</span> / {collection.commodity} / Cliente {collection.client} / {collection.contract} / Cuota {collection.quota}
+                                </p>
+                                <p className="text-gray-600 text-xs">
+                                  <span className="font-semibold">Programada ==&gt;</span> {collection.scheduled}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
