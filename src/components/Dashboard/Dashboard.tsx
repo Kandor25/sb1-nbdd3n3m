@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Package, Truck, DollarSign, TrendingUp, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { FileText, Package, Truck, DollarSign, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Scale, FlaskConical } from 'lucide-react';
 import MetricCard from './MetricCard';
 import { mockDashboardMetrics, mockContracts, mockInventoryLots, mockShipments } from '../../data/mockData';
 
@@ -876,8 +876,11 @@ const Dashboard: React.FC = () => {
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
                 >
                   <div className="flex items-center">
-                    <span className="bg-red-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">Pesos no reportados</span>
-                    <span className="text-gray-600 text-sm">({unreportedWeights.length})</span>
+                    <Scale className="w-4 h-4 text-red-500 mr-2" />
+                    <span className="font-bold text-gray-900">Pesos no Reportados</span>
+                    <span className="ml-2 bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                      {unreportedWeights.length}
+                    </span>
                   </div>
                   {expandedAssays.weights ? (
                     <ChevronUp className="w-4 h-4 text-gray-400" />
@@ -891,27 +894,13 @@ const Dashboard: React.FC = () => {
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {unreportedWeights.map((weight) => (
                         <div key={weight.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                          <div className="flex items-start gap-4">
-                            <div className="flex-shrink-0 w-40">
-                              <h4 className="text-base font-bold text-gray-900 mb-2">Embarque {weight.shipmentNumber}</h4>
-                              <div className="flex flex-wrap gap-1.5">
-                                <span className="bg-red-500 text-white px-2 py-0.5 rounded text-xs font-medium">Sin Pesos</span>
-                                {weight.delayed && (
-                                  <span className="bg-red-600 text-white px-2 py-0.5 rounded text-xs font-medium">ATRASADO</span>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="flex-1">
-                              <div className="text-sm space-y-1">
-                                <p>
-                                  <span className="font-semibold">{weight.quantity}dmt</span> / {weight.commodity} / Cliente {weight.client} / {weight.contract} / Cuota {weight.quota}
-                                </p>
-                                <p className={weight.delayed ? "text-red-600 font-semibold" : "text-gray-700"}>
-                                  <span className="font-semibold">ETA Programada ==&gt;</span> {weight.etaScheduled} {weight.delayed && "ATRASADO"}
-                                </p>
-                              </div>
-                            </div>
+                          <div className="text-sm space-y-1">
+                            <p>
+                              Embarque {weight.shipmentNumber} / <span className="font-semibold">{weight.quantity}dmt</span> / {weight.commodity} / Cliente {weight.client} / {weight.contract} / Cuota {weight.quota}
+                            </p>
+                            <p className={weight.delayed ? "text-red-600 font-semibold" : "text-gray-700"}>
+                              <span className="font-semibold">ETA Programada ==&gt;</span> {weight.etaScheduled} {weight.delayed && "ATRASADO"}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -927,8 +916,11 @@ const Dashboard: React.FC = () => {
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
                 >
                   <div className="flex items-center">
-                    <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-xs font-medium mr-2">Ensayes no reportados</span>
-                    <span className="text-gray-600 text-sm">({unreportedAssays.length})</span>
+                    <FlaskConical className="w-4 h-4 text-orange-500 mr-2" />
+                    <span className="font-bold text-gray-900">Ensayes no Reportados</span>
+                    <span className="ml-2 bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                      {unreportedAssays.length}
+                    </span>
                   </div>
                   {expandedAssays.assays ? (
                     <ChevronUp className="w-4 h-4 text-gray-400" />
@@ -942,30 +934,16 @@ const Dashboard: React.FC = () => {
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {unreportedAssays.map((assay) => (
                         <div key={assay.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                          <div className="flex items-start gap-4">
-                            <div className="flex-shrink-0 w-40">
-                              <h4 className="text-base font-bold text-gray-900 mb-2">Embarque {assay.shipmentNumber}</h4>
-                              <div className="flex flex-wrap gap-1.5">
-                                <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-xs font-medium">Sin Ensayes</span>
-                                {assay.delayed && (
-                                  <span className="bg-red-600 text-white px-2 py-0.5 rounded text-xs font-medium">ATRASADO</span>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="flex-1">
-                              <div className="text-sm space-y-1">
-                                <p>
-                                  <span className="font-semibold">{assay.quantity}dmt</span> / {assay.commodity} / Cliente {assay.client} / {assay.contract} / Cuota {assay.quota} / {assay.laboratory}
-                                </p>
-                                <p className={assay.delayed ? "text-red-600 font-semibold" : "text-gray-700"}>
-                                  <span className="font-semibold">ETA Programada ==&gt;</span> {assay.etaScheduled}
-                                </p>
-                                <p className="text-gray-600 text-xs">
-                                  <span className="font-semibold">Comentarios:</span> {assay.comments} {assay.delayed && <span className="text-red-600 font-semibold">ATRASADO</span>}
-                                </p>
-                              </div>
-                            </div>
+                          <div className="text-sm space-y-1">
+                            <p>
+                              Embarque {assay.shipmentNumber} / <span className="font-semibold">{assay.quantity}dmt</span> / {assay.commodity} / Cliente {assay.client} / {assay.contract} / Cuota {assay.quota} / {assay.laboratory}
+                            </p>
+                            <p className={assay.delayed ? "text-red-600 font-semibold" : "text-gray-700"}>
+                              <span className="font-semibold">ETA Programada ==&gt;</span> {assay.etaScheduled}
+                            </p>
+                            <p className="text-gray-600 text-xs">
+                              <span className="font-semibold">Comentarios:</span> {assay.comments} {assay.delayed && <span className="text-red-600 font-semibold">ATRASADO</span>}
+                            </p>
                           </div>
                         </div>
                       ))}
