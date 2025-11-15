@@ -232,7 +232,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Oct.25',
       location: 'Patio D',
-      eta: '5Oct2025@10:00hrs',
+      eta: '5Nov2025@10:00hrs',
       operator: 'Pedro Gomez',
       plate: 'WXYZ-123'
     },
@@ -284,7 +284,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 8',
       quota: 'Nov.25',
       location: 'Patio A',
-      eta: '15Dec2025@10:00hrs',
+      eta: '18Dec2025@10:00hrs',
       operator: 'Luis Martinez',
       plate: 'IJKL-890'
     }
@@ -309,7 +309,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Sep.25',
       location: 'En ruta',
-      eta: '3Oct2025@14:00hrs',
+      eta: '3Nov2025@14:00hrs',
       operator: 'Miguel Lopez',
       plate: 'QRST-789'
     },
@@ -322,7 +322,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 5',
       quota: 'Sep.25',
       location: 'En ruta',
-      eta: '4Oct2025@09:00hrs',
+      eta: '10Nov2025@09:00hrs',
       operator: 'Antonio Ramirez',
       plate: 'UVWX-012'
     },
@@ -374,7 +374,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 5',
       quota: 'Oct.25',
       location: 'En ruta',
-      eta: '10Dec2025@08:00hrs',
+      eta: '12Dec2025@08:00hrs',
       operator: 'Roberto Silva',
       plate: 'MNOP-456'
     }
