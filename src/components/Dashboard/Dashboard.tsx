@@ -180,13 +180,20 @@ const Dashboard: React.FC = () => {
 
   const isEtaOverdue = (eta: string): boolean => {
     const match = eta.match(/(\d+)(\w+)(\d+)@(\d+):(\d+)hrs/);
-    if (!match) return false;
+    if (!match) {
+      console.log('No match for:', eta);
+      return false;
+    }
     const [, day, month, year, hour, minute] = match;
     const monthMap: {[key: string]: number} = {'Jan':0,'Feb':1,'Mar':2,'Apr':3,'May':4,'Jun':5,'Jul':6,'Aug':7,'Sep':8,'Oct':9,'Nov':10,'Dec':11};
     const monthIndex = monthMap[month];
-    if (monthIndex === undefined) return false;
+    if (monthIndex === undefined) {
+      console.log('Unknown month:', month, 'in', eta);
+      return false;
+    }
     const etaDate = new Date(parseInt(year), monthIndex, parseInt(day), parseInt(hour), parseInt(minute));
     const now = new Date();
+    console.log('Comparing:', eta, '→', etaDate, 'vs now:', now, '→ overdue:', etaDate < now);
     return etaDate < now;
   };
 
