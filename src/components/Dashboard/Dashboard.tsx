@@ -178,6 +178,15 @@ const Dashboard: React.FC = () => {
     }));
   };
 
+  const isEtaOverdue = (eta: string): boolean => {
+    const match = eta.match(/(\d+)(\w+)(\d+)@(\d+):(\d+)hrs/);
+    if (!match) return false;
+    const [, day, month, year, hour, minute] = match;
+    const monthMap: {[key: string]: number} = {'Jan':0,'Feb':1,'Mar':2,'Apr':3,'May':4,'Jun':5,'Jul':6,'Aug':7,'Sep':8,'Oct':9,'Nov':10,'Dec':11};
+    const etaDate = new Date(parseInt(year), monthMap[month] || 0, parseInt(day), parseInt(hour), parseInt(minute));
+    return etaDate < new Date();
+  };
+
   // Mock data for pending contracts
   const pendingContracts: PendingContract[] = [
     {
@@ -214,6 +223,19 @@ const Dashboard: React.FC = () => {
 
   // Mock data for logistics operations
   const patioOperations: LogisticsOperation[] = [
+    {
+      id: '5',
+      opNumber: '10102020',
+      quantity: 20,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Oct.25',
+      location: 'Patio D',
+      eta: '5Oct2025@10:00hrs',
+      operator: 'Pedro Gomez',
+      plate: 'WXYZ-123'
+    },
     {
       id: '1',
       opNumber: '10102025',
@@ -266,9 +288,57 @@ const Dashboard: React.FC = () => {
       operator: 'Luis Martinez',
       plate: 'IJKL-890'
     }
-  ];
+  ].sort((a, b) => {
+    const parseDate = (eta: string) => {
+      const match = eta.match(/(\d+)(\w+)(\d+)@(\d+):(\d+)hrs/);
+      if (!match) return new Date();
+      const [, day, month, year, hour, minute] = match;
+      const monthMap: {[key: string]: number} = {'Jan':0,'Feb':1,'Mar':2,'Apr':3,'May':4,'Jun':5,'Jul':6,'Aug':7,'Sep':8,'Oct':9,'Nov':10,'Dec':11};
+      return new Date(parseInt(year), monthMap[month] || 0, parseInt(day), parseInt(hour), parseInt(minute));
+    };
+    return parseDate(a.eta).getTime() - parseDate(b.eta).getTime();
+  });
 
   const transitOperations: LogisticsOperation[] = [
+    {
+      id: '9',
+      opNumber: '10102015',
+      quantity: 18,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Sep.25',
+      location: 'En ruta',
+      eta: '3Oct2025@14:00hrs',
+      operator: 'Miguel Lopez',
+      plate: 'QRST-789'
+    },
+    {
+      id: '10',
+      opNumber: '10102018',
+      quantity: 21,
+      commodity: 'Concentrado Zn',
+      client: 'Peñasquito',
+      contract: 'Contrato 5',
+      quota: 'Sep.25',
+      location: 'En ruta',
+      eta: '4Oct2025@09:00hrs',
+      operator: 'Antonio Ramirez',
+      plate: 'UVWX-012'
+    },
+    {
+      id: '7',
+      opNumber: '10102024',
+      quantity: 23,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Oct.25',
+      location: 'En ruta',
+      eta: '8Oct2025@19:00hrs',
+      operator: 'Alberto Camil',
+      plate: 'ABCD-231'
+    },
     {
       id: '5',
       opNumber: '10102022',
@@ -296,19 +366,6 @@ const Dashboard: React.FC = () => {
       plate: 'ABCD-232'
     },
     {
-      id: '7',
-      opNumber: '10102024',
-      quantity: 23,
-      commodity: 'Concentrado Cu',
-      client: 'Trader A',
-      contract: 'Contrato 1',
-      quota: 'Oct.25',
-      location: 'En ruta',
-      eta: '8Oct2025@19:00hrs',
-      operator: 'Alberto Camil',
-      plate: 'ABCD-231'
-    },
-    {
       id: '8',
       opNumber: '10102026',
       quantity: 27,
@@ -321,7 +378,16 @@ const Dashboard: React.FC = () => {
       operator: 'Roberto Silva',
       plate: 'MNOP-456'
     }
-  ];
+  ].sort((a, b) => {
+    const parseDate = (eta: string) => {
+      const match = eta.match(/(\d+)(\w+)(\d+)@(\d+):(\d+)hrs/);
+      if (!match) return new Date();
+      const [, day, month, year, hour, minute] = match;
+      const monthMap: {[key: string]: number} = {'Jan':0,'Feb':1,'Mar':2,'Apr':3,'May':4,'Jun':5,'Jul':6,'Aug':7,'Sep':8,'Oct':9,'Nov':10,'Dec':11};
+      return new Date(parseInt(year), monthMap[month] || 0, parseInt(day), parseInt(hour), parseInt(minute));
+    };
+    return parseDate(a.eta).getTime() - parseDate(b.eta).getTime();
+  });
 
   const unreportedWeights: WeightReport[] = [
     {
@@ -757,7 +823,7 @@ const Dashboard: React.FC = () => {
                               #Nro Op: {op.opNumber} / <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
                             </p>
                             <p className="text-gray-700">
-                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> {op.eta}
+                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> <span className={isEtaOverdue(op.eta) ? 'text-red-600 font-semibold' : ''}>{op.eta}</span>
                             </p>
                             <p className="text-gray-600 text-xs">
                               <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
@@ -800,7 +866,7 @@ const Dashboard: React.FC = () => {
                               #Nro Op: {op.opNumber} / <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
                             </p>
                             <p className="text-gray-700">
-                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> {op.eta}
+                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> <span className={isEtaOverdue(op.eta) ? 'text-red-600 font-semibold' : ''}>{op.eta}</span>
                             </p>
                             <p className="text-gray-600 text-xs">
                               <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
