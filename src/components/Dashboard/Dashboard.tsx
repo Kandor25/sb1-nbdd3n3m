@@ -823,7 +823,7 @@ const Dashboard: React.FC = () => {
                               #Nro Op: {op.opNumber} / <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
                             </p>
                             <p className="text-gray-700">
-                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> <span className={isEtaOverdue(op.eta) ? 'text-red-600 font-semibold' : ''}>{op.eta}</span>
+                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className={isEtaOverdue(op.eta) ? 'text-red-600 font-semibold' : 'font-semibold'}>ETA Programada ==&gt;</span> <span className={isEtaOverdue(op.eta) ? 'text-red-600 font-semibold' : ''}>{op.eta}{isEtaOverdue(op.eta) ? ' ATRASADO' : ''}</span>
                             </p>
                             <p className="text-gray-600 text-xs">
                               <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
@@ -866,7 +866,7 @@ const Dashboard: React.FC = () => {
                               #Nro Op: {op.opNumber} / <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
                             </p>
                             <p className="text-gray-700">
-                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className="font-semibold">ETA Programado:</span> <span className={isEtaOverdue(op.eta) ? 'text-red-600 font-semibold' : ''}>{op.eta}</span>
+                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className={isEtaOverdue(op.eta) ? 'text-red-600 font-semibold' : 'font-semibold'}>ETA Programada ==&gt;</span> <span className={isEtaOverdue(op.eta) ? 'text-red-600 font-semibold' : ''}>{op.eta}{isEtaOverdue(op.eta) ? ' ATRASADO' : ''}</span>
                             </p>
                             <p className="text-gray-600 text-xs">
                               <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
