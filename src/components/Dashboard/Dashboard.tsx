@@ -36,6 +36,7 @@ interface WeightReport {
   client: string;
   contract: string;
   quota: string;
+  laboratory: string;
   etaScheduled: string;
   delayed: boolean;
 }
@@ -130,7 +131,9 @@ const Dashboard: React.FC = () => {
 
   const [expandedAssays, setExpandedAssays] = useState<{ [key: string]: boolean }>({
     weights: false,
-    assays: false
+    assays: false,
+    scheduledWeights: false,
+    scheduledAssays: false
   });
 
   const [expandedPayments, setExpandedPayments] = useState<{ [key: string]: boolean }>({
@@ -179,7 +182,7 @@ const Dashboard: React.FC = () => {
   };
 
   const isEtaOverdue = (eta: string): boolean => {
-    const match = eta.match(/(\d+)([A-Za-z]{3})(\d+)@(\d+):(\d+)hrs/);
+    const match = eta.match(/(\d+)([A-Za-z]{3})(\d+)@?(\d+)?:?(\d+)?hrs?/);
     if (!match) {
       return false;
     }
@@ -189,9 +192,27 @@ const Dashboard: React.FC = () => {
     if (monthIndex === undefined) {
       return false;
     }
-    const etaDate = new Date(parseInt(year), monthIndex, parseInt(day), parseInt(hour), parseInt(minute));
+    const etaDate = new Date(parseInt(year), monthIndex, parseInt(day), parseInt(hour || '0'), parseInt(minute || '0'));
     const now = new Date();
     return etaDate < now;
+  };
+
+  const getDaysOverdue = (eta: string): number => {
+    const match = eta.match(/(\d+)([A-Za-z]{3})(\d+)@?(\d+)?:?(\d+)?hrs?/);
+    if (!match) {
+      return 0;
+    }
+    const [, day, month, year, hour, minute] = match;
+    const monthMap: {[key: string]: number} = {'Jan':0,'Feb':1,'Mar':2,'Apr':3,'May':4,'Jun':5,'Jul':6,'Aug':7,'Sep':8,'Oct':9,'Nov':10,'Dec':11};
+    const monthIndex = monthMap[month];
+    if (monthIndex === undefined) {
+      return 0;
+    }
+    const etaDate = new Date(parseInt(year), monthIndex, parseInt(day), parseInt(hour || '0'), parseInt(minute || '0'));
+    const now = new Date();
+    const diffMs = now.getTime() - etaDate.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
   };
 
   // Mock data for pending contracts
@@ -405,6 +426,7 @@ const Dashboard: React.FC = () => {
       client: 'Trader A',
       contract: 'Contrato 1',
       quota: 'Sep.25',
+      laboratory: 'SGS',
       etaScheduled: '7Oct2025',
       delayed: true
     },
@@ -416,6 +438,7 @@ const Dashboard: React.FC = () => {
       client: 'Peñasquito',
       contract: 'Contrato 5',
       quota: 'Sep.25',
+      laboratory: 'AD Lab',
       etaScheduled: '5Oct2025',
       delayed: true
     },
@@ -427,6 +450,7 @@ const Dashboard: React.FC = () => {
       client: 'Glencore',
       contract: 'Contrato 8',
       quota: 'Oct.25',
+      laboratory: 'SLab Peru',
       etaScheduled: '12Oct2025',
       delayed: false
     },
@@ -438,6 +462,7 @@ const Dashboard: React.FC = () => {
       client: 'Trader A',
       contract: 'Contrato 1',
       quota: 'Oct.25',
+      laboratory: 'SGS',
       etaScheduled: '14Oct2025',
       delayed: false
     }
@@ -494,6 +519,75 @@ const Dashboard: React.FC = () => {
       laboratory: 'Intertek',
       etaScheduled: '10Oct2025',
       comments: '*ver detalles x elemento',
+      delayed: false
+    }
+  ];
+
+  const scheduledWeights: WeightReport[] = [
+    {
+      id: '1',
+      shipmentNumber: '10102018',
+      quantity: 20,
+      commodity: 'Concentrado Cu',
+      client: 'Trader C',
+      contract: 'Contrato 100',
+      quota: 'Nov.25',
+      laboratory: 'SGS',
+      etaScheduled: '19Nov2025',
+      delayed: false
+    },
+    {
+      id: '2',
+      shipmentNumber: '10102019',
+      quantity: 18,
+      commodity: 'Concentrado Ag',
+      client: 'Trader B',
+      contract: 'Contrato 174',
+      quota: 'Nov.25',
+      laboratory: 'AD Lab',
+      etaScheduled: '20Nov2025',
+      delayed: false
+    }
+  ];
+
+  const scheduledAssays: AssayReport[] = [
+    {
+      id: '1',
+      shipmentNumber: '10192018',
+      quantity: 36,
+      commodity: 'Concentrado Ag',
+      client: 'Trader B',
+      contract: 'Contrato 174',
+      quota: 'Sep.25',
+      laboratory: 'SGS',
+      etaScheduled: '18Nov2025',
+      comments: '',
+      delayed: false
+    },
+    {
+      id: '2',
+      shipmentNumber: '10192019',
+      quantity: 28,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Nov.25',
+      laboratory: 'AD Lab',
+      etaScheduled: '19Nov2025',
+      comments: '',
+      delayed: false
+    },
+    {
+      id: '3',
+      shipmentNumber: '10192020',
+      quantity: 32,
+      commodity: 'Concentrado Zn',
+      client: 'Trader C',
+      contract: 'Contrato 100',
+      quota: 'Nov.25',
+      laboratory: 'SLab Peru',
+      etaScheduled: '20Nov2025',
+      comments: '',
       delayed: false
     }
   ];
@@ -904,6 +998,12 @@ const Dashboard: React.FC = () => {
               <span className="ml-2 bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full text-xs font-semibold">
                 {unreportedAssays.length} Ensayes No Reportados
               </span>
+              <span className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {scheduledWeights.length} Pesos Programados
+              </span>
+              <span className="ml-2 bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {scheduledAssays.length} Ensayes Programados
+              </span>
             </div>
             {expandedSections.ensayos ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -941,7 +1041,7 @@ const Dashboard: React.FC = () => {
                         <div key={weight.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
                           <div className="text-sm space-y-1">
                             <p>
-                              Embarque {weight.shipmentNumber} / <span className="font-semibold">{weight.quantity}dmt</span> / {weight.commodity} / Cliente {weight.client} / {weight.contract} / Cuota {weight.quota}
+                              Embarque {weight.shipmentNumber} / <span className="font-semibold">{weight.quantity}dmt</span> / {weight.commodity} / Cliente {weight.client} / {weight.contract} / Cuota {weight.quota} / {weight.laboratory}
                             </p>
                             <p className={weight.delayed ? "text-red-600 font-semibold" : "text-gray-700"}>
                               <span className="font-semibold">ETA Programada ==&gt;</span> {weight.etaScheduled} {weight.delayed && "ATRASADO"}
@@ -977,17 +1077,102 @@ const Dashboard: React.FC = () => {
                 {expandedAssays.assays && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {unreportedAssays.map((assay) => (
+                      {unreportedAssays.map((assay) => {
+                        const daysOverdue = getDaysOverdue(assay.etaScheduled);
+                        return (
+                          <div key={assay.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                            <div className="text-sm space-y-1">
+                              <p>
+                                Embarque {assay.shipmentNumber} / <span className="font-semibold">{assay.quantity}dmt</span> / {assay.commodity} / Cliente {assay.client} / {assay.contract} / Cuota {assay.quota} / {assay.laboratory}
+                              </p>
+                              <p className={assay.delayed ? "text-red-600 font-semibold" : "text-gray-700"}>
+                                <span className="font-semibold">ETA Programada ==&gt;</span> {assay.etaScheduled} {daysOverdue > 0 && <span className="text-red-600 font-semibold">{daysOverdue} d ATRASADO</span>}
+                              </p>
+                              {assay.comments && (
+                                <p className="text-gray-600 text-xs">
+                                  <span className="font-semibold">Comentarios:</span> {assay.comments}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Pesos Programados */}
+              <div className="bg-gray-50 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => toggleAssays('scheduledWeights')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <Scale className="w-4 h-4 text-blue-500 mr-2" />
+                    <span className="font-bold text-gray-900">Pesos Programados (Siguiente 5 dias)</span>
+                    <span className="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                      {scheduledWeights.length}
+                    </span>
+                  </div>
+                  {expandedAssays.scheduledWeights ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+
+                {expandedAssays.scheduledWeights && (
+                  <div className="px-4 pb-4">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {scheduledWeights.map((weight) => (
+                        <div key={weight.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                          <div className="text-sm space-y-1">
+                            <p>
+                              Embarque {weight.shipmentNumber} / <span className="font-semibold">{weight.quantity}dmt</span> / {weight.commodity} / Cliente {weight.client} / {weight.contract} / Cuota {weight.quota}
+                            </p>
+                            <p className="text-gray-700">
+                              <span className="font-semibold">ETA Programada ==&gt;</span> {weight.etaScheduled}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Ensayes Programados */}
+              <div className="bg-gray-50 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => toggleAssays('scheduledAssays')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <FlaskConical className="w-4 h-4 text-green-500 mr-2" />
+                    <span className="font-bold text-gray-900">Ensayes Programados (Siguiente 5 dias)</span>
+                    <span className="ml-2 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                      {scheduledAssays.length}
+                    </span>
+                  </div>
+                  {expandedAssays.scheduledAssays ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+
+                {expandedAssays.scheduledAssays && (
+                  <div className="px-4 pb-4">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {scheduledAssays.map((assay) => (
                         <div key={assay.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
                           <div className="text-sm space-y-1">
                             <p>
                               Embarque {assay.shipmentNumber} / <span className="font-semibold">{assay.quantity}dmt</span> / {assay.commodity} / Cliente {assay.client} / {assay.contract} / Cuota {assay.quota} / {assay.laboratory}
                             </p>
-                            <p className={assay.delayed ? "text-red-600 font-semibold" : "text-gray-700"}>
+                            <p className="text-gray-700">
                               <span className="font-semibold">ETA Programada ==&gt;</span> {assay.etaScheduled}
-                            </p>
-                            <p className="text-gray-600 text-xs">
-                              <span className="font-semibold">Comentarios:</span> {assay.comments} {assay.delayed && <span className="text-red-600 font-semibold">ATRASADO</span>}
                             </p>
                           </div>
                         </div>
