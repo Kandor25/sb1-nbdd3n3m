@@ -183,8 +183,11 @@ const Dashboard: React.FC = () => {
     if (!match) return false;
     const [, day, month, year, hour, minute] = match;
     const monthMap: {[key: string]: number} = {'Jan':0,'Feb':1,'Mar':2,'Apr':3,'May':4,'Jun':5,'Jul':6,'Aug':7,'Sep':8,'Oct':9,'Nov':10,'Dec':11};
-    const etaDate = new Date(parseInt(year), monthMap[month] || 0, parseInt(day), parseInt(hour), parseInt(minute));
-    return etaDate < new Date();
+    const monthIndex = monthMap[month];
+    if (monthIndex === undefined) return false;
+    const etaDate = new Date(parseInt(year), monthIndex, parseInt(day), parseInt(hour), parseInt(minute));
+    const now = new Date();
+    return etaDate < now;
   };
 
   // Mock data for pending contracts
