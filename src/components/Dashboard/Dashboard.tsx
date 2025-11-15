@@ -245,7 +245,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Oct.25',
       location: 'Patio A',
-      eta: '20Nov2025@16:00hrs',
+      eta: '20Dec2025@16:00hrs',
       operator: 'Jaime Camil',
       plate: 'ABCD-234'
     },
@@ -258,7 +258,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Oct.25P',
       location: 'Patio B',
-      eta: '25Nov2025@16:00hrs',
+      eta: '25Dec2025@16:00hrs',
       operator: 'Jaime Camil',
       plate: 'ABCD-234'
     },
@@ -271,7 +271,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 5',
       quota: 'Nov.25',
       location: 'Patio C',
-      eta: '5Dec2025@14:00hrs',
+      eta: '5Jan2026@14:00hrs',
       operator: 'Carlos Ruiz',
       plate: 'EFGH-567'
     },
@@ -284,7 +284,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 8',
       quota: 'Nov.25',
       location: 'Patio A',
-      eta: '18Dec2025@10:00hrs',
+      eta: '18Jan2026@10:00hrs',
       operator: 'Luis Martinez',
       plate: 'IJKL-890'
     }
@@ -335,7 +335,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Oct.25',
       location: 'En ruta',
-      eta: '18Nov2025@19:00hrs',
+      eta: '18Dec2025@19:00hrs',
       operator: 'Alberto Camil',
       plate: 'ABCD-231'
     },
@@ -348,7 +348,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Oct.25',
       location: 'En ruta',
-      eta: '22Nov2025@20:00hrs',
+      eta: '22Dec2025@20:00hrs',
       operator: 'Jose Camil',
       plate: 'ABCD-233'
     },
@@ -361,7 +361,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Oct.25',
       location: 'En ruta',
-      eta: '28Nov2025@21:00hrs',
+      eta: '28Dec2025@21:00hrs',
       operator: 'Fernando Camil',
       plate: 'ABCD-232'
     },
@@ -374,7 +374,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 5',
       quota: 'Oct.25',
       location: 'En ruta',
-      eta: '12Dec2025@08:00hrs',
+      eta: '12Jan2026@08:00hrs',
       operator: 'Roberto Silva',
       plate: 'MNOP-456'
     }
