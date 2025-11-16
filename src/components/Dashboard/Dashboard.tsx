@@ -768,44 +768,92 @@ const Dashboard: React.FC = () => {
       client: 'Trader A',
       contract: 'Contrato 1',
       quota: 'Oct.25',
-      periodType: 'monthlyAverage',
-      terms: {
-        metals: 'CU/AU/AG ==> Promedio Nov.25',
-        period: 'Promedio Nov.25',
-        quantities: '4fmt Cu / 1000oz Ag / 45oz Au',
-        grades: 'Leyes Cu SGS Provisional / Ag SGS Final / Au SGS Final'
-      }
-    },
-    {
-      id: '2',
-      shipmentNumber: '10102016',
-      quantity: 25,
-      commodity: 'Concentrado Cu',
-      client: 'Trader A',
-      contract: 'Contrato 1',
-      quota: 'Sep.25',
       periodType: 'next5days',
       terms: {
-        metals: 'CU/AU/AG ==> Oficial 15Oct.25',
-        period: 'Oficial 15Oct.25',
+        metals: 'CU/AU/AG ==> Oficial 15Dec.25',
+        period: 'Oficial 15Dec.25',
         quantities: '4fmt Cu / 1000oz Ag / 45oz Au',
         grades: 'Leyes Cu SGS Final / Ag SGS Final / Au SGS Final'
       }
     },
     {
+      id: '2',
+      shipmentNumber: '10102016',
+      quantity: 30,
+      commodity: 'Concentrado Zn',
+      client: 'Peñasquito',
+      contract: 'Contrato 5',
+      quota: 'Nov.25',
+      periodType: 'next5days',
+      terms: {
+        metals: 'CU/AU/AG ==> Oficial 18Dec.25',
+        period: 'Oficial 18Dec.25',
+        quantities: '5fmt Cu / 1200oz Ag / 50oz Au',
+        grades: 'Leyes Cu SGS Provisional / Ag SGS Final / Au SGS Final'
+      }
+    },
+    {
       id: '3',
       shipmentNumber: '10102017',
+      quantity: 28,
+      commodity: 'Concentrado Cu',
+      client: 'Glencore',
+      contract: 'Contrato 8',
+      quota: 'Nov.25',
+      periodType: 'next5days',
+      terms: {
+        metals: 'CU/AU/AG ==> Oficial 20Dec.25',
+        period: 'Oficial 20Dec.25',
+        quantities: '4.5fmt Cu / 1100oz Ag / 48oz Au',
+        grades: 'Leyes Cu SGS Provisional / Ag SGS Provisional / Au SGS Final'
+      }
+    },
+    {
+      id: '4',
+      shipmentNumber: '10102018',
+      quantity: 32,
+      commodity: 'Concentrado Cu',
+      client: 'Trader B',
+      contract: 'Contrato 12',
+      quota: 'Nov.25',
+      periodType: 'next5days',
+      terms: {
+        metals: 'CU/AU/AG ==> Oficial 22Dec.25',
+        period: 'Oficial 22Dec.25',
+        quantities: '5.2fmt Cu / 1300oz Ag / 52oz Au',
+        grades: 'Leyes Cu SGS Final / Ag SGS Final / Au SGS Provisional'
+      }
+    },
+    {
+      id: '5',
+      shipmentNumber: '10102019',
       quantity: 25,
       commodity: 'Concentrado Cu',
       client: 'Trader A',
       contract: 'Contrato 1',
-      quota: 'Sep.25',
-      periodType: 'next5days',
+      quota: 'Nov.25',
+      periodType: 'monthlyAverage',
       terms: {
-        metals: 'CU/AU/AG ==> Oficial 16Oct.25',
-        period: 'Oficial 16Oct.25',
+        metals: 'CU/AU/AG ==> Promedio Mes Dec.25',
+        period: 'Promedio Mes Dec.25',
         quantities: '4fmt Cu / 1000oz Ag / 45oz Au',
-        grades: 'Leyes Cu SGS Provisional / Ag SGS Provisional / Au SGS Final'
+        grades: 'Leyes Cu SGS Provisional / Ag SGS Final / Au SGS Final'
+      }
+    },
+    {
+      id: '6',
+      shipmentNumber: '10102020',
+      quantity: 35,
+      commodity: 'Concentrado Zn',
+      client: 'IMX',
+      contract: 'Contrato 20',
+      quota: 'Dec.25',
+      periodType: 'monthlyAverage',
+      terms: {
+        metals: 'CU/AU/AG ==> Promedio Mes Dec.25',
+        period: 'Promedio Mes Dec.25',
+        quantities: '6fmt Cu / 1400oz Ag / 55oz Au',
+        grades: 'Leyes Cu SGS Final / Ag SGS Provisional / Au SGS Final'
       }
     }
   ];
