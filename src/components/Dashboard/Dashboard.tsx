@@ -189,34 +189,38 @@ const Dashboard: React.FC = () => {
   };
 
   const isEtaOverdue = (eta: string): boolean => {
-    const match = eta.match(/(\d+)([A-Za-z]{3})(\d+)@?(\d+)?:?(\d+)?hrs?/);
+    const match = eta.match(/(\d+)([A-Za-z]{3})(\d+)/);
     if (!match) {
       return false;
     }
-    const [, day, month, year, hour, minute] = match;
+    const [, day, month, year] = match;
     const monthMap: {[key: string]: number} = {'Jan':0,'Feb':1,'Mar':2,'Apr':3,'May':4,'Jun':5,'Jul':6,'Aug':7,'Sep':8,'Oct':9,'Nov':10,'Dec':11};
     const monthIndex = monthMap[month];
     if (monthIndex === undefined) {
       return false;
     }
-    const etaDate = new Date(parseInt(year), monthIndex, parseInt(day), parseInt(hour || '0'), parseInt(minute || '0'));
+    const etaDate = new Date(parseInt(year), monthIndex, parseInt(day));
     const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    etaDate.setHours(0, 0, 0, 0);
     return etaDate < now;
   };
 
   const getDaysOverdue = (eta: string): number => {
-    const match = eta.match(/(\d+)([A-Za-z]{3})(\d+)@?(\d+)?:?(\d+)?hrs?/);
+    const match = eta.match(/(\d+)([A-Za-z]{3})(\d+)/);
     if (!match) {
       return 0;
     }
-    const [, day, month, year, hour, minute] = match;
+    const [, day, month, year] = match;
     const monthMap: {[key: string]: number} = {'Jan':0,'Feb':1,'Mar':2,'Apr':3,'May':4,'Jun':5,'Jul':6,'Aug':7,'Sep':8,'Oct':9,'Nov':10,'Dec':11};
     const monthIndex = monthMap[month];
     if (monthIndex === undefined) {
       return 0;
     }
-    const etaDate = new Date(parseInt(year), monthIndex, parseInt(day), parseInt(hour || '0'), parseInt(minute || '0'));
+    const etaDate = new Date(parseInt(year), monthIndex, parseInt(day));
     const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    etaDate.setHours(0, 0, 0, 0);
     const diffMs = now.getTime() - etaDate.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : 0;
