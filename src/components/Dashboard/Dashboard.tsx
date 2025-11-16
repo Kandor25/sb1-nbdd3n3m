@@ -65,6 +65,7 @@ interface OverduePayment {
   contract: string;
   quota: string;
   etaScheduled: string;
+  amount: number;
 }
 
 interface OverdueCollection {
@@ -77,6 +78,7 @@ interface OverdueCollection {
   contract: string;
   quota: string;
   scheduled: string;
+  amount: number;
 }
 
 interface UpcomingFixing {
@@ -87,6 +89,7 @@ interface UpcomingFixing {
   client: string;
   contract: string;
   quota: string;
+  periodType: 'next5days' | 'monthlyAverage';
   terms: {
     metals: string;
     period: string;
@@ -138,12 +141,16 @@ const Dashboard: React.FC = () => {
 
   const [expandedPayments, setExpandedPayments] = useState<{ [key: string]: boolean }>({
     payments: false,
-    collections: false
+    collections: false,
+    scheduledPayments: false,
+    scheduledCollections: false
   });
 
   const [expandedFixings, setExpandedFixings] = useState<{ [key: string]: boolean }>({
     upcoming: false,
-    gtc: false
+    gtc: false,
+    next5days: false,
+    monthlyAverage: false
   });
 
   const toggleSection = (section: string) => {
@@ -602,7 +609,8 @@ const Dashboard: React.FC = () => {
       client: 'Trader A',
       contract: 'Contrato 1',
       quota: 'Jul.25',
-      etaScheduled: '3Oct-2025'
+      etaScheduled: '3Oct2025',
+      amount: 15000
     },
     {
       id: '2',
@@ -613,7 +621,8 @@ const Dashboard: React.FC = () => {
       client: 'Peñasquito',
       contract: 'Contrato 5',
       quota: 'Aug.25',
-      etaScheduled: '5Oct-2025'
+      etaScheduled: '5Oct2025',
+      amount: 22000
     },
     {
       id: '3',
@@ -624,7 +633,8 @@ const Dashboard: React.FC = () => {
       client: 'Glencore',
       contract: 'Contrato 8',
       quota: 'Sep.25',
-      etaScheduled: '8Oct-2025'
+      etaScheduled: '8Oct2025',
+      amount: 18500
     },
     {
       id: '4',
@@ -635,7 +645,47 @@ const Dashboard: React.FC = () => {
       client: 'Trader A',
       contract: 'Contrato 1',
       quota: 'Sep.25',
-      etaScheduled: '10Oct-2025'
+      etaScheduled: '10Oct2025',
+      amount: 12500
+    }
+  ];
+
+  const scheduledPayments: OverduePayment[] = [
+    {
+      id: '1',
+      type: 'Ensayes laboratorios SGS Peru Jul.25',
+      shipmentNumber: '10102017',
+      quantity: 424,
+      commodity: 'Concentrado Cu',
+      client: 'Trader BA',
+      contract: 'Contrato 10',
+      quota: 'Jun.25',
+      etaScheduled: '18Nov2025',
+      amount: 45000
+    },
+    {
+      id: '2',
+      type: 'Transporte maritimo Sep.25',
+      shipmentNumber: '10102021',
+      quantity: 38,
+      commodity: 'Concentrado Zn',
+      client: 'Trader C',
+      contract: 'Contrato 15',
+      quota: 'Sep.25',
+      etaScheduled: '19Nov2025',
+      amount: 28000
+    },
+    {
+      id: '3',
+      type: 'Ensayes laboratorios AD Lab Chile Oct.25',
+      shipmentNumber: '10102022',
+      quantity: 52,
+      commodity: 'Concentrado Cu',
+      client: 'IMX',
+      contract: 'Contrato 20',
+      quota: 'Oct.25',
+      etaScheduled: '20Nov2025',
+      amount: 32000
     }
   ];
 
@@ -649,7 +699,8 @@ const Dashboard: React.FC = () => {
       client: 'Trader A',
       contract: 'Contrato 1',
       quota: 'Jul.25',
-      scheduled: '7Oct2025'
+      scheduled: '7Oct2025',
+      amount: 125000
     },
     {
       id: '2',
@@ -660,7 +711,8 @@ const Dashboard: React.FC = () => {
       client: 'Peñasquito',
       contract: 'Contrato 10',
       quota: 'Oct.25',
-      scheduled: '10Jan2029'
+      scheduled: '10Jan2029',
+      amount: 350000
     },
     {
       id: '3',
@@ -671,7 +723,8 @@ const Dashboard: React.FC = () => {
       client: 'Glencore',
       contract: 'Contrato 8',
       quota: 'Aug.25',
-      scheduled: '12Oct2025'
+      scheduled: '12Oct2025',
+      amount: 180000
     },
     {
       id: '4',
@@ -682,7 +735,23 @@ const Dashboard: React.FC = () => {
       client: 'Trader A',
       contract: 'Contrato 1',
       quota: 'Sep.25',
-      scheduled: '15Oct2025'
+      scheduled: '15Oct2025',
+      amount: 145000
+    }
+  ];
+
+  const scheduledCollections: OverdueCollection[] = [
+    {
+      id: '1',
+      type: 'Pago final',
+      shipmentNumber: '10102020',
+      quantity: 45,
+      commodity: 'Concentrado Cu',
+      client: 'IMX',
+      contract: 'Contrato 10',
+      quota: 'Aug.25',
+      scheduled: '17Nov2025',
+      amount: 225000
     }
   ];
 
@@ -695,6 +764,7 @@ const Dashboard: React.FC = () => {
       client: 'Trader A',
       contract: 'Contrato 1',
       quota: 'Oct.25',
+      periodType: 'monthlyAverage',
       terms: {
         metals: 'CU/AU/AG ==> Promedio Nov.25',
         period: 'Promedio Nov.25',
@@ -710,6 +780,7 @@ const Dashboard: React.FC = () => {
       client: 'Trader A',
       contract: 'Contrato 1',
       quota: 'Sep.25',
+      periodType: 'next5days',
       terms: {
         metals: 'CU/AU/AG ==> Oficial 15Oct.25',
         period: 'Oficial 15Oct.25',
@@ -725,6 +796,7 @@ const Dashboard: React.FC = () => {
       client: 'Trader A',
       contract: 'Contrato 1',
       quota: 'Sep.25',
+      periodType: 'next5days',
       terms: {
         metals: 'CU/AU/AG ==> Oficial 16Oct.25',
         period: 'Oficial 16Oct.25',
@@ -1200,6 +1272,12 @@ const Dashboard: React.FC = () => {
               <span className="ml-2 bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full text-xs font-semibold">
                 {overdueCollections.length} Cobros Vencidos
               </span>
+              <span className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {scheduledPayments.length} Pagos Programados
+              </span>
+              <span className="ml-2 bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                {scheduledCollections.length} Cobros Programados
+              </span>
             </div>
             {expandedSections.pagos ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -1218,7 +1296,7 @@ const Dashboard: React.FC = () => {
                 >
                   <div className="flex items-center">
                     <AlertCircle className="w-4 h-4 text-red-500 mr-2" />
-                    <span className="font-bold text-gray-900">Pagos Vencidos</span>
+                    <span className="font-bold text-gray-900">Pagos Vencidos - ${overduePayments.reduce((sum, p) => sum + p.amount, 0).toLocaleString()}</span>
                     <span className="ml-2 bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-semibold">
                       {overduePayments.length}
                     </span>
@@ -1233,21 +1311,28 @@ const Dashboard: React.FC = () => {
                 {expandedPayments.payments && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {overduePayments.map((payment) => (
-                        <div key={payment.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                          <div className="text-sm space-y-1">
-                            <p className="text-gray-900">
-                              <span className="font-semibold">Tipo:</span> {payment.type}
-                            </p>
-                            <p className="text-gray-700">
-                              <span className="font-semibold">==&gt;</span> Embarque {payment.shipmentNumber} / <span className="font-semibold">{payment.quantity}dmt</span> / {payment.commodity} / Cliente {payment.client} / {payment.contract} / Cuota {payment.quota}
-                            </p>
-                            <p className="text-gray-600 text-xs">
-                              <span className="font-semibold">ETA Programada ==&gt;</span> {payment.etaScheduled}
-                            </p>
+                      {overduePayments.map((payment) => {
+                        const daysOverdue = getDaysOverdue(payment.etaScheduled);
+                        const isOverdue = isEtaOverdue(payment.etaScheduled);
+                        return (
+                          <div key={payment.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                            <div className="text-sm space-y-1">
+                              <p className="text-gray-900">
+                                <span className="font-semibold">Tipo:</span> {payment.type}
+                              </p>
+                              <p className="text-gray-700">
+                                <span className="font-semibold">==&gt;</span> Embarque {payment.shipmentNumber} / <span className="font-semibold">{payment.quantity}dmt</span> / {payment.commodity} / Cliente {payment.client} / {payment.contract} / Cuota {payment.quota}
+                              </p>
+                              <p className={isOverdue ? "text-red-600 font-semibold text-xs" : "text-gray-600 text-xs"}>
+                                <span className="font-semibold">ETA Programada ==&gt;</span> {payment.etaScheduled} {daysOverdue > 0 && <span className="text-red-600 font-semibold">{daysOverdue} d ATRASADO</span>}
+                              </p>
+                              <p className="text-gray-900 text-sm font-semibold">
+                                Monto: ${payment.amount.toLocaleString()}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -1261,7 +1346,7 @@ const Dashboard: React.FC = () => {
                 >
                   <div className="flex items-center">
                     <TrendingUp className="w-4 h-4 text-orange-500 mr-2" />
-                    <span className="font-bold text-gray-900">Cobros Vencidos</span>
+                    <span className="font-bold text-gray-900">Cobros Vencidos - ${overdueCollections.reduce((sum, c) => sum + c.amount, 0).toLocaleString()}</span>
                     <span className="ml-2 bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-semibold">
                       {overdueCollections.length}
                     </span>
@@ -1276,7 +1361,103 @@ const Dashboard: React.FC = () => {
                 {expandedPayments.collections && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {overdueCollections.map((collection) => (
+                      {overdueCollections.map((collection) => {
+                        const daysOverdue = getDaysOverdue(collection.scheduled);
+                        const isOverdue = isEtaOverdue(collection.scheduled);
+                        return (
+                          <div key={collection.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                            <div className="text-sm space-y-1">
+                              <p className="text-gray-900">
+                                <span className="font-semibold">Tipo:</span> {collection.type}
+                              </p>
+                              <p className="text-gray-700">
+                                <span className="font-semibold">==&gt;</span> Embarque {collection.shipmentNumber} / <span className="font-semibold">{collection.quantity}dmt</span> / {collection.commodity} / Cliente {collection.client} / {collection.contract} / Cuota {collection.quota}
+                              </p>
+                              <p className={isOverdue ? "text-red-600 font-semibold text-xs" : "text-gray-600 text-xs"}>
+                                <span className="font-semibold">ETA Programada ==&gt;</span> {collection.scheduled} {daysOverdue > 0 && <span className="text-red-600 font-semibold">{daysOverdue} d ATRASADO</span>}
+                              </p>
+                              <p className="text-gray-900 text-sm font-semibold">
+                                Monto: ${collection.amount.toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Pagos Programados */}
+              <div className="bg-gray-50 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => togglePayments('scheduledPayments')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <Calendar className="w-4 h-4 text-blue-500 mr-2" />
+                    <span className="font-bold text-gray-900">Pagos Programados (Siguiente 5 dias)</span>
+                    <span className="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                      {scheduledPayments.length}
+                    </span>
+                  </div>
+                  {expandedPayments.scheduledPayments ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+
+                {expandedPayments.scheduledPayments && (
+                  <div className="px-4 pb-4">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {scheduledPayments.map((payment) => (
+                        <div key={payment.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                          <div className="text-sm space-y-1">
+                            <p className="text-gray-900">
+                              <span className="font-semibold">Tipo:</span> {payment.type}
+                            </p>
+                            <p className="text-gray-700">
+                              <span className="font-semibold">==&gt;</span> Embarque {payment.shipmentNumber} / <span className="font-semibold">{payment.quantity}dmt</span> / {payment.commodity} / Cliente {payment.client} / {payment.contract} / Cuota {payment.quota}
+                            </p>
+                            <p className="text-gray-600 text-xs">
+                              <span className="font-semibold">ETA Programada ==&gt;</span> {payment.etaScheduled}
+                            </p>
+                            <p className="text-gray-900 text-sm font-semibold">
+                              Monto: ${payment.amount.toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Cobros Programados */}
+              <div className="bg-gray-50 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => togglePayments('scheduledCollections')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <Calendar className="w-4 h-4 text-green-500 mr-2" />
+                    <span className="font-bold text-gray-900">Cobros Programados (Siguiente 5 dias)</span>
+                    <span className="ml-2 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                      {scheduledCollections.length}
+                    </span>
+                  </div>
+                  {expandedPayments.scheduledCollections ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+
+                {expandedPayments.scheduledCollections && (
+                  <div className="px-4 pb-4">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {scheduledCollections.map((collection) => (
                         <div key={collection.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
                           <div className="text-sm space-y-1">
                             <p className="text-gray-900">
@@ -1287,6 +1468,9 @@ const Dashboard: React.FC = () => {
                             </p>
                             <p className="text-gray-600 text-xs">
                               <span className="font-semibold">Programada ==&gt;</span> {collection.scheduled}
+                            </p>
+                            <p className="text-gray-900 text-sm font-semibold">
+                              Monto: ${collection.amount.toLocaleString()}
                             </p>
                           </div>
                         </div>
@@ -1345,28 +1529,83 @@ const Dashboard: React.FC = () => {
                 </button>
 
                 {expandedFixings.upcoming && (
-                  <div className="px-4 pb-4">
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {upcomingFixings.map((fixing) => (
-                        <div key={fixing.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                          <div className="text-sm space-y-1">
-                            <p className="text-gray-700">
-                              Embarque {fixing.shipmentNumber} / <span className="font-semibold">{fixing.quantity}dmt</span> / {fixing.commodity} / Cliente {fixing.client} / {fixing.contract} / Cuota {fixing.quota}
-                            </p>
-                            <div className="mt-2 space-y-1 text-xs bg-gray-50 p-2 rounded">
-                              <p className="text-gray-900">
-                                <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
-                              </p>
-                              <p className="text-gray-700">
-                                {fixing.terms.quantities}
-                              </p>
-                              <p className="text-gray-600">
-                                {fixing.terms.grades}
-                              </p>
+                  <div className="px-4 pb-4 space-y-3">
+                    {/* Periodo contractual siguiente 5d */}
+                    <div className="bg-white rounded-lg border border-gray-200">
+                      <button
+                        onClick={() => toggleFixings('next5days')}
+                        className="w-full px-3 py-2 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                      >
+                        <span className="font-semibold text-gray-800 text-sm">Periodo contractual siguiente 5d</span>
+                        {expandedFixings.next5days ? (
+                          <ChevronUp className="w-3 h-3 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="w-3 h-3 text-gray-400" />
+                        )}
+                      </button>
+                      {expandedFixings.next5days && (
+                        <div className="px-3 pb-3 space-y-2">
+                          {upcomingFixings.filter(f => f.periodType === 'next5days').map((fixing) => (
+                            <div key={fixing.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                              <div className="text-sm space-y-1">
+                                <p className="text-gray-700">
+                                  Embarque {fixing.shipmentNumber} / <span className="font-semibold">{fixing.quantity}dmt</span> / {fixing.commodity} / Cliente {fixing.client} / {fixing.contract} / Cuota {fixing.quota}
+                                </p>
+                                <div className="mt-2 space-y-1 text-xs bg-white p-2 rounded">
+                                  <p className="text-gray-900">
+                                    <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
+                                  </p>
+                                  <p className="text-gray-700">
+                                    {fixing.terms.quantities}
+                                  </p>
+                                  <p className="text-gray-600">
+                                    {fixing.terms.grades}
+                                  </p>
+                                </div>
+                              </div>
                             </div>
-                          </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
+                    </div>
+
+                    {/* Periodo contractual Promedio de mes */}
+                    <div className="bg-white rounded-lg border border-gray-200">
+                      <button
+                        onClick={() => toggleFixings('monthlyAverage')}
+                        className="w-full px-3 py-2 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                      >
+                        <span className="font-semibold text-gray-800 text-sm">Periodo contractual Promedio de mes</span>
+                        {expandedFixings.monthlyAverage ? (
+                          <ChevronUp className="w-3 h-3 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="w-3 h-3 text-gray-400" />
+                        )}
+                      </button>
+                      {expandedFixings.monthlyAverage && (
+                        <div className="px-3 pb-3 space-y-2">
+                          {upcomingFixings.filter(f => f.periodType === 'monthlyAverage').map((fixing) => (
+                            <div key={fixing.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                              <div className="text-sm space-y-1">
+                                <p className="text-gray-700">
+                                  Embarque {fixing.shipmentNumber} / <span className="font-semibold">{fixing.quantity}dmt</span> / {fixing.commodity} / Cliente {fixing.client} / {fixing.contract} / Cuota {fixing.quota}
+                                </p>
+                                <div className="mt-2 space-y-1 text-xs bg-white p-2 rounded">
+                                  <p className="text-gray-900">
+                                    <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
+                                  </p>
+                                  <p className="text-gray-700">
+                                    {fixing.terms.quantities}
+                                  </p>
+                                  <p className="text-gray-600">
+                                    {fixing.terms.grades}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
