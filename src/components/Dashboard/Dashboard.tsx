@@ -90,6 +90,7 @@ interface UpcomingFixing {
   contract: string;
   quota: string;
   periodType: 'next5days' | 'monthlyAverage';
+  etaScheduled: string;
   terms: {
     metals: string;
     period: string;
@@ -769,6 +770,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Oct.25',
       periodType: 'next5days',
+      etaScheduled: '8Oct2025',
       terms: {
         metals: 'CU/AU/AG ==> Oficial 15Dec.25',
         period: 'Oficial 15Dec.25',
@@ -785,6 +787,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 5',
       quota: 'Nov.25',
       periodType: 'next5days',
+      etaScheduled: '10Oct2025',
       terms: {
         metals: 'CU/AU/AG ==> Oficial 18Dec.25',
         period: 'Oficial 18Dec.25',
@@ -801,6 +804,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 8',
       quota: 'Nov.25',
       periodType: 'next5days',
+      etaScheduled: '20Nov2025',
       terms: {
         metals: 'CU/AU/AG ==> Oficial 20Dec.25',
         period: 'Oficial 20Dec.25',
@@ -817,6 +821,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 12',
       quota: 'Nov.25',
       periodType: 'next5days',
+      etaScheduled: '22Nov2025',
       terms: {
         metals: 'CU/AU/AG ==> Oficial 22Dec.25',
         period: 'Oficial 22Dec.25',
@@ -833,6 +838,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Nov.25',
       periodType: 'monthlyAverage',
+      etaScheduled: '25Nov2025',
       terms: {
         metals: 'CU/AU/AG ==> Promedio Mes Dec.25',
         period: 'Promedio Mes Dec.25',
@@ -849,6 +855,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 20',
       quota: 'Dec.25',
       periodType: 'monthlyAverage',
+      etaScheduled: '28Nov2025',
       terms: {
         metals: 'CU/AU/AG ==> Promedio Mes Dec.25',
         period: 'Promedio Mes Dec.25',
@@ -1621,26 +1628,34 @@ const Dashboard: React.FC = () => {
                       </button>
                       {expandedFixings.next5days && (
                         <div className="px-3 pb-3 space-y-2">
-                          {upcomingFixings.filter(f => f.periodType === 'next5days').map((fixing) => (
-                            <div key={fixing.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                              <div className="text-sm space-y-1">
-                                <p className="text-gray-700">
-                                  Embarque {fixing.shipmentNumber} / <span className="font-semibold">{fixing.quantity}dmt</span> / {fixing.commodity} / Cliente {fixing.client} / {fixing.contract} / Cuota {fixing.quota}
-                                </p>
-                                <div className="mt-2 space-y-1 text-xs bg-white p-2 rounded">
-                                  <p className="text-gray-900">
-                                    <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
-                                  </p>
+                          {upcomingFixings.filter(f => f.periodType === 'next5days').map((fixing) => {
+                            const daysOverdue = getDaysOverdue(fixing.etaScheduled);
+                            const isOverdue = isEtaOverdue(fixing.etaScheduled);
+                            return (
+                              <div key={fixing.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                <div className="text-sm space-y-1">
                                   <p className="text-gray-700">
-                                    {fixing.terms.quantities}
+                                    Embarque {fixing.shipmentNumber} / <span className="font-semibold">{fixing.quantity}dmt</span> / {fixing.commodity} / Cliente {fixing.client} / {fixing.contract} / Cuota {fixing.quota}
                                   </p>
-                                  <p className="text-gray-600">
-                                    {fixing.terms.grades}
-                                  </p>
+                                  <div className="mt-2 space-y-1 text-xs bg-white p-2 rounded">
+                                    <p className={isOverdue ? 'text-red-600 font-semibold' : 'text-gray-900'}>
+                                      <span className="font-semibold">ETA Programada ==&gt;</span> {fixing.etaScheduled}
+                                      {isOverdue && <span> {daysOverdue} d ATRASADO</span>}
+                                    </p>
+                                    <p className="text-gray-900">
+                                      <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
+                                    </p>
+                                    <p className="text-gray-700">
+                                      {fixing.terms.quantities}
+                                    </p>
+                                    <p className="text-gray-600">
+                                      {fixing.terms.grades}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -1660,26 +1675,34 @@ const Dashboard: React.FC = () => {
                       </button>
                       {expandedFixings.monthlyAverage && (
                         <div className="px-3 pb-3 space-y-2">
-                          {upcomingFixings.filter(f => f.periodType === 'monthlyAverage').map((fixing) => (
-                            <div key={fixing.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                              <div className="text-sm space-y-1">
-                                <p className="text-gray-700">
-                                  Embarque {fixing.shipmentNumber} / <span className="font-semibold">{fixing.quantity}dmt</span> / {fixing.commodity} / Cliente {fixing.client} / {fixing.contract} / Cuota {fixing.quota}
-                                </p>
-                                <div className="mt-2 space-y-1 text-xs bg-white p-2 rounded">
-                                  <p className="text-gray-900">
-                                    <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
-                                  </p>
+                          {upcomingFixings.filter(f => f.periodType === 'monthlyAverage').map((fixing) => {
+                            const daysOverdue = getDaysOverdue(fixing.etaScheduled);
+                            const isOverdue = isEtaOverdue(fixing.etaScheduled);
+                            return (
+                              <div key={fixing.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                <div className="text-sm space-y-1">
                                   <p className="text-gray-700">
-                                    {fixing.terms.quantities}
+                                    Embarque {fixing.shipmentNumber} / <span className="font-semibold">{fixing.quantity}dmt</span> / {fixing.commodity} / Cliente {fixing.client} / {fixing.contract} / Cuota {fixing.quota}
                                   </p>
-                                  <p className="text-gray-600">
-                                    {fixing.terms.grades}
-                                  </p>
+                                  <div className="mt-2 space-y-1 text-xs bg-white p-2 rounded">
+                                    <p className={isOverdue ? 'text-red-600 font-semibold' : 'text-gray-900'}>
+                                      <span className="font-semibold">ETA Programada ==&gt;</span> {fixing.etaScheduled}
+                                      {isOverdue && <span> {daysOverdue} d ATRASADO</span>}
+                                    </p>
+                                    <p className="text-gray-900">
+                                      <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
+                                    </p>
+                                    <p className="text-gray-700">
+                                      {fixing.terms.quantities}
+                                    </p>
+                                    <p className="text-gray-600">
+                                      {fixing.terms.grades}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
