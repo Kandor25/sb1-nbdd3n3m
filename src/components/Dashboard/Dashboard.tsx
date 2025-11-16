@@ -1324,7 +1324,7 @@ const Dashboard: React.FC = () => {
                                 <span className="font-semibold">==&gt;</span> Embarque {payment.shipmentNumber} / <span className="font-semibold">{payment.quantity}dmt</span> / {payment.commodity} / Cliente {payment.client} / {payment.contract} / Cuota {payment.quota}
                               </p>
                               <p className={isOverdue ? "text-red-600 font-semibold text-xs" : "text-gray-600 text-xs"}>
-                                <span className="font-semibold">ETA Programada ==&gt;</span> {payment.etaScheduled} {daysOverdue > 0 && <span className="text-red-600 font-semibold">{daysOverdue} d ATRASADO</span>}
+                                ETA Programada ==&gt; {payment.etaScheduled} {daysOverdue > 0 && `${daysOverdue} d ATRASADO`}
                               </p>
                               <p className="text-gray-900 text-sm font-semibold">
                                 Monto: ${payment.amount.toLocaleString()}
@@ -1374,7 +1374,7 @@ const Dashboard: React.FC = () => {
                                 <span className="font-semibold">==&gt;</span> Embarque {collection.shipmentNumber} / <span className="font-semibold">{collection.quantity}dmt</span> / {collection.commodity} / Cliente {collection.client} / {collection.contract} / Cuota {collection.quota}
                               </p>
                               <p className={isOverdue ? "text-red-600 font-semibold text-xs" : "text-gray-600 text-xs"}>
-                                <span className="font-semibold">ETA Programada ==&gt;</span> {collection.scheduled} {daysOverdue > 0 && <span className="text-red-600 font-semibold">{daysOverdue} d ATRASADO</span>}
+                                ETA Programada ==&gt; {collection.scheduled} {daysOverdue > 0 && `${daysOverdue} d ATRASADO`}
                               </p>
                               <p className="text-gray-900 text-sm font-semibold">
                                 Monto: ${collection.amount.toLocaleString()}
