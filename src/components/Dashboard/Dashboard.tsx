@@ -1176,14 +1176,15 @@ const Dashboard: React.FC = () => {
                         return 0;
                       }).map((weight) => {
                         const daysOverdue = getDaysOverdue(weight.etaScheduled);
+                        const isOverdue = daysOverdue > 0;
                         return (
                           <div key={weight.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
                             <div className="text-sm space-y-1">
                               <p>
                                 Embarque {weight.shipmentNumber} / <span className="font-semibold">{weight.quantity}dmt</span> / {weight.commodity} / Cliente {weight.client} / {weight.contract} / Cuota {weight.quota} / {weight.laboratory}
                               </p>
-                              <p className={weight.delayed ? "text-red-600 font-semibold" : "text-gray-700"}>
-                                <span className="font-semibold">ETA Programada ==&gt;</span> {weight.etaScheduled} {daysOverdue > 0 && <span className="text-red-600 font-semibold">{daysOverdue} d ATRASADO</span>}
+                              <p className={isOverdue ? "text-red-600 font-semibold" : "text-gray-700"}>
+                                ETA Programada ==&gt; {weight.etaScheduled}{isOverdue && ` ${daysOverdue} d ATRASADO`}
                               </p>
                             </div>
                           </div>
@@ -1225,14 +1226,15 @@ const Dashboard: React.FC = () => {
                         return 0;
                       }).map((assay) => {
                         const daysOverdue = getDaysOverdue(assay.etaScheduled);
+                        const isOverdue = daysOverdue > 0;
                         return (
                           <div key={assay.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
                             <div className="text-sm space-y-1">
                               <p>
                                 Embarque {assay.shipmentNumber} / <span className="font-semibold">{assay.quantity}dmt</span> / {assay.commodity} / Cliente {assay.client} / {assay.contract} / Cuota {assay.quota} / {assay.laboratory}
                               </p>
-                              <p className={assay.delayed ? "text-red-600 font-semibold" : "text-gray-700"}>
-                                <span className="font-semibold">ETA Programada ==&gt;</span> {assay.etaScheduled} {daysOverdue > 0 && <span className="text-red-600 font-semibold">{daysOverdue} d ATRASADO</span>}
+                              <p className={isOverdue ? "text-red-600 font-semibold" : "text-gray-700"}>
+                                ETA Programada ==&gt; {assay.etaScheduled}{isOverdue && ` ${daysOverdue} d ATRASADO`}
                               </p>
                               {assay.comments && (
                                 <p className="text-gray-600 text-xs">
