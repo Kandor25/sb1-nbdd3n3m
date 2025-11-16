@@ -1113,7 +1113,13 @@ const Dashboard: React.FC = () => {
                 {expandedAssays.weights && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {unreportedWeights.map((weight) => (
+                      {[...unreportedWeights].sort((a, b) => {
+                        const aOverdue = isEtaOverdue(a.etaScheduled);
+                        const bOverdue = isEtaOverdue(b.etaScheduled);
+                        if (aOverdue && !bOverdue) return -1;
+                        if (!aOverdue && bOverdue) return 1;
+                        return 0;
+                      }).map((weight) => (
                         <div key={weight.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
                           <div className="text-sm space-y-1">
                             <p>
@@ -1153,7 +1159,13 @@ const Dashboard: React.FC = () => {
                 {expandedAssays.assays && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {unreportedAssays.map((assay) => {
+                      {[...unreportedAssays].sort((a, b) => {
+                        const aOverdue = isEtaOverdue(a.etaScheduled);
+                        const bOverdue = isEtaOverdue(b.etaScheduled);
+                        if (aOverdue && !bOverdue) return -1;
+                        if (!aOverdue && bOverdue) return 1;
+                        return 0;
+                      }).map((assay) => {
                         const daysOverdue = getDaysOverdue(assay.etaScheduled);
                         return (
                           <div key={assay.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
@@ -1315,7 +1327,13 @@ const Dashboard: React.FC = () => {
                 {expandedPayments.payments && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {overduePayments.map((payment) => {
+                      {[...overduePayments].sort((a, b) => {
+                        const aOverdue = isEtaOverdue(a.etaScheduled);
+                        const bOverdue = isEtaOverdue(b.etaScheduled);
+                        if (aOverdue && !bOverdue) return -1;
+                        if (!aOverdue && bOverdue) return 1;
+                        return 0;
+                      }).map((payment) => {
                         const daysOverdue = getDaysOverdue(payment.etaScheduled);
                         const isOverdue = isEtaOverdue(payment.etaScheduled);
                         return (
@@ -1365,7 +1383,13 @@ const Dashboard: React.FC = () => {
                 {expandedPayments.collections && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {overdueCollections.map((collection) => {
+                      {[...overdueCollections].sort((a, b) => {
+                        const aOverdue = isEtaOverdue(a.scheduled);
+                        const bOverdue = isEtaOverdue(b.scheduled);
+                        if (aOverdue && !bOverdue) return -1;
+                        if (!aOverdue && bOverdue) return 1;
+                        return 0;
+                      }).map((collection) => {
                         const daysOverdue = getDaysOverdue(collection.scheduled);
                         const isOverdue = isEtaOverdue(collection.scheduled);
                         return (
