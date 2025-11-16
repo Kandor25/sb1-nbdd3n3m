@@ -1174,18 +1174,21 @@ const Dashboard: React.FC = () => {
                         if (aOverdue && !bOverdue) return -1;
                         if (!aOverdue && bOverdue) return 1;
                         return 0;
-                      }).map((weight) => (
-                        <div key={weight.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                          <div className="text-sm space-y-1">
-                            <p>
-                              Embarque {weight.shipmentNumber} / <span className="font-semibold">{weight.quantity}dmt</span> / {weight.commodity} / Cliente {weight.client} / {weight.contract} / Cuota {weight.quota} / {weight.laboratory}
-                            </p>
-                            <p className={weight.delayed ? "text-red-600 font-semibold" : "text-gray-700"}>
-                              <span className="font-semibold">ETA Programada ==&gt;</span> {weight.etaScheduled} {weight.delayed && "ATRASADO"}
-                            </p>
+                      }).map((weight) => {
+                        const daysOverdue = getDaysOverdue(weight.etaScheduled);
+                        return (
+                          <div key={weight.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                            <div className="text-sm space-y-1">
+                              <p>
+                                Embarque {weight.shipmentNumber} / <span className="font-semibold">{weight.quantity}dmt</span> / {weight.commodity} / Cliente {weight.client} / {weight.contract} / Cuota {weight.quota} / {weight.laboratory}
+                              </p>
+                              <p className={weight.delayed ? "text-red-600 font-semibold" : "text-gray-700"}>
+                                <span className="font-semibold">ETA Programada ==&gt;</span> {weight.etaScheduled} {daysOverdue > 0 && <span className="text-red-600 font-semibold">{daysOverdue} d ATRASADO</span>}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
