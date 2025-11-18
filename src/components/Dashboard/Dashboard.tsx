@@ -1048,21 +1048,25 @@ const Dashboard: React.FC = () => {
                 {expandedLogistics.patio && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {patioOperations.map((op) => (
-                        <div key={op.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                          <div className="text-sm space-y-1">
-                            <p>
-                              #Nro Op: {op.opNumber} / <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
-                            </p>
-                            <p className="text-gray-700">
-                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className={isEtaOverdue(op.eta) ? 'text-red-600 font-semibold' : 'font-semibold'}>ETA Programada ==&gt;</span> <span className={isEtaOverdue(op.eta) ? 'text-red-600 font-semibold' : ''}>{op.eta}{isEtaOverdue(op.eta) ? ' ATRASADO' : ''}</span>
-                            </p>
-                            <p className="text-gray-600 text-xs">
-                              <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
-                            </p>
+                      {patioOperations.map((op) => {
+                        const daysOverdue = getDaysOverdue(op.eta.split('@')[0]);
+                        const isOverdue = daysOverdue > 0;
+                        return (
+                          <div key={op.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                            <div className="text-sm space-y-1">
+                              <p>
+                                #Nro Op: {op.opNumber} / <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
+                              </p>
+                              <p className={isOverdue ? "text-red-600 font-semibold" : "text-gray-700"}>
+                                <span className="font-semibold">Ubicación:</span> {op.location} / ETA Programada ==&gt; {op.eta}{isOverdue && ` ==&gt; ${daysOverdue}d ATRASADO`}
+                              </p>
+                              <p className="text-gray-600 text-xs">
+                                <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -1091,21 +1095,25 @@ const Dashboard: React.FC = () => {
                 {expandedLogistics.transito && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {transitOperations.map((op) => (
-                        <div key={op.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                          <div className="text-sm space-y-1">
-                            <p>
-                              #Nro Op: {op.opNumber} / <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
-                            </p>
-                            <p className="text-gray-700">
-                              <span className="font-semibold">Ubicación:</span> {op.location} / <span className={isEtaOverdue(op.eta) ? 'text-red-600 font-semibold' : 'font-semibold'}>ETA Programada ==&gt;</span> <span className={isEtaOverdue(op.eta) ? 'text-red-600 font-semibold' : ''}>{op.eta}{isEtaOverdue(op.eta) ? ' ATRASADO' : ''}</span>
-                            </p>
-                            <p className="text-gray-600 text-xs">
-                              <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
-                            </p>
+                      {transitOperations.map((op) => {
+                        const daysOverdue = getDaysOverdue(op.eta.split('@')[0]);
+                        const isOverdue = daysOverdue > 0;
+                        return (
+                          <div key={op.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
+                            <div className="text-sm space-y-1">
+                              <p>
+                                #Nro Op: {op.opNumber} / <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
+                              </p>
+                              <p className={isOverdue ? "text-red-600 font-semibold" : "text-gray-700"}>
+                                <span className="font-semibold">Ubicación:</span> {op.location} / ETA Programada ==&gt; {op.eta}{isOverdue && ` ==&gt; ${daysOverdue}d ATRASADO`}
+                              </p>
+                              <p className="text-gray-600 text-xs">
+                                <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -1184,7 +1192,7 @@ const Dashboard: React.FC = () => {
                                 Embarque {weight.shipmentNumber} / <span className="font-semibold">{weight.quantity}dmt</span> / {weight.commodity} / Cliente {weight.client} / {weight.contract} / Cuota {weight.quota} / {weight.laboratory}
                               </p>
                               <p className={isOverdue ? "text-red-600 font-semibold" : "text-gray-700"}>
-                                ETA Programada ==&gt; {weight.etaScheduled}{isOverdue && ` ${daysOverdue} d ATRASADO`}
+                                ETA Programada ==&gt; {weight.etaScheduled}{isOverdue && ` ==&gt; ${daysOverdue}d ATRASADO`}
                               </p>
                             </div>
                           </div>
@@ -1234,7 +1242,7 @@ const Dashboard: React.FC = () => {
                                 Embarque {assay.shipmentNumber} / <span className="font-semibold">{assay.quantity}dmt</span> / {assay.commodity} / Cliente {assay.client} / {assay.contract} / Cuota {assay.quota} / {assay.laboratory}
                               </p>
                               <p className={isOverdue ? "text-red-600 font-semibold" : "text-gray-700"}>
-                                ETA Programada ==&gt; {assay.etaScheduled}{isOverdue && ` ${daysOverdue} d ATRASADO`}
+                                ETA Programada ==&gt; {assay.etaScheduled}{isOverdue && ` ==&gt; ${daysOverdue}d ATRASADO`}
                               </p>
                               {assay.comments && (
                                 <p className="text-gray-600 text-xs">
@@ -1406,7 +1414,7 @@ const Dashboard: React.FC = () => {
                                 <span className="font-semibold">==&gt;</span> Embarque {payment.shipmentNumber} / <span className="font-semibold">{payment.quantity}dmt</span> / {payment.commodity} / Cliente {payment.client} / {payment.contract} / Cuota {payment.quota}
                               </p>
                               <p className={isOverdue ? "text-red-600 font-semibold text-xs" : "text-gray-600 text-xs"}>
-                                ETA Programada ==&gt; {payment.etaScheduled} {daysOverdue > 0 && `${daysOverdue} d ATRASADO`}
+                                ETA Programada ==&gt; {payment.etaScheduled}{daysOverdue > 0 && ` ==&gt; ${daysOverdue}d ATRASADO`}
                               </p>
                               <p className="text-gray-900 text-sm font-semibold">
                                 Monto: ${payment.amount.toLocaleString()}
@@ -1462,7 +1470,7 @@ const Dashboard: React.FC = () => {
                                 <span className="font-semibold">==&gt;</span> Embarque {collection.shipmentNumber} / <span className="font-semibold">{collection.quantity}dmt</span> / {collection.commodity} / Cliente {collection.client} / {collection.contract} / Cuota {collection.quota}
                               </p>
                               <p className={isOverdue ? "text-red-600 font-semibold text-xs" : "text-gray-600 text-xs"}>
-                                ETA Programada ==&gt; {collection.scheduled} {daysOverdue > 0 && `${daysOverdue} d ATRASADO`}
+                                ETA Programada ==&gt; {collection.scheduled}{daysOverdue > 0 && ` ==&gt; ${daysOverdue}d ATRASADO`}
                               </p>
                               <p className="text-gray-900 text-sm font-semibold">
                                 Monto: ${collection.amount.toLocaleString()}
@@ -1645,7 +1653,7 @@ const Dashboard: React.FC = () => {
                                   <div className="mt-2 space-y-1 text-xs bg-white p-2 rounded">
                                     <p className={isOverdue ? 'text-red-600 font-semibold' : 'text-gray-900'}>
                                       <span className="font-semibold">ETA Programada ==&gt;</span> {fixing.etaScheduled}
-                                      {isOverdue && <span> {daysOverdue} d ATRASADO</span>}
+                                      {isOverdue && <span> ==&gt; {daysOverdue}d ATRASADO</span>}
                                     </p>
                                     <p className="text-gray-900">
                                       <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
@@ -1692,7 +1700,7 @@ const Dashboard: React.FC = () => {
                                   <div className="mt-2 space-y-1 text-xs bg-white p-2 rounded">
                                     <p className={isOverdue ? 'text-red-600 font-semibold' : 'text-gray-900'}>
                                       <span className="font-semibold">ETA Programada ==&gt;</span> {fixing.etaScheduled}
-                                      {isOverdue && <span> {daysOverdue} d ATRASADO</span>}
+                                      {isOverdue && <span> ==&gt; {daysOverdue}d ATRASADO</span>}
                                     </p>
                                     <p className="text-gray-900">
                                       <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
