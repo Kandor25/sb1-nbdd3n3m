@@ -2451,40 +2451,6 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Alerts and Notifications */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-            <AlertCircle className="w-5 h-5 mr-2 text-orange-600" />
-            Alertas y Notificaciones
-          </h3>
-        </div>
-        <div className="p-6">
-          <div className="space-y-3">
-            <div className="flex items-center p-3 bg-orange-50 border-l-4 border-orange-400 rounded-r">
-              <AlertCircle className="w-5 h-5 text-orange-600 mr-3" />
-              <div>
-                <div className="font-medium text-orange-800">Resultados de Ensayos Pendientes</div>
-                <div className="text-sm text-orange-700">2 lotes esperando resultados de laboratorio de ALS Labs</div>
-              </div>
-            </div>
-            <div className="flex items-center p-3 bg-red-50 border-l-4 border-red-400 rounded-r">
-              <AlertCircle className="w-5 h-5 text-red-600 mr-3" />
-              <div>
-                <div className="font-medium text-red-800">Liquidación Vencida</div>
-                <div className="text-sm text-red-700">La liquidación del contrato PUR-2024-001 tiene 3 días de retraso</div>
-              </div>
-            </div>
-            <div className="flex items-center p-3 bg-blue-50 border-l-4 border-blue-400 rounded-r">
-              <TrendingUp className="w-5 h-5 text-blue-600 mr-3" />
-              <div>
-                <div className="font-medium text-blue-800">Actualización de Mercado</div>
-                <div className="text-sm text-blue-700">Precios del cobre subieron 2.3% - Revisar posiciones de cobertura</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
