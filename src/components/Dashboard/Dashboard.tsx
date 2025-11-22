@@ -1892,7 +1892,7 @@ const Dashboard: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  scrollToSubsection(overduePaymentsRef, 'pagos', 'overduePayments');
+                  scrollToSubsection(overduePaymentsRef, 'pagos', 'payments');
                 }}
                 className="ml-3 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-red-200 transition-colors cursor-pointer"
               >
@@ -1901,7 +1901,7 @@ const Dashboard: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  scrollToSubsection(overdueCollectionsRef, 'pagos', 'overdueCollections');
+                  scrollToSubsection(overdueCollectionsRef, 'pagos', 'collections');
                 }}
                 className="ml-2 bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-orange-200 transition-colors cursor-pointer"
               >
