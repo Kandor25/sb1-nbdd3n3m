@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FileText, Package, Truck, DollarSign, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Scale, FlaskConical, MapPin, TruckIcon, Calendar, ListChecks, Filter, X, User } from 'lucide-react';
 import MetricCard from './MetricCard';
 import { mockDashboardMetrics, mockContracts, mockInventoryLots, mockShipments } from '../../data/mockData';
@@ -129,9 +129,11 @@ interface GTCOrder {
 
 const Dashboard: React.FC = () => {
   // Filtros
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['contratos', 'logistica', 'ensayos', 'pagos', 'fijaciones']);
   const [selectedResponsibles, setSelectedResponsibles] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: '', end: '' });
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showResponsibleDropdown, setShowResponsibleDropdown] = useState(false);
 
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     contratos: false,
@@ -201,6 +203,20 @@ const Dashboard: React.FC = () => {
       [section]: !prev[section]
     }));
   };
+
+  // Cerrar dropdowns al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.filter-dropdown')) {
+        setShowCategoryDropdown(false);
+        setShowResponsibleDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const isEtaOverdue = (eta: string): boolean => {
     const match = eta.match(/(\d+)([A-Za-z]{3})(\d+)/);
@@ -1078,101 +1094,141 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Filter className="w-5 h-5 text-gray-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Filtros</h2>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Filter className="w-4 h-4 text-gray-600" />
+          <h2 className="text-base font-semibold text-gray-900">Filtros</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Filtro por Categoría */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <div className="relative filter-dropdown">
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
               Categorías
             </label>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {['contratos', 'logistica', 'ensayos', 'pagos', 'fijaciones'].map((category) => (
-                <label key={category} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                  <input
-                    type="checkbox"
-                    checked={selectedCategories.includes(category)}
-                    onChange={() => toggleCategory(category)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700 capitalize">{category}</span>
-                </label>
-              ))}
-            </div>
-            {selectedCategories.length > 0 && (
-              <button
-                onClick={() => setSelectedCategories([])}
-                className="mt-2 text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
-              >
-                <X className="w-3 h-3" /> Limpiar
-              </button>
+            <button
+              onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+              className="w-full px-3 py-2 text-sm text-left bg-white border border-gray-300 rounded-lg hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between"
+            >
+              <span className="text-gray-700">
+                {selectedCategories.length === 5 ? 'Todas' : selectedCategories.length === 0 ? 'Ninguna' : `${selectedCategories.length} seleccionadas`}
+              </span>
+              <ChevronDown className="w-4 h-4 text-gray-400" />
+            </button>
+
+            {showCategoryDropdown && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <div className="p-2 space-y-1">
+                  {['contratos', 'logistica', 'ensayos', 'pagos', 'fijaciones'].map((category) => (
+                    <label key={category} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                      <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(category)}
+                        onChange={() => toggleCategory(category)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700 capitalize">{category}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="border-t border-gray-200 p-2 flex gap-2">
+                  <button
+                    onClick={() => {
+                      setSelectedCategories(['contratos', 'logistica', 'ensayos', 'pagos', 'fijaciones']);
+                      setShowCategoryDropdown(false);
+                    }}
+                    className="flex-1 text-xs text-blue-600 hover:text-blue-800 py-1"
+                  >
+                    Todas
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedCategories([]);
+                      setShowCategoryDropdown(false);
+                    }}
+                    className="flex-1 text-xs text-gray-600 hover:text-gray-800 py-1"
+                  >
+                    Ninguna
+                  </button>
+                </div>
+              </div>
             )}
           </div>
 
           {/* Filtro por Responsable */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              <User className="w-4 h-4 inline mr-1" />
+          <div className="relative filter-dropdown">
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+              <User className="w-3 h-3 inline mr-1" />
               Responsables
             </label>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {allResponsibles.map((responsible) => (
-                <label key={responsible} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                  <input
-                    type="checkbox"
-                    checked={selectedResponsibles.includes(responsible)}
-                    onChange={() => toggleResponsible(responsible)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">{responsible}</span>
-                </label>
-              ))}
-            </div>
-            {selectedResponsibles.length > 0 && (
-              <button
-                onClick={() => setSelectedResponsibles([])}
-                className="mt-2 text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
-              >
-                <X className="w-3 h-3" /> Limpiar
-              </button>
+            <button
+              onClick={() => setShowResponsibleDropdown(!showResponsibleDropdown)}
+              className="w-full px-3 py-2 text-sm text-left bg-white border border-gray-300 rounded-lg hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between"
+            >
+              <span className="text-gray-700 truncate">
+                {selectedResponsibles.length === 0 ? 'Todos' : selectedResponsibles.length === 1 ? selectedResponsibles[0] : `${selectedResponsibles.length} seleccionados`}
+              </span>
+              <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            </button>
+
+            {showResponsibleDropdown && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <div className="p-2 space-y-1">
+                  {allResponsibles.map((responsible) => (
+                    <label key={responsible} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                      <input
+                        type="checkbox"
+                        checked={selectedResponsibles.includes(responsible)}
+                        onChange={() => toggleResponsible(responsible)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{responsible}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="border-t border-gray-200 p-2">
+                  <button
+                    onClick={() => {
+                      setSelectedResponsibles([]);
+                      setShowResponsibleDropdown(false);
+                    }}
+                    className="w-full text-xs text-center text-gray-600 hover:text-gray-800 py-1"
+                  >
+                    Limpiar Selección
+                  </button>
+                </div>
+              </div>
             )}
           </div>
 
           {/* Filtro por Fecha */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              <Calendar className="w-4 h-4 inline mr-1" />
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+              <Calendar className="w-3 h-3 inline mr-1" />
               Rango de Fechas (ETA)
             </label>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Desde</label>
-                <input
-                  type="date"
-                  value={dateRange.start}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Hasta</label>
-                <input
-                  type="date"
-                  value={dateRange.end}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={dateRange.start}
+                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                placeholder="Desde"
+                className="flex-1 px-2 py-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <input
+                type="date"
+                value={dateRange.end}
+                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                placeholder="Hasta"
+                className="flex-1 px-2 py-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
               {(dateRange.start || dateRange.end) && (
                 <button
                   onClick={() => setDateRange({ start: '', end: '' })}
-                  className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  className="px-2 text-gray-400 hover:text-gray-600"
+                  title="Limpiar fechas"
                 >
-                  <X className="w-3 h-3" /> Limpiar
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>
