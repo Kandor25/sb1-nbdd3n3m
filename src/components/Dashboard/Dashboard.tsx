@@ -153,6 +153,8 @@ const Dashboard: React.FC = () => {
   const [showResponsibleDropdown, setShowResponsibleDropdown] = useState(false);
 
   // Refs para scroll a secciones
+  const patioOperationsRef = useRef<HTMLDivElement>(null);
+  const transitOperationsRef = useRef<HTMLDivElement>(null);
   const unreportedWeightsRef = useRef<HTMLDivElement>(null);
   const unreportedAssaysRef = useRef<HTMLDivElement>(null);
   const scheduledWeightsRef = useRef<HTMLDivElement>(null);
@@ -162,6 +164,7 @@ const Dashboard: React.FC = () => {
   const scheduledPaymentsRef = useRef<HTMLDivElement>(null);
   const scheduledCollectionsRef = useRef<HTMLDivElement>(null);
   const upcomingFixingsRef = useRef<HTMLDivElement>(null);
+  const gtcOrdersRef = useRef<HTMLDivElement>(null);
 
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     contratos: false,
@@ -1139,7 +1142,9 @@ const Dashboard: React.FC = () => {
 
     // Expandir la subsección si existe
     if (subsection) {
-      if (section === 'ensayos') {
+      if (section === 'logistica') {
+        setExpandedLogistics(prev => ({ ...prev, [subsection]: true }));
+      } else if (section === 'ensayos') {
         setExpandedAssays(prev => ({ ...prev, [subsection]: true }));
       } else if (section === 'pagos') {
         setExpandedPayments(prev => ({ ...prev, [subsection]: true }));
@@ -1485,12 +1490,24 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center">
               <Truck className="w-5 h-5 text-blue-600 mr-3" />
               <h2 className="text-lg font-bold text-gray-900">2. Logística</h2>
-              <span className="ml-3 bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSubsection(patioOperationsRef, 'logistica', 'patio');
+                }}
+                className="ml-3 bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-emerald-200 transition-colors cursor-pointer"
+              >
                 {patioOperations.length} En Patio
-              </span>
-              <span className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSubsection(transitOperationsRef, 'logistica', 'transito');
+                }}
+                className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-blue-200 transition-colors cursor-pointer"
+              >
                 {transitOperations.length} En Tránsito
-              </span>
+              </button>
             </div>
             {expandedSections.logistica ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -1502,7 +1519,7 @@ const Dashboard: React.FC = () => {
           {expandedSections.logistica && (
             <div className="px-6 pb-5 space-y-3">
               {/* En Patio de Salidas */}
-              <div className="bg-gray-50 rounded-lg border border-gray-200">
+              <div ref={patioOperationsRef} className="bg-gray-50 rounded-lg border border-gray-200">
                 <button
                   onClick={() => toggleLogistics('patio')}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
@@ -1552,7 +1569,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* En Tránsito */}
-              <div className="bg-gray-50 rounded-lg border border-gray-200">
+              <div ref={transitOperationsRef} className="bg-gray-50 rounded-lg border border-gray-200">
                 <button
                   onClick={() => toggleLogistics('transito')}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
@@ -2157,9 +2174,15 @@ const Dashboard: React.FC = () => {
               >
                 {upcomingFixings.length} Próximas Fijaciones
               </button>
-              <span className="ml-2 bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSubsection(gtcOrdersRef, 'fijaciones', 'gtc');
+                }}
+                className="ml-2 bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-green-200 transition-colors cursor-pointer"
+              >
                 {gtcOrders.length} GTC Abiertas
-              </span>
+              </button>
             </div>
             {expandedSections.fijaciones ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -2296,7 +2319,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* GTC abiertas */}
-              <div className="bg-gray-50 rounded-lg border border-gray-200">
+              <div ref={gtcOrdersRef} className="bg-gray-50 rounded-lg border border-gray-200">
                 <button
                   onClick={() => toggleFixings('gtc')}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
