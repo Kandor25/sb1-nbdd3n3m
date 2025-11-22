@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Package, Truck, DollarSign, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Scale, FlaskConical, MapPin, TruckIcon, Calendar, ListChecks } from 'lucide-react';
+import { FileText, Package, Truck, DollarSign, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Scale, FlaskConical, MapPin, TruckIcon, Calendar, ListChecks, Filter, X, User } from 'lucide-react';
 import MetricCard from './MetricCard';
 import { mockDashboardMetrics, mockContracts, mockInventoryLots, mockShipments } from '../../data/mockData';
 
@@ -128,6 +128,11 @@ interface GTCOrder {
 }
 
 const Dashboard: React.FC = () => {
+  // Filtros
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedResponsibles, setSelectedResponsibles] = useState<string[]>([]);
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: '', end: '' });
+
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     contratos: false,
     logistica: false,
@@ -963,12 +968,215 @@ const Dashboard: React.FC = () => {
     }
   ];
 
+  // Obtener lista única de responsables
+  const allResponsibles = Array.from(new Set([
+    ...pendingContracts.map(c => c.responsible),
+    ...patioOperations.map(o => o.responsible),
+    ...transitOperations.map(o => o.responsible),
+    ...unreportedWeights.map(w => w.responsible),
+    ...unreportedAssays.map(a => a.responsible),
+    ...scheduledWeights.map(w => w.responsible),
+    ...scheduledAssays.map(a => a.responsible),
+    ...overduePayments.map(p => p.responsible),
+    ...overdueCollections.map(c => c.responsible),
+    ...scheduledPayments.map(p => p.responsible),
+    ...scheduledCollections.map(c => c.responsible),
+    ...upcomingFixings.map(f => f.responsible),
+    ...gtcOrders.map(o => o.responsible)
+  ])).sort();
+
+  // Función para verificar si una fecha está en el rango
+  const isDateInRange = (dateStr: string): boolean => {
+    if (!dateRange.start && !dateRange.end) return true;
+
+    const match = dateStr.match(/(\d+)([A-Za-z]{3})(\d+)/);
+    if (!match) return true;
+
+    const [, day, month, year] = match;
+    const monthMap: {[key: string]: number} = {'Jan':0,'Feb':1,'Mar':2,'Apr':3,'May':4,'Jun':5,'Jul':6,'Aug':7,'Sep':8,'Oct':9,'Nov':10,'Dec':11};
+    const monthIndex = monthMap[month];
+    if (monthIndex === undefined) return true;
+
+    const itemDate = new Date(parseInt(year), monthIndex, parseInt(day));
+
+    if (dateRange.start && dateRange.end) {
+      const startDate = new Date(dateRange.start);
+      const endDate = new Date(dateRange.end);
+      return itemDate >= startDate && itemDate <= endDate;
+    } else if (dateRange.start) {
+      const startDate = new Date(dateRange.start);
+      return itemDate >= startDate;
+    } else if (dateRange.end) {
+      const endDate = new Date(dateRange.end);
+      return itemDate <= endDate;
+    }
+
+    return true;
+  };
+
+  // Filtrar por responsable
+  const filterByResponsible = <T extends { responsible: string }>(items: T[]): T[] => {
+    if (selectedResponsibles.length === 0) return items;
+    return items.filter(item => selectedResponsibles.includes(item.responsible));
+  };
+
+  // Filtrar por fecha (para items con eta o etaScheduled o scheduled)
+  const filterByDate = <T extends { eta?: string; etaScheduled?: string; scheduled?: string }>(items: T[]): T[] => {
+    if (!dateRange.start && !dateRange.end) return items;
+    return items.filter(item => {
+      const dateStr = item.eta || item.etaScheduled || item.scheduled;
+      return dateStr ? isDateInRange(dateStr) : true;
+    });
+  };
+
+  // Aplicar filtros
+  const filteredPendingContracts = filterByResponsible(pendingContracts);
+  const filteredPatioOperations = filterByDate(filterByResponsible(patioOperations));
+  const filteredTransitOperations = filterByDate(filterByResponsible(transitOperations));
+  const filteredUnreportedWeights = filterByDate(filterByResponsible(unreportedWeights));
+  const filteredUnreportedAssays = filterByDate(filterByResponsible(unreportedAssays));
+  const filteredScheduledWeights = filterByDate(filterByResponsible(scheduledWeights));
+  const filteredScheduledAssays = filterByDate(filterByResponsible(scheduledAssays));
+  const filteredOverduePayments = filterByDate(filterByResponsible(overduePayments));
+  const filteredOverdueCollections = filterByDate(filterByResponsible(overdueCollections));
+  const filteredScheduledPayments = filterByDate(filterByResponsible(scheduledPayments));
+  const filteredScheduledCollections = filterByDate(filterByResponsible(scheduledCollections));
+  const filteredUpcomingFixings = filterByDate(filterByResponsible(upcomingFixings));
+  const filteredGtcOrders = filterByResponsible(gtcOrders);
+
+  // Toggle de categorías
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev =>
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  // Toggle de responsables
+  const toggleResponsible = (responsible: string) => {
+    setSelectedResponsibles(prev =>
+      prev.includes(responsible)
+        ? prev.filter(r => r !== responsible)
+        : [...prev, responsible]
+    );
+  };
+
+  // Verificar si una categoría debe mostrarse
+  const shouldShowCategory = (category: string): boolean => {
+    if (selectedCategories.length === 0) return true;
+    return selectedCategories.includes(category);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Panel de Trading</h1>
         <div className="text-sm text-gray-500">
           Última actualización: {new Date().toLocaleString('es-ES')}
+        </div>
+      </div>
+
+      {/* Filtros */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="w-5 h-5 text-gray-600" />
+          <h2 className="text-lg font-semibold text-gray-900">Filtros</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Filtro por Categoría */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Categorías
+            </label>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {['contratos', 'logistica', 'ensayos', 'pagos', 'fijaciones'].map((category) => (
+                <label key={category} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                  <input
+                    type="checkbox"
+                    checked={selectedCategories.includes(category)}
+                    onChange={() => toggleCategory(category)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700 capitalize">{category}</span>
+                </label>
+              ))}
+            </div>
+            {selectedCategories.length > 0 && (
+              <button
+                onClick={() => setSelectedCategories([])}
+                className="mt-2 text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              >
+                <X className="w-3 h-3" /> Limpiar
+              </button>
+            )}
+          </div>
+
+          {/* Filtro por Responsable */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <User className="w-4 h-4 inline mr-1" />
+              Responsables
+            </label>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {allResponsibles.map((responsible) => (
+                <label key={responsible} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                  <input
+                    type="checkbox"
+                    checked={selectedResponsibles.includes(responsible)}
+                    onChange={() => toggleResponsible(responsible)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{responsible}</span>
+                </label>
+              ))}
+            </div>
+            {selectedResponsibles.length > 0 && (
+              <button
+                onClick={() => setSelectedResponsibles([])}
+                className="mt-2 text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              >
+                <X className="w-3 h-3" /> Limpiar
+              </button>
+            )}
+          </div>
+
+          {/* Filtro por Fecha */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <Calendar className="w-4 h-4 inline mr-1" />
+              Rango de Fechas (ETA)
+            </label>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Desde</label>
+                <input
+                  type="date"
+                  value={dateRange.start}
+                  onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Hasta</label>
+                <input
+                  type="date"
+                  value={dateRange.end}
+                  onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              {(dateRange.start || dateRange.end) && (
+                <button
+                  onClick={() => setDateRange({ start: '', end: '' })}
+                  className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                >
+                  <X className="w-3 h-3" /> Limpiar
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1007,6 +1215,7 @@ const Dashboard: React.FC = () => {
       {/* Category Panels */}
       <div className="space-y-4">
         {/* 1. Contratos */}
+        {shouldShowCategory('contratos') && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <button
             onClick={() => toggleSection('contratos')}
@@ -1029,7 +1238,7 @@ const Dashboard: React.FC = () => {
           {expandedSections.contratos && (
             <div className="px-6 pb-5">
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {pendingContracts.map((contract) => (
+                {filteredPendingContracts.map((contract) => (
                   <div key={contract.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
                     <div className="text-sm space-y-1.5">
                       <p>
@@ -1056,8 +1265,10 @@ const Dashboard: React.FC = () => {
             </div>
           )}
         </div>
+        )}
 
         {/* 2. Logística */}
+        {shouldShowCategory('logistica') && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <button
             onClick={() => toggleSection('logistica')}
@@ -1105,7 +1316,7 @@ const Dashboard: React.FC = () => {
                 {expandedLogistics.patio && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {patioOperations.map((op) => {
+                      {filteredPatioOperations.map((op) => {
                         const daysOverdue = getDaysOverdue(op.eta.split('@')[0]);
                         const isOverdue = daysOverdue > 0;
                         return (
@@ -1155,7 +1366,7 @@ const Dashboard: React.FC = () => {
                 {expandedLogistics.transito && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {transitOperations.map((op) => {
+                      {filteredTransitOperations.map((op) => {
                         const daysOverdue = getDaysOverdue(op.eta.split('@')[0]);
                         const isOverdue = daysOverdue > 0;
                         return (
@@ -1184,8 +1395,10 @@ const Dashboard: React.FC = () => {
             </div>
           )}
         </div>
+        )}
 
         {/* 3. Ensayos & Pesos */}
+        {shouldShowCategory('ensayos') && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <button
             onClick={() => toggleSection('ensayos')}
@@ -1239,7 +1452,7 @@ const Dashboard: React.FC = () => {
                 {expandedAssays.weights && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {[...unreportedWeights].sort((a, b) => {
+                      {[...filteredUnreportedWeights].sort((a, b) => {
                         const aOverdue = isEtaOverdue(a.etaScheduled);
                         const bOverdue = isEtaOverdue(b.etaScheduled);
                         if (aOverdue && !bOverdue) return -1;
@@ -1292,7 +1505,7 @@ const Dashboard: React.FC = () => {
                 {expandedAssays.assays && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {[...unreportedAssays].sort((a, b) => {
+                      {[...filteredUnreportedAssays].sort((a, b) => {
                         const aOverdue = isEtaOverdue(a.etaScheduled);
                         const bOverdue = isEtaOverdue(b.etaScheduled);
                         if (aOverdue && !bOverdue) return -1;
@@ -1350,7 +1563,7 @@ const Dashboard: React.FC = () => {
                 {expandedAssays.scheduledWeights && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {scheduledWeights.map((weight) => (
+                      {filteredScheduledWeights.map((weight) => (
                         <div key={weight.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
                           <div className="text-sm space-y-1">
                             <p>
@@ -1393,7 +1606,7 @@ const Dashboard: React.FC = () => {
                 {expandedAssays.scheduledAssays && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {scheduledAssays.map((assay) => (
+                      {filteredScheduledAssays.map((assay) => (
                         <div key={assay.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
                           <div className="text-sm space-y-1">
                             <p>
@@ -1415,8 +1628,10 @@ const Dashboard: React.FC = () => {
             </div>
           )}
         </div>
+        )}
 
         {/* 4. Pagos & Cobros */}
+        {shouldShowCategory('pagos') && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <button
             onClick={() => toggleSection('pagos')}
@@ -1470,7 +1685,7 @@ const Dashboard: React.FC = () => {
                 {expandedPayments.payments && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {[...overduePayments].sort((a, b) => {
+                      {[...filteredOverduePayments].sort((a, b) => {
                         const aOverdue = isEtaOverdue(a.etaScheduled);
                         const bOverdue = isEtaOverdue(b.etaScheduled);
                         if (aOverdue && !bOverdue) return -1;
@@ -1529,7 +1744,7 @@ const Dashboard: React.FC = () => {
                 {expandedPayments.collections && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {[...overdueCollections].sort((a, b) => {
+                      {[...filteredOverdueCollections].sort((a, b) => {
                         const aOverdue = isEtaOverdue(a.scheduled);
                         const bOverdue = isEtaOverdue(b.scheduled);
                         if (aOverdue && !bOverdue) return -1;
@@ -1588,7 +1803,7 @@ const Dashboard: React.FC = () => {
                 {expandedPayments.scheduledPayments && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {scheduledPayments.map((payment) => (
+                      {filteredScheduledPayments.map((payment) => (
                         <div key={payment.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
                           <div className="text-sm space-y-1">
                             <p className="text-gray-900">
@@ -1637,7 +1852,7 @@ const Dashboard: React.FC = () => {
                 {expandedPayments.scheduledCollections && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {scheduledCollections.map((collection) => (
+                      {filteredScheduledCollections.map((collection) => (
                         <div key={collection.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
                           <div className="text-sm space-y-1">
                             <p className="text-gray-900">
@@ -1665,8 +1880,10 @@ const Dashboard: React.FC = () => {
             </div>
           )}
         </div>
+        )}
 
         {/* 5. Fijaciones */}
+        {shouldShowCategory('fijaciones') && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <button
             onClick={() => toggleSection('fijaciones')}
@@ -1728,7 +1945,7 @@ const Dashboard: React.FC = () => {
                       </button>
                       {expandedFixings.next5days && (
                         <div className="px-3 pb-3 space-y-2">
-                          {upcomingFixings.filter(f => f.periodType === 'next5days').map((fixing) => {
+                          {filteredUpcomingFixings.filter(f => f.periodType === 'next5days').map((fixing) => {
                             const daysOverdue = getDaysOverdue(fixing.etaScheduled);
                             const isOverdue = isEtaOverdue(fixing.etaScheduled);
                             return (
@@ -1778,7 +1995,7 @@ const Dashboard: React.FC = () => {
                       </button>
                       {expandedFixings.monthlyAverage && (
                         <div className="px-3 pb-3 space-y-2">
-                          {upcomingFixings.filter(f => f.periodType === 'monthlyAverage').map((fixing) => {
+                          {filteredUpcomingFixings.filter(f => f.periodType === 'monthlyAverage').map((fixing) => {
                             const daysOverdue = getDaysOverdue(fixing.etaScheduled);
                             const isOverdue = isEtaOverdue(fixing.etaScheduled);
                             return (
@@ -1839,7 +2056,7 @@ const Dashboard: React.FC = () => {
                 {expandedFixings.gtc && (
                   <div className="px-4 pb-4">
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {gtcOrders.map((order) => (
+                      {filteredGtcOrders.map((order) => (
                         <div key={order.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
                           <div className="text-sm space-y-2">
                             <p className="text-gray-700">
@@ -1871,6 +2088,7 @@ const Dashboard: React.FC = () => {
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* Recent Activity Grid */}
