@@ -253,6 +253,17 @@ const Dashboard: React.FC = () => {
     return etaDate < now;
   };
 
+  // Helper para generar fechas futuras en formato DDMmmYYYY
+  const getFutureDateString = (daysFromNow: number): string => {
+    const date = new Date();
+    date.setDate(date.getDate() + daysFromNow);
+    const day = date.getDate();
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day}${month}${year}`;
+  };
+
   const getDaysOverdue = (eta: string): number => {
     const match = eta.match(/(\d+)([A-Za-z]{3})(\d+)/);
     if (!match) {
@@ -613,7 +624,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 100',
       quota: 'Nov.25',
       laboratory: 'SGS',
-      etaScheduled: '19Nov2025',
+      etaScheduled: getFutureDateString(2),
       delayed: false,
       responsible: 'Ana Martinez'
     },
@@ -626,9 +637,35 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 174',
       quota: 'Nov.25',
       laboratory: 'AD Lab',
-      etaScheduled: '20Nov2025',
+      etaScheduled: getFutureDateString(5),
       delayed: false,
       responsible: 'Diego Lopez'
+    },
+    {
+      id: '3',
+      shipmentNumber: '10102020',
+      quantity: 22,
+      commodity: 'Concentrado Zn',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Nov.25',
+      laboratory: 'Intertek',
+      etaScheduled: getFutureDateString(8),
+      delayed: false,
+      responsible: 'Sofia Ramirez'
+    },
+    {
+      id: '4',
+      shipmentNumber: '10102021',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Glencore',
+      contract: 'Contrato 8',
+      quota: 'Dic.25',
+      laboratory: 'SGS',
+      etaScheduled: getFutureDateString(12),
+      delayed: false,
+      responsible: 'Pedro Gomez'
     }
   ];
 
@@ -642,7 +679,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 174',
       quota: 'Sep.25',
       laboratory: 'SGS',
-      etaScheduled: '18Nov2025',
+      etaScheduled: getFutureDateString(3),
       comments: '',
       delayed: false,
       responsible: 'Fernanda Ruiz'
@@ -656,7 +693,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Nov.25',
       laboratory: 'AD Lab',
-      etaScheduled: '19Nov2025',
+      etaScheduled: getFutureDateString(6),
       comments: '',
       delayed: false,
       responsible: 'Alex Cheap'
@@ -670,10 +707,24 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 100',
       quota: 'Nov.25',
       laboratory: 'SLab Peru',
-      etaScheduled: '20Nov2025',
+      etaScheduled: getFutureDateString(9),
       comments: '',
       delayed: false,
       responsible: 'Maria Torres'
+    },
+    {
+      id: '4',
+      shipmentNumber: '10192021',
+      quantity: 30,
+      commodity: 'Concentrado Cu',
+      client: 'Glencore',
+      contract: 'Contrato 8',
+      quota: 'Dic.25',
+      laboratory: 'Intertek',
+      etaScheduled: getFutureDateString(14),
+      comments: '',
+      delayed: false,
+      responsible: 'Laura Sanchez'
     }
   ];
 
@@ -742,7 +793,7 @@ const Dashboard: React.FC = () => {
       client: 'Trader BA',
       contract: 'Contrato 10',
       quota: 'Jun.25',
-      etaScheduled: '18Nov2025',
+      etaScheduled: getFutureDateString(1),
       amount: 45000,
       responsible: 'Laura Sanchez'
     },
@@ -755,7 +806,7 @@ const Dashboard: React.FC = () => {
       client: 'Trader C',
       contract: 'Contrato 15',
       quota: 'Sep.25',
-      etaScheduled: '19Nov2025',
+      etaScheduled: getFutureDateString(4),
       amount: 28000,
       responsible: 'Roberto Cruz'
     },
@@ -768,9 +819,22 @@ const Dashboard: React.FC = () => {
       client: 'IMX',
       contract: 'Contrato 20',
       quota: 'Oct.25',
-      etaScheduled: '20Nov2025',
+      etaScheduled: getFutureDateString(7),
       amount: 32000,
       responsible: 'Ana Martinez'
+    },
+    {
+      id: '4',
+      type: 'Servicios de almacenamiento Nov.25',
+      shipmentNumber: '10102023',
+      quantity: 40,
+      commodity: 'Concentrado Ag',
+      client: 'Trader B',
+      contract: 'Contrato 25',
+      quota: 'Nov.25',
+      etaScheduled: getFutureDateString(11),
+      amount: 18000,
+      responsible: 'Carlos Mendez'
     }
   ];
 
@@ -839,9 +903,48 @@ const Dashboard: React.FC = () => {
       client: 'IMX',
       contract: 'Contrato 10',
       quota: 'Aug.25',
-      scheduled: '17Nov2025',
+      scheduled: getFutureDateString(2),
       amount: 225000,
       responsible: 'Carlos Mendez'
+    },
+    {
+      id: '2',
+      type: 'Pago provisional',
+      shipmentNumber: '10102022',
+      quantity: 35,
+      commodity: 'Concentrado Zn',
+      client: 'Trader C',
+      contract: 'Contrato 15',
+      quota: 'Sep.25',
+      scheduled: getFutureDateString(5),
+      amount: 180000,
+      responsible: 'Ana Martinez'
+    },
+    {
+      id: '3',
+      type: 'Pago final',
+      shipmentNumber: '10102024',
+      quantity: 50,
+      commodity: 'Concentrado Ag',
+      client: 'Trader B',
+      contract: 'Contrato 174',
+      quota: 'Oct.25',
+      scheduled: getFutureDateString(9),
+      amount: 275000,
+      responsible: 'Diego Lopez'
+    },
+    {
+      id: '4',
+      type: 'Pago provisional',
+      shipmentNumber: '10102025',
+      quantity: 42,
+      commodity: 'Concentrado Cu',
+      client: 'Glencore',
+      contract: 'Contrato 8',
+      quota: 'Nov.25',
+      scheduled: getFutureDateString(13),
+      amount: 210000,
+      responsible: 'Juan Perez'
     }
   ];
 
@@ -855,7 +958,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Oct.25',
       periodType: 'next5days',
-      etaScheduled: '8Oct2025',
+      etaScheduled: getFutureDateString(3),
       terms: {
         metals: 'CU/AU/AG ==> Oficial 15Dec.25',
         period: 'Oficial 15Dec.25',
@@ -873,7 +976,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 5',
       quota: 'Nov.25',
       periodType: 'next5days',
-      etaScheduled: '10Oct2025',
+      etaScheduled: getFutureDateString(6),
       terms: {
         metals: 'CU/AU/AG ==> Oficial 18Dec.25',
         period: 'Oficial 18Dec.25',
@@ -891,7 +994,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 8',
       quota: 'Nov.25',
       periodType: 'next5days',
-      etaScheduled: '20Nov2025',
+      etaScheduled: getFutureDateString(10),
       terms: {
         metals: 'CU/AU/AG ==> Oficial 20Dec.25',
         period: 'Oficial 20Dec.25',
@@ -909,7 +1012,7 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 12',
       quota: 'Nov.25',
       periodType: 'next5days',
-      etaScheduled: '22Nov2025',
+      etaScheduled: getFutureDateString(14),
       terms: {
         metals: 'CU/AU/AG ==> Oficial 22Dec.25',
         period: 'Oficial 22Dec.25',
