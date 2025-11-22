@@ -12,6 +12,7 @@ interface PendingContract {
   client: string;
   delayed: number;
   action: string;
+  responsible: string;
 }
 
 interface LogisticsOperation {
@@ -26,6 +27,7 @@ interface LogisticsOperation {
   eta: string;
   operator: string;
   plate: string;
+  responsible: string;
 }
 
 interface WeightReport {
@@ -39,6 +41,7 @@ interface WeightReport {
   laboratory: string;
   etaScheduled: string;
   delayed: boolean;
+  responsible: string;
 }
 
 interface AssayReport {
@@ -53,6 +56,7 @@ interface AssayReport {
   etaScheduled: string;
   comments: string;
   delayed: boolean;
+  responsible: string;
 }
 
 interface OverduePayment {
@@ -66,6 +70,7 @@ interface OverduePayment {
   quota: string;
   etaScheduled: string;
   amount: number;
+  responsible: string;
 }
 
 interface OverdueCollection {
@@ -79,6 +84,7 @@ interface OverdueCollection {
   quota: string;
   scheduled: string;
   amount: number;
+  responsible: string;
 }
 
 interface UpcomingFixing {
@@ -97,6 +103,7 @@ interface UpcomingFixing {
     quantities: string;
     grades: string;
   };
+  responsible: string;
 }
 
 interface GTCOrder {
@@ -117,6 +124,7 @@ interface GTCOrder {
     exchange: string;
     reference: string;
   }>;
+  responsible: string;
 }
 
 const Dashboard: React.FC = () => {
@@ -237,7 +245,8 @@ const Dashboard: React.FC = () => {
       type: 'Renovación',
       client: 'Trader A',
       delayed: 10,
-      action: 'Falta confirmar versión 2.0 ==> Cliente Trader A'
+      action: 'Falta confirmar versión 2.0 ==> Cliente Trader A',
+      responsible: 'Alex Cheap'
     },
     {
       id: '2',
@@ -247,7 +256,8 @@ const Dashboard: React.FC = () => {
       type: 'Nuevo',
       client: 'Peñasquito',
       delayed: 5,
-      action: 'Falta confirmar versión 1.0 ==> Cliente Peñasquito'
+      action: 'Falta confirmar versión 1.0 ==> Cliente Peñasquito',
+      responsible: 'Maria Torres'
     },
     {
       id: '3',
@@ -257,7 +267,8 @@ const Dashboard: React.FC = () => {
       type: 'Renovación',
       client: 'Glencore',
       delayed: 15,
-      action: 'Falta confirmar versión 3.0 ==> Cliente Glencore'
+      action: 'Falta confirmar versión 3.0 ==> Cliente Glencore',
+      responsible: 'Carlos Mendez'
     }
   ];
 
@@ -274,7 +285,8 @@ const Dashboard: React.FC = () => {
       location: 'Patio D',
       eta: '5Nov2025@10:00hrs',
       operator: 'Pedro Gomez',
-      plate: 'WXYZ-123'
+      plate: 'WXYZ-123',
+      responsible: 'Alex Cheap'
     },
     {
       id: '1',
@@ -287,7 +299,8 @@ const Dashboard: React.FC = () => {
       location: 'Patio A',
       eta: '20Dec2025@16:00hrs',
       operator: 'Jaime Camil',
-      plate: 'ABCD-234'
+      plate: 'ABCD-234',
+      responsible: 'Maria Torres'
     },
     {
       id: '2',
@@ -300,7 +313,8 @@ const Dashboard: React.FC = () => {
       location: 'Patio B',
       eta: '25Dec2025@16:00hrs',
       operator: 'Jaime Camil',
-      plate: 'ABCD-234'
+      plate: 'ABCD-234',
+      responsible: 'Carlos Mendez'
     },
     {
       id: '3',
@@ -313,7 +327,8 @@ const Dashboard: React.FC = () => {
       location: 'Patio C',
       eta: '5Jan2026@14:00hrs',
       operator: 'Carlos Ruiz',
-      plate: 'EFGH-567'
+      plate: 'EFGH-567',
+      responsible: 'Juan Perez'
     },
     {
       id: '4',
@@ -326,7 +341,8 @@ const Dashboard: React.FC = () => {
       location: 'Patio A',
       eta: '18Jan2026@10:00hrs',
       operator: 'Luis Martinez',
-      plate: 'IJKL-890'
+      plate: 'IJKL-890',
+      responsible: 'Sofia Ramirez'
     }
   ].sort((a, b) => {
     const parseDate = (eta: string) => {
@@ -351,7 +367,8 @@ const Dashboard: React.FC = () => {
       location: 'En ruta',
       eta: '3Nov2025@14:00hrs',
       operator: 'Miguel Lopez',
-      plate: 'QRST-789'
+      plate: 'QRST-789',
+      responsible: 'Pedro Gomez'
     },
     {
       id: '10',
@@ -364,7 +381,8 @@ const Dashboard: React.FC = () => {
       location: 'En ruta',
       eta: '10Nov2025@09:00hrs',
       operator: 'Antonio Ramirez',
-      plate: 'UVWX-012'
+      plate: 'UVWX-012',
+      responsible: 'Laura Sanchez'
     },
     {
       id: '7',
@@ -377,7 +395,8 @@ const Dashboard: React.FC = () => {
       location: 'En ruta',
       eta: '18Dec2025@19:00hrs',
       operator: 'Alberto Camil',
-      plate: 'ABCD-231'
+      plate: 'ABCD-231',
+      responsible: 'Roberto Cruz'
     },
     {
       id: '5',
@@ -390,7 +409,8 @@ const Dashboard: React.FC = () => {
       location: 'En ruta',
       eta: '22Dec2025@20:00hrs',
       operator: 'Jose Camil',
-      plate: 'ABCD-233'
+      plate: 'ABCD-233',
+      responsible: 'Ana Martinez'
     },
     {
       id: '6',
@@ -403,7 +423,8 @@ const Dashboard: React.FC = () => {
       location: 'En ruta',
       eta: '28Dec2025@21:00hrs',
       operator: 'Fernando Camil',
-      plate: 'ABCD-232'
+      plate: 'ABCD-232',
+      responsible: 'Diego Lopez'
     },
     {
       id: '8',
@@ -416,7 +437,8 @@ const Dashboard: React.FC = () => {
       location: 'En ruta',
       eta: '12Jan2026@08:00hrs',
       operator: 'Roberto Silva',
-      plate: 'MNOP-456'
+      plate: 'MNOP-456',
+      responsible: 'Fernanda Ruiz'
     }
   ].sort((a, b) => {
     const parseDate = (eta: string) => {
@@ -440,7 +462,8 @@ const Dashboard: React.FC = () => {
       quota: 'Sep.25',
       laboratory: 'SGS',
       etaScheduled: '7Oct2025',
-      delayed: true
+      delayed: true,
+      responsible: 'Alex Cheap'
     },
     {
       id: '2',
@@ -452,7 +475,8 @@ const Dashboard: React.FC = () => {
       quota: 'Sep.25',
       laboratory: 'AD Lab',
       etaScheduled: '5Oct2025',
-      delayed: true
+      delayed: true,
+      responsible: 'Maria Torres'
     },
     {
       id: '3',
@@ -464,7 +488,8 @@ const Dashboard: React.FC = () => {
       quota: 'Oct.25',
       laboratory: 'SLab Peru',
       etaScheduled: '12Oct2025',
-      delayed: false
+      delayed: false,
+      responsible: 'Carlos Mendez'
     },
     {
       id: '4',
@@ -476,7 +501,8 @@ const Dashboard: React.FC = () => {
       quota: 'Oct.25',
       laboratory: 'SGS',
       etaScheduled: '14Oct2025',
-      delayed: false
+      delayed: false,
+      responsible: 'Juan Perez'
     }
   ];
 
@@ -492,7 +518,8 @@ const Dashboard: React.FC = () => {
       laboratory: 'SGS',
       etaScheduled: '7Oct2025',
       comments: '*ver detalles x elemento',
-      delayed: true
+      delayed: true,
+      responsible: 'Sofia Ramirez'
     },
     {
       id: '2',
@@ -505,7 +532,8 @@ const Dashboard: React.FC = () => {
       laboratory: 'ALS',
       etaScheduled: '8Oct2025',
       comments: '*ver detalles x elemento',
-      delayed: true
+      delayed: true,
+      responsible: 'Pedro Gomez'
     },
     {
       id: '3',
@@ -518,7 +546,8 @@ const Dashboard: React.FC = () => {
       laboratory: 'SGS',
       etaScheduled: '15Oct2025',
       comments: '*ver detalles x elemento',
-      delayed: false
+      delayed: false,
+      responsible: 'Laura Sanchez'
     },
     {
       id: '4',
@@ -531,7 +560,8 @@ const Dashboard: React.FC = () => {
       laboratory: 'Intertek',
       etaScheduled: '10Oct2025',
       comments: '*ver detalles x elemento',
-      delayed: false
+      delayed: false,
+      responsible: 'Roberto Cruz'
     }
   ];
 
@@ -546,7 +576,8 @@ const Dashboard: React.FC = () => {
       quota: 'Nov.25',
       laboratory: 'SGS',
       etaScheduled: '19Nov2025',
-      delayed: false
+      delayed: false,
+      responsible: 'Ana Martinez'
     },
     {
       id: '2',
@@ -558,7 +589,8 @@ const Dashboard: React.FC = () => {
       quota: 'Nov.25',
       laboratory: 'AD Lab',
       etaScheduled: '20Nov2025',
-      delayed: false
+      delayed: false,
+      responsible: 'Diego Lopez'
     }
   ];
 
@@ -574,7 +606,8 @@ const Dashboard: React.FC = () => {
       laboratory: 'SGS',
       etaScheduled: '18Nov2025',
       comments: '',
-      delayed: false
+      delayed: false,
+      responsible: 'Fernanda Ruiz'
     },
     {
       id: '2',
@@ -587,7 +620,8 @@ const Dashboard: React.FC = () => {
       laboratory: 'AD Lab',
       etaScheduled: '19Nov2025',
       comments: '',
-      delayed: false
+      delayed: false,
+      responsible: 'Alex Cheap'
     },
     {
       id: '3',
@@ -600,7 +634,8 @@ const Dashboard: React.FC = () => {
       laboratory: 'SLab Peru',
       etaScheduled: '20Nov2025',
       comments: '',
-      delayed: false
+      delayed: false,
+      responsible: 'Maria Torres'
     }
   ];
 
@@ -615,7 +650,8 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Jul.25',
       etaScheduled: '3Oct2025',
-      amount: 15000
+      amount: 15000,
+      responsible: 'Carlos Mendez'
     },
     {
       id: '2',
@@ -627,7 +663,8 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 5',
       quota: 'Aug.25',
       etaScheduled: '5Oct2025',
-      amount: 22000
+      amount: 22000,
+      responsible: 'Juan Perez'
     },
     {
       id: '3',
@@ -639,7 +676,8 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 8',
       quota: 'Sep.25',
       etaScheduled: '8Oct2025',
-      amount: 18500
+      amount: 18500,
+      responsible: 'Sofia Ramirez'
     },
     {
       id: '4',
@@ -651,7 +689,8 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Sep.25',
       etaScheduled: '10Oct2025',
-      amount: 12500
+      amount: 12500,
+      responsible: 'Pedro Gomez'
     }
   ];
 
@@ -666,7 +705,8 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 10',
       quota: 'Jun.25',
       etaScheduled: '18Nov2025',
-      amount: 45000
+      amount: 45000,
+      responsible: 'Laura Sanchez'
     },
     {
       id: '2',
@@ -678,7 +718,8 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 15',
       quota: 'Sep.25',
       etaScheduled: '19Nov2025',
-      amount: 28000
+      amount: 28000,
+      responsible: 'Roberto Cruz'
     },
     {
       id: '3',
@@ -690,7 +731,8 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 20',
       quota: 'Oct.25',
       etaScheduled: '20Nov2025',
-      amount: 32000
+      amount: 32000,
+      responsible: 'Ana Martinez'
     }
   ];
 
@@ -705,7 +747,8 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Jul.25',
       scheduled: '7Oct2025',
-      amount: 125000
+      amount: 125000,
+      responsible: 'Diego Lopez'
     },
     {
       id: '2',
@@ -717,7 +760,8 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 10',
       quota: 'Oct.25',
       scheduled: '10Jan2029',
-      amount: 350000
+      amount: 350000,
+      responsible: 'Fernanda Ruiz'
     },
     {
       id: '3',
@@ -729,7 +773,8 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 8',
       quota: 'Aug.25',
       scheduled: '12Oct2025',
-      amount: 180000
+      amount: 180000,
+      responsible: 'Alex Cheap'
     },
     {
       id: '4',
@@ -741,7 +786,8 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 1',
       quota: 'Sep.25',
       scheduled: '15Oct2025',
-      amount: 145000
+      amount: 145000,
+      responsible: 'Maria Torres'
     }
   ];
 
@@ -756,7 +802,8 @@ const Dashboard: React.FC = () => {
       contract: 'Contrato 10',
       quota: 'Aug.25',
       scheduled: '17Nov2025',
-      amount: 225000
+      amount: 225000,
+      responsible: 'Carlos Mendez'
     }
   ];
 
@@ -776,7 +823,8 @@ const Dashboard: React.FC = () => {
         period: 'Oficial 15Dec.25',
         quantities: '4fmt Cu / 1000oz Ag / 45oz Au',
         grades: 'Leyes Cu SGS Final / Ag SGS Final / Au SGS Final'
-      }
+      },
+      responsible: 'Juan Perez'
     },
     {
       id: '2',
@@ -793,7 +841,8 @@ const Dashboard: React.FC = () => {
         period: 'Oficial 18Dec.25',
         quantities: '5fmt Cu / 1200oz Ag / 50oz Au',
         grades: 'Leyes Cu SGS Provisional / Ag SGS Final / Au SGS Final'
-      }
+      },
+      responsible: 'Sofia Ramirez'
     },
     {
       id: '3',
@@ -810,7 +859,8 @@ const Dashboard: React.FC = () => {
         period: 'Oficial 20Dec.25',
         quantities: '4.5fmt Cu / 1100oz Ag / 48oz Au',
         grades: 'Leyes Cu SGS Provisional / Ag SGS Provisional / Au SGS Final'
-      }
+      },
+      responsible: 'Pedro Gomez'
     },
     {
       id: '4',
@@ -827,7 +877,8 @@ const Dashboard: React.FC = () => {
         period: 'Oficial 22Dec.25',
         quantities: '5.2fmt Cu / 1300oz Ag / 52oz Au',
         grades: 'Leyes Cu SGS Final / Ag SGS Final / Au SGS Provisional'
-      }
+      },
+      responsible: 'Laura Sanchez'
     },
     {
       id: '5',
@@ -844,7 +895,8 @@ const Dashboard: React.FC = () => {
         period: 'Promedio Mes Dec.25',
         quantities: '4fmt Cu / 1000oz Ag / 45oz Au',
         grades: 'Leyes Cu SGS Provisional / Ag SGS Final / Au SGS Final'
-      }
+      },
+      responsible: 'Roberto Cruz'
     },
     {
       id: '6',
@@ -861,7 +913,8 @@ const Dashboard: React.FC = () => {
         period: 'Promedio Mes Dec.25',
         quantities: '6fmt Cu / 1400oz Ag / 55oz Au',
         grades: 'Leyes Cu SGS Final / Ag SGS Provisional / Au SGS Final'
-      }
+      },
+      responsible: 'Ana Martinez'
     }
   ];
 
@@ -905,7 +958,8 @@ const Dashboard: React.FC = () => {
           exchange: 'LME Select',
           reference: '1237'
         }
-      ]
+      ],
+      responsible: 'Diego Lopez'
     }
   ];
 
@@ -992,6 +1046,9 @@ const Dashboard: React.FC = () => {
                       <div className="text-xs text-gray-700">
                         <span className="font-semibold">Action:</span> {contract.action}
                       </div>
+                      <div className="text-xs text-gray-600 mt-1">
+                        <span className="font-semibold">Responsable:</span> {contract.responsible}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1063,6 +1120,9 @@ const Dashboard: React.FC = () => {
                               <p className="text-gray-600 text-xs">
                                 <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
                               </p>
+                              <p className="text-gray-600 text-xs">
+                                <span className="font-semibold">Responsable:</span> {op.responsible}
+                              </p>
                             </div>
                           </div>
                         );
@@ -1109,6 +1169,9 @@ const Dashboard: React.FC = () => {
                               </p>
                               <p className="text-gray-600 text-xs">
                                 <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
+                              </p>
+                              <p className="text-gray-600 text-xs">
+                                <span className="font-semibold">Responsable:</span> {op.responsible}
                               </p>
                             </div>
                           </div>
@@ -1194,6 +1257,9 @@ const Dashboard: React.FC = () => {
                               <p className={isOverdue ? "text-red-600 font-semibold" : "text-gray-700"}>
                                 ETA Programada {' ==> '}{weight.etaScheduled}{isOverdue && ` {' ==> '}${daysOverdue}d ATRASADO`}
                               </p>
+                              <p className="text-gray-600 text-xs mt-1">
+                                <span className="font-semibold">Responsable:</span> {weight.responsible}
+                              </p>
                             </div>
                           </div>
                         );
@@ -1249,6 +1315,9 @@ const Dashboard: React.FC = () => {
                                   <span className="font-semibold">Comentarios:</span> {assay.comments}
                                 </p>
                               )}
+                              <p className="text-gray-600 text-xs mt-1">
+                                <span className="font-semibold">Responsable:</span> {assay.responsible}
+                              </p>
                             </div>
                           </div>
                         );
@@ -1290,6 +1359,9 @@ const Dashboard: React.FC = () => {
                             <p className="text-gray-700">
                               <span className="font-semibold">ETA Programada &gt;</span> {weight.etaScheduled}
                             </p>
+                            <p className="text-gray-600 text-xs mt-1">
+                              <span className="font-semibold">Responsable:</span> {weight.responsible}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -1329,6 +1401,9 @@ const Dashboard: React.FC = () => {
                             </p>
                             <p className="text-gray-700">
                               <span className="font-semibold">ETA Programada &gt;</span> {assay.etaScheduled}
+                            </p>
+                            <p className="text-gray-600 text-xs mt-1">
+                              <span className="font-semibold">Responsable:</span> {assay.responsible}
                             </p>
                           </div>
                         </div>
@@ -1419,6 +1494,9 @@ const Dashboard: React.FC = () => {
                               <p className="text-gray-900 text-sm font-semibold">
                                 Monto: ${payment.amount.toLocaleString()}
                               </p>
+                              <p className="text-gray-600 text-xs mt-1">
+                                <span className="font-semibold">Responsable:</span> {payment.responsible}
+                              </p>
                             </div>
                           </div>
                         );
@@ -1475,6 +1553,9 @@ const Dashboard: React.FC = () => {
                               <p className="text-gray-900 text-sm font-semibold">
                                 Monto: ${collection.amount.toLocaleString()}
                               </p>
+                              <p className="text-gray-600 text-xs mt-1">
+                                <span className="font-semibold">Responsable:</span> {collection.responsible}
+                              </p>
                             </div>
                           </div>
                         );
@@ -1522,6 +1603,9 @@ const Dashboard: React.FC = () => {
                             <p className="text-gray-900 text-sm font-semibold">
                               Monto: ${payment.amount.toLocaleString()}
                             </p>
+                            <p className="text-gray-600 text-xs mt-1">
+                              <span className="font-semibold">Responsable:</span> {payment.responsible}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -1567,6 +1651,9 @@ const Dashboard: React.FC = () => {
                             </p>
                             <p className="text-gray-900 text-sm font-semibold">
                               Monto: ${collection.amount.toLocaleString()}
+                            </p>
+                            <p className="text-gray-600 text-xs mt-1">
+                              <span className="font-semibold">Responsable:</span> {collection.responsible}
                             </p>
                           </div>
                         </div>
@@ -1664,6 +1751,9 @@ const Dashboard: React.FC = () => {
                                     <p className="text-gray-600">
                                       {fixing.terms.grades}
                                     </p>
+                                    <p className="text-gray-600 mt-1">
+                                      <span className="font-semibold">Responsable:</span> {fixing.responsible}
+                                    </p>
                                   </div>
                                 </div>
                               </div>
@@ -1710,6 +1800,9 @@ const Dashboard: React.FC = () => {
                                     </p>
                                     <p className="text-gray-600">
                                       {fixing.terms.grades}
+                                    </p>
+                                    <p className="text-gray-600 mt-1">
+                                      <span className="font-semibold">Responsable:</span> {fixing.responsible}
                                     </p>
                                   </div>
                                 </div>
@@ -1765,6 +1858,9 @@ const Dashboard: React.FC = () => {
                                 </div>
                               ))}
                             </div>
+                            <p className="text-gray-600 text-xs mt-2">
+                              <span className="font-semibold">Responsable:</span> {order.responsible}
+                            </p>
                           </div>
                         </div>
                       ))}
