@@ -152,6 +152,17 @@ const Dashboard: React.FC = () => {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showResponsibleDropdown, setShowResponsibleDropdown] = useState(false);
 
+  // Refs para scroll a secciones
+  const unreportedWeightsRef = useRef<HTMLDivElement>(null);
+  const unreportedAssaysRef = useRef<HTMLDivElement>(null);
+  const scheduledWeightsRef = useRef<HTMLDivElement>(null);
+  const scheduledAssaysRef = useRef<HTMLDivElement>(null);
+  const overduePaymentsRef = useRef<HTMLDivElement>(null);
+  const overdueCollectionsRef = useRef<HTMLDivElement>(null);
+  const scheduledPaymentsRef = useRef<HTMLDivElement>(null);
+  const scheduledCollectionsRef = useRef<HTMLDivElement>(null);
+  const upcomingFixingsRef = useRef<HTMLDivElement>(null);
+
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     contratos: false,
     logistica: false,
@@ -1121,6 +1132,28 @@ const Dashboard: React.FC = () => {
     ...gtcOrders.map(o => o.responsible)
   ])).sort();
 
+  // Función para scroll a una subsección específica
+  const scrollToSubsection = (ref: React.RefObject<HTMLDivElement>, section: string, subsection?: string) => {
+    // Primero expandir la sección principal
+    setExpandedSections(prev => ({ ...prev, [section]: true }));
+
+    // Expandir la subsección si existe
+    if (subsection) {
+      if (section === 'ensayos') {
+        setExpandedAssays(prev => ({ ...prev, [subsection]: true }));
+      } else if (section === 'pagos') {
+        setExpandedPayments(prev => ({ ...prev, [subsection]: true }));
+      } else if (section === 'fijaciones') {
+        setExpandedFixings(prev => ({ ...prev, [subsection]: true }));
+      }
+    }
+
+    // Hacer scroll después de un pequeño delay para que se expanda
+    setTimeout(() => {
+      ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  };
+
   // Calcular días entre hoy y la fecha seleccionada
   const getDaysFromToday = (): number => {
     const today = new Date();
@@ -1582,18 +1615,42 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center">
               <Package className="w-5 h-5 text-emerald-600 mr-3" />
               <h2 className="text-lg font-bold text-gray-900">3. Ensayos & Pesos</h2>
-              <span className="ml-3 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSubsection(unreportedWeightsRef, 'ensayos', 'weights');
+                }}
+                className="ml-3 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-red-200 transition-colors cursor-pointer"
+              >
                 {unreportedWeights.length} Pesos No Reportados
-              </span>
-              <span className="ml-2 bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSubsection(unreportedAssaysRef, 'ensayos', 'assays');
+                }}
+                className="ml-2 bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-orange-200 transition-colors cursor-pointer"
+              >
                 {unreportedAssays.length} Ensayes No Reportados
-              </span>
-              <span className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSubsection(scheduledWeightsRef, 'ensayos', 'scheduledWeights');
+                }}
+                className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-blue-200 transition-colors cursor-pointer"
+              >
                 {scheduledWeights.length} Pesos Programados
-              </span>
-              <span className="ml-2 bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSubsection(scheduledAssaysRef, 'ensayos', 'scheduledAssays');
+                }}
+                className="ml-2 bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-green-200 transition-colors cursor-pointer"
+              >
                 {scheduledAssays.length} Ensayes Programados
-              </span>
+              </button>
             </div>
             {expandedSections.ensayos ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -1605,7 +1662,7 @@ const Dashboard: React.FC = () => {
           {expandedSections.ensayos && (
             <div className="px-6 pb-5 space-y-3">
               {/* Pesos no reportados */}
-              <div className="bg-gray-50 rounded-lg border border-gray-200">
+              <div ref={unreportedWeightsRef} className="bg-gray-50 rounded-lg border border-gray-200">
                 <button
                   onClick={() => toggleAssays('weights')}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
@@ -1658,7 +1715,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Ensayes no reportados */}
-              <div className="bg-gray-50 rounded-lg border border-gray-200">
+              <div ref={unreportedAssaysRef} className="bg-gray-50 rounded-lg border border-gray-200">
                 <button
                   onClick={() => toggleAssays('assays')}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
@@ -1716,7 +1773,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Pesos Programados */}
-              <div className="bg-gray-50 rounded-lg border border-gray-200">
+              <div ref={scheduledWeightsRef} className="bg-gray-50 rounded-lg border border-gray-200">
                 <button
                   onClick={() => toggleAssays('scheduledWeights')}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
@@ -1759,7 +1816,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Ensayes Programados */}
-              <div className="bg-gray-50 rounded-lg border border-gray-200">
+              <div ref={scheduledAssaysRef} className="bg-gray-50 rounded-lg border border-gray-200">
                 <button
                   onClick={() => toggleAssays('scheduledAssays')}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
@@ -1815,18 +1872,42 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center">
               <DollarSign className="w-5 h-5 text-green-600 mr-3" />
               <h2 className="text-lg font-bold text-gray-900">4. Pagos & Cobros</h2>
-              <span className="ml-3 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSubsection(overduePaymentsRef, 'pagos', 'overduePayments');
+                }}
+                className="ml-3 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-red-200 transition-colors cursor-pointer"
+              >
                 {overduePayments.length} Pagos Vencidos
-              </span>
-              <span className="ml-2 bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSubsection(overdueCollectionsRef, 'pagos', 'overdueCollections');
+                }}
+                className="ml-2 bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-orange-200 transition-colors cursor-pointer"
+              >
                 {overdueCollections.length} Cobros Vencidos
-              </span>
-              <span className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSubsection(scheduledPaymentsRef, 'pagos', 'scheduledPayments');
+                }}
+                className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-blue-200 transition-colors cursor-pointer"
+              >
                 {scheduledPayments.length} Pagos Programados
-              </span>
-              <span className="ml-2 bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSubsection(scheduledCollectionsRef, 'pagos', 'scheduledCollections');
+                }}
+                className="ml-2 bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-green-200 transition-colors cursor-pointer"
+              >
                 {scheduledCollections.length} Cobros Programados
-              </span>
+              </button>
             </div>
             {expandedSections.pagos ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -1838,7 +1919,7 @@ const Dashboard: React.FC = () => {
           {expandedSections.pagos && (
             <div className="px-6 pb-5 space-y-3">
               {/* Pagos vencidos */}
-              <div className="bg-gray-50 rounded-lg border border-gray-200">
+              <div ref={overduePaymentsRef} className="bg-gray-50 rounded-lg border border-gray-200">
                 <button
                   onClick={() => togglePayments('payments')}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
@@ -1897,7 +1978,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Cobros vencidos */}
-              <div className="bg-gray-50 rounded-lg border border-gray-200">
+              <div ref={overdueCollectionsRef} className="bg-gray-50 rounded-lg border border-gray-200">
                 <button
                   onClick={() => togglePayments('collections')}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
@@ -1956,7 +2037,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Pagos Programados */}
-              <div className="bg-gray-50 rounded-lg border border-gray-200">
+              <div ref={scheduledPaymentsRef} className="bg-gray-50 rounded-lg border border-gray-200">
                 <button
                   onClick={() => togglePayments('scheduledPayments')}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
@@ -2005,7 +2086,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Cobros Programados */}
-              <div className="bg-gray-50 rounded-lg border border-gray-200">
+              <div ref={scheduledCollectionsRef} className="bg-gray-50 rounded-lg border border-gray-200">
                 <button
                   onClick={() => togglePayments('scheduledCollections')}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
@@ -2067,9 +2148,15 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center">
               <TrendingUp className="w-5 h-5 text-orange-600 mr-3" />
               <h2 className="text-lg font-bold text-gray-900">5. Fijaciones</h2>
-              <span className="ml-3 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSubsection(upcomingFixingsRef, 'fijaciones', 'period');
+                }}
+                className="ml-3 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-blue-200 transition-colors cursor-pointer"
+              >
                 {upcomingFixings.length} Próximas Fijaciones
-              </span>
+              </button>
               <span className="ml-2 bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold">
                 {gtcOrders.length} GTC Abiertas
               </span>
@@ -2106,7 +2193,7 @@ const Dashboard: React.FC = () => {
                 {expandedFixings.upcoming && (
                   <div className="px-4 pb-4 space-y-3">
                     {/* Periodo contractual siguiente 5d */}
-                    <div className="bg-white rounded-lg border border-gray-200">
+                    <div ref={upcomingFixingsRef} className="bg-white rounded-lg border border-gray-200">
                       <button
                         onClick={() => toggleFixings('next5days')}
                         className="w-full px-3 py-2 flex items-center justify-between hover:bg-gray-50 transition-colors"
