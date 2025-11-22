@@ -308,7 +308,7 @@ const Dashboard: React.FC = () => {
       type: 'Renovación',
       client: 'Trader A',
       delayed: 10,
-      action: 'Falta confirmar versión 2.0 ==> Cliente Trader A',
+      action: 'Falta confirmar versión 2.0 ==&gt; Cliente Trader A',
       responsible: 'Alex Cheap'
     },
     {
@@ -319,7 +319,7 @@ const Dashboard: React.FC = () => {
       type: 'Nuevo',
       client: 'Peñasquito',
       delayed: 5,
-      action: 'Falta confirmar versión 1.0 ==> Cliente Peñasquito',
+      action: 'Falta confirmar versión 1.0 ==&gt; Cliente Peñasquito',
       responsible: 'Maria Torres'
     },
     {
@@ -330,7 +330,7 @@ const Dashboard: React.FC = () => {
       type: 'Renovación',
       client: 'Glencore',
       delayed: 15,
-      action: 'Falta confirmar versión 3.0 ==> Cliente Glencore',
+      action: 'Falta confirmar versión 3.0 ==&gt; Cliente Glencore',
       responsible: 'Carlos Mendez'
     }
   ];
@@ -974,7 +974,7 @@ const Dashboard: React.FC = () => {
       periodType: 'next5days',
       etaScheduled: getFutureDateString(3),
       terms: {
-        metals: 'CU/AU/AG ==> Oficial 15Dec.25',
+        metals: 'CU/AU/AG ==&gt; Oficial 15Dec.25',
         period: 'Oficial 15Dec.25',
         quantities: '4fmt Cu / 1000oz Ag / 45oz Au',
         grades: 'Leyes Cu SGS Final / Ag SGS Final / Au SGS Final'
@@ -992,7 +992,7 @@ const Dashboard: React.FC = () => {
       periodType: 'next5days',
       etaScheduled: getFutureDateString(6),
       terms: {
-        metals: 'CU/AU/AG ==> Oficial 18Dec.25',
+        metals: 'CU/AU/AG ==&gt; Oficial 18Dec.25',
         period: 'Oficial 18Dec.25',
         quantities: '5fmt Cu / 1200oz Ag / 50oz Au',
         grades: 'Leyes Cu SGS Provisional / Ag SGS Final / Au SGS Final'
@@ -1010,7 +1010,7 @@ const Dashboard: React.FC = () => {
       periodType: 'next5days',
       etaScheduled: getFutureDateString(10),
       terms: {
-        metals: 'CU/AU/AG ==> Oficial 20Dec.25',
+        metals: 'CU/AU/AG ==&gt; Oficial 20Dec.25',
         period: 'Oficial 20Dec.25',
         quantities: '4.5fmt Cu / 1100oz Ag / 48oz Au',
         grades: 'Leyes Cu SGS Provisional / Ag SGS Provisional / Au SGS Final'
@@ -1028,7 +1028,7 @@ const Dashboard: React.FC = () => {
       periodType: 'next5days',
       etaScheduled: getFutureDateString(14),
       terms: {
-        metals: 'CU/AU/AG ==> Oficial 22Dec.25',
+        metals: 'CU/AU/AG ==&gt; Oficial 22Dec.25',
         period: 'Oficial 22Dec.25',
         quantities: '5.2fmt Cu / 1300oz Ag / 52oz Au',
         grades: 'Leyes Cu SGS Final / Ag SGS Final / Au SGS Provisional'
@@ -1046,7 +1046,7 @@ const Dashboard: React.FC = () => {
       periodType: 'monthlyAverage',
       etaScheduled: '25Nov2025',
       terms: {
-        metals: 'CU/AU/AG ==> Promedio Mes Dec.25',
+        metals: 'CU/AU/AG ==&gt; Promedio Mes Dec.25',
         period: 'Promedio Mes Dec.25',
         quantities: '4fmt Cu / 1000oz Ag / 45oz Au',
         grades: 'Leyes Cu SGS Provisional / Ag SGS Final / Au SGS Final'
@@ -1064,7 +1064,7 @@ const Dashboard: React.FC = () => {
       periodType: 'monthlyAverage',
       etaScheduled: '28Nov2025',
       terms: {
-        metals: 'CU/AU/AG ==> Promedio Mes Dec.25',
+        metals: 'CU/AU/AG ==&gt; Promedio Mes Dec.25',
         period: 'Promedio Mes Dec.25',
         quantities: '6fmt Cu / 1400oz Ag / 55oz Au',
         grades: 'Leyes Cu SGS Final / Ag SGS Provisional / Au SGS Final'
@@ -1551,7 +1551,7 @@ const Dashboard: React.FC = () => {
                                 #Nro Op: {op.opNumber} / <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
                               </p>
                               <p className={isOverdue ? "text-red-600 font-semibold" : "text-gray-700"}>
-                                <span className="font-semibold">Ubicación:</span> {op.location} / ETA Programada {' ==> '}{op.eta}{isOverdue && ` {' ==> '}${daysOverdue}d ATRASADO`}
+                                <span className="font-semibold">Ubicación:</span> {op.location} / ETA Programada  ==&gt;{op.eta}{isOverdue && `  ==&gt;${daysOverdue}d ATRASADO`}
                               </p>
                               <p className="text-gray-600 text-xs">
                                 <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
@@ -1601,7 +1601,7 @@ const Dashboard: React.FC = () => {
                                 #Nro Op: {op.opNumber} / <span className="font-semibold">{op.quantity}dmt</span> / {op.commodity} / Cliente {op.client} / {op.contract} / Cuota {op.quota}
                               </p>
                               <p className={isOverdue ? "text-red-600 font-semibold" : "text-gray-700"}>
-                                <span className="font-semibold">Ubicación:</span> {op.location} / ETA Programada {' ==> '}{op.eta}{isOverdue && ` {' ==> '}${daysOverdue}d ATRASADO`}
+                                <span className="font-semibold">Ubicación:</span> {op.location} / ETA Programada  ==&gt;{op.eta}{isOverdue && `  ==&gt;${daysOverdue}d ATRASADO`}
                               </p>
                               <p className="text-gray-600 text-xs">
                                 <span className="font-semibold">Operador:</span> {op.operator} / <span className="font-semibold">Placas:</span> {op.plate}
@@ -1717,7 +1717,7 @@ const Dashboard: React.FC = () => {
                                 Embarque {weight.shipmentNumber} / <span className="font-semibold">{weight.quantity}dmt</span> / {weight.commodity} / Cliente {weight.client} / {weight.contract} / Cuota {weight.quota} / Laboratorio: {weight.laboratory}
                               </p>
                               <p className={isOverdue ? "text-red-600 font-semibold" : "text-gray-700"}>
-                                ETA Programada {' ==> '}{weight.etaScheduled}{isOverdue && ` {' ==> '}${daysOverdue}d ATRASADO`}
+                                ETA Programada  ==&gt;{weight.etaScheduled}{isOverdue && `  ==&gt;${daysOverdue}d ATRASADO`}
                               </p>
                               <p className="text-gray-600 text-xs mt-1">
                                 <span className="font-semibold">Responsable:</span> {weight.responsible}
@@ -1770,7 +1770,7 @@ const Dashboard: React.FC = () => {
                                 Embarque {assay.shipmentNumber} / <span className="font-semibold">{assay.quantity}dmt</span> / {assay.commodity} / Cliente {assay.client} / {assay.contract} / Cuota {assay.quota} / Laboratorio: {assay.laboratory}
                               </p>
                               <p className={isOverdue ? "text-red-600 font-semibold" : "text-gray-700"}>
-                                ETA Programada {' ==> '}{assay.etaScheduled}{isOverdue && ` {' ==> '}${daysOverdue}d ATRASADO`}
+                                ETA Programada  ==&gt;{assay.etaScheduled}{isOverdue && `  ==&gt;${daysOverdue}d ATRASADO`}
                               </p>
                               {assay.comments && (
                                 <p className="text-gray-600 text-xs">
@@ -1977,7 +1977,7 @@ const Dashboard: React.FC = () => {
                                 <span className="font-semibold">&gt;</span> Embarque {payment.shipmentNumber} / <span className="font-semibold">{payment.quantity}dmt</span> / {payment.commodity} / Cliente {payment.client} / {payment.contract} / Cuota {payment.quota}
                               </p>
                               <p className={isOverdue ? "text-red-600 font-semibold text-xs" : "text-gray-600 text-xs"}>
-                                ETA Programada {' ==> '}{payment.etaScheduled}{daysOverdue > 0 && ` {' ==> '}${daysOverdue}d ATRASADO`}
+                                ETA Programada  ==&gt;{payment.etaScheduled}{daysOverdue > 0 && `  ==&gt;${daysOverdue}d ATRASADO`}
                               </p>
                               <p className="text-gray-900 text-sm font-semibold">
                                 Monto: ${payment.amount.toLocaleString()}
@@ -2036,7 +2036,7 @@ const Dashboard: React.FC = () => {
                                 <span className="font-semibold">&gt;</span> Embarque {collection.shipmentNumber} / <span className="font-semibold">{collection.quantity}dmt</span> / {collection.commodity} / Cliente {collection.client} / {collection.contract} / Cuota {collection.quota}
                               </p>
                               <p className={isOverdue ? "text-red-600 font-semibold text-xs" : "text-gray-600 text-xs"}>
-                                ETA Programada {' ==> '}{collection.scheduled}{daysOverdue > 0 && ` {' ==> '}${daysOverdue}d ATRASADO`}
+                                ETA Programada  ==&gt;{collection.scheduled}{daysOverdue > 0 && `  ==&gt;${daysOverdue}d ATRASADO`}
                               </p>
                               <p className="text-gray-900 text-sm font-semibold">
                                 Monto: ${collection.amount.toLocaleString()}
@@ -2242,7 +2242,7 @@ const Dashboard: React.FC = () => {
                                   <div className="mt-2 space-y-1 text-xs bg-white p-2 rounded">
                                     <p className={isOverdue ? 'text-red-600 font-semibold' : 'text-gray-900'}>
                                       <span className="font-semibold">ETA Programada &gt;</span> {fixing.etaScheduled}
-                                      {isOverdue && <span> {' ==> '}{daysOverdue}d ATRASADO</span>}
+                                      {isOverdue && <span>  ==&gt;{daysOverdue}d ATRASADO</span>}
                                     </p>
                                     <p className="text-gray-900">
                                       <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
@@ -2292,7 +2292,7 @@ const Dashboard: React.FC = () => {
                                   <div className="mt-2 space-y-1 text-xs bg-white p-2 rounded">
                                     <p className={isOverdue ? 'text-red-600 font-semibold' : 'text-gray-900'}>
                                       <span className="font-semibold">ETA Programada &gt;</span> {fixing.etaScheduled}
-                                      {isOverdue && <span> {' ==> '}{daysOverdue}d ATRASADO</span>}
+                                      {isOverdue && <span>  ==&gt;{daysOverdue}d ATRASADO</span>}
                                     </p>
                                     <p className="text-gray-900">
                                       <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
@@ -2352,7 +2352,7 @@ const Dashboard: React.FC = () => {
                               {order.actions.map((action, index) => (
                                 <div key={index} className="text-xs bg-gray-50 p-2 rounded">
                                   <p className="text-gray-900">
-                                    <span className="font-semibold">{action.metal}</span> {' ==> '}{action.action} {action.quantity}@{action.price} {action.period}
+                                    <span className="font-semibold">{action.metal}</span>  ==&gt;{action.action} {action.quantity}@{action.price} {action.period}
                                   </p>
                                   <p className="text-gray-600 mt-0.5">
                                     Exp {action.expiration} {action.exchange} / Referencia {action.reference}
