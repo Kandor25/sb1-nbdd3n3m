@@ -128,10 +128,27 @@ interface GTCOrder {
 }
 
 const Dashboard: React.FC = () => {
+  // Calcular fecha por defecto (hoy + 5 días)
+  const getDefaultDate = () => {
+    const date = new Date();
+    date.setDate(date.getDate() + 5);
+    return date.toISOString().split('T')[0];
+  };
+
+  const getTodayDate = () => {
+    return new Date().toISOString().split('T')[0];
+  };
+
+  const getMaxDate = () => {
+    const date = new Date();
+    date.setDate(date.getDate() + 15);
+    return date.toISOString().split('T')[0];
+  };
+
   // Filtros
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['contratos', 'logistica', 'ensayos', 'pagos', 'fijaciones']);
   const [selectedResponsibles, setSelectedResponsibles] = useState<string[]>([]);
-  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: '', end: '' });
+  const [futureDate, setFutureDate] = useState<string>(getDefaultDate());
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showResponsibleDropdown, setShowResponsibleDropdown] = useState(false);
 
@@ -1001,10 +1018,19 @@ const Dashboard: React.FC = () => {
     ...gtcOrders.map(o => o.responsible)
   ])).sort();
 
-  // Función para verificar si una fecha está en el rango
-  const isDateInRange = (dateStr: string): boolean => {
-    if (!dateRange.start && !dateRange.end) return true;
+  // Calcular días entre hoy y la fecha seleccionada
+  const getDaysFromToday = (): number => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selected = new Date(futureDate);
+    selected.setHours(0, 0, 0, 0);
+    const diffTime = selected.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
 
+  // Función para verificar si una fecha está dentro de los próximos N días
+  const isDateWithinFutureDays = (dateStr: string): boolean => {
     const match = dateStr.match(/(\d+)([A-Za-z]{3})(\d+)/);
     if (!match) return true;
 
@@ -1014,20 +1040,15 @@ const Dashboard: React.FC = () => {
     if (monthIndex === undefined) return true;
 
     const itemDate = new Date(parseInt(year), monthIndex, parseInt(day));
+    itemDate.setHours(0, 0, 0, 0);
 
-    if (dateRange.start && dateRange.end) {
-      const startDate = new Date(dateRange.start);
-      const endDate = new Date(dateRange.end);
-      return itemDate >= startDate && itemDate <= endDate;
-    } else if (dateRange.start) {
-      const startDate = new Date(dateRange.start);
-      return itemDate >= startDate;
-    } else if (dateRange.end) {
-      const endDate = new Date(dateRange.end);
-      return itemDate <= endDate;
-    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    return true;
+    const selectedDate = new Date(futureDate);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    return itemDate >= today && itemDate <= selectedDate;
   };
 
   // Filtrar por responsable
@@ -1036,28 +1057,28 @@ const Dashboard: React.FC = () => {
     return items.filter(item => selectedResponsibles.includes(item.responsible));
   };
 
-  // Filtrar por fecha (para items con eta o etaScheduled o scheduled)
-  const filterByDate = <T extends { eta?: string; etaScheduled?: string; scheduled?: string }>(items: T[]): T[] => {
-    if (!dateRange.start && !dateRange.end) return items;
+  // Filtrar por fecha futura (solo para items programados)
+  const filterByFutureDate = <T extends { etaScheduled?: string; scheduled?: string }>(items: T[]): T[] => {
     return items.filter(item => {
-      const dateStr = item.eta || item.etaScheduled || item.scheduled;
-      return dateStr ? isDateInRange(dateStr) : true;
+      const dateStr = item.etaScheduled || item.scheduled;
+      return dateStr ? isDateWithinFutureDays(dateStr) : true;
     });
   };
 
   // Aplicar filtros
   const filteredPendingContracts = filterByResponsible(pendingContracts);
-  const filteredPatioOperations = filterByDate(filterByResponsible(patioOperations));
-  const filteredTransitOperations = filterByDate(filterByResponsible(transitOperations));
-  const filteredUnreportedWeights = filterByDate(filterByResponsible(unreportedWeights));
-  const filteredUnreportedAssays = filterByDate(filterByResponsible(unreportedAssays));
-  const filteredScheduledWeights = filterByDate(filterByResponsible(scheduledWeights));
-  const filteredScheduledAssays = filterByDate(filterByResponsible(scheduledAssays));
-  const filteredOverduePayments = filterByDate(filterByResponsible(overduePayments));
-  const filteredOverdueCollections = filterByDate(filterByResponsible(overdueCollections));
-  const filteredScheduledPayments = filterByDate(filterByResponsible(scheduledPayments));
-  const filteredScheduledCollections = filterByDate(filterByResponsible(scheduledCollections));
-  const filteredUpcomingFixings = filterByDate(filterByResponsible(upcomingFixings));
+  const filteredPatioOperations = filterByResponsible(patioOperations);
+  const filteredTransitOperations = filterByResponsible(transitOperations);
+  const filteredUnreportedWeights = filterByResponsible(unreportedWeights);
+  const filteredUnreportedAssays = filterByResponsible(unreportedAssays);
+  // Items programados - usar filtro de fecha futura
+  const filteredScheduledWeights = filterByFutureDate(filterByResponsible(scheduledWeights));
+  const filteredScheduledAssays = filterByFutureDate(filterByResponsible(scheduledAssays));
+  const filteredOverduePayments = filterByResponsible(overduePayments);
+  const filteredOverdueCollections = filterByResponsible(overdueCollections);
+  const filteredScheduledPayments = filterByFutureDate(filterByResponsible(scheduledPayments));
+  const filteredScheduledCollections = filterByFutureDate(filterByResponsible(scheduledCollections));
+  const filteredUpcomingFixings = filterByFutureDate(filterByResponsible(upcomingFixings));
   const filteredGtcOrders = filterByResponsible(gtcOrders);
 
   // Toggle de categorías
@@ -1201,37 +1222,32 @@ const Dashboard: React.FC = () => {
             )}
           </div>
 
-          {/* Filtro por Fecha */}
+          {/* Filtro por Fecha Futura */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1.5">
               <Calendar className="w-3 h-3 inline mr-1" />
-              Rango de Fechas (ETA)
+              Próximos {getDaysFromToday()} días
             </label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <input
                 type="date"
-                value={dateRange.start}
-                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                placeholder="Desde"
-                className="flex-1 px-2 py-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={futureDate}
+                onChange={(e) => setFutureDate(e.target.value)}
+                min={getTodayDate()}
+                max={getMaxDate()}
+                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-              <input
-                type="date"
-                value={dateRange.end}
-                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                placeholder="Hasta"
-                className="flex-1 px-2 py-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              {(dateRange.start || dateRange.end) && (
-                <button
-                  onClick={() => setDateRange({ start: '', end: '' })}
-                  className="px-2 text-gray-400 hover:text-gray-600"
-                  title="Limpiar fechas"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
+              <button
+                onClick={() => setFutureDate(getDefaultDate())}
+                className="px-2 py-2 text-xs text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50"
+                title="Restablecer a 5 días"
+              >
+                Reset
+              </button>
             </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Máximo 15 días desde hoy
+            </p>
           </div>
         </div>
       </div>
@@ -1604,7 +1620,7 @@ const Dashboard: React.FC = () => {
                 >
                   <div className="flex items-center">
                     <Scale className="w-4 h-4 text-blue-500 mr-2" />
-                    <span className="font-bold text-gray-900">Pesos Programados (Siguiente 5 dias)</span>
+                    <span className="font-bold text-gray-900">Pesos Programados (Próximos {getDaysFromToday()} días)</span>
                     <span className="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
                       {scheduledWeights.length}
                     </span>
@@ -1647,7 +1663,7 @@ const Dashboard: React.FC = () => {
                 >
                   <div className="flex items-center">
                     <FlaskConical className="w-4 h-4 text-green-500 mr-2" />
-                    <span className="font-bold text-gray-900">Ensayes Programados (Siguiente 5 dias)</span>
+                    <span className="font-bold text-gray-900">Ensayes Programados (Próximos {getDaysFromToday()} días)</span>
                     <span className="ml-2 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">
                       {scheduledAssays.length}
                     </span>
@@ -1844,7 +1860,7 @@ const Dashboard: React.FC = () => {
                 >
                   <div className="flex items-center">
                     <Calendar className="w-4 h-4 text-blue-500 mr-2" />
-                    <span className="font-bold text-gray-900">Pagos Programados (Siguiente 5 dias)</span>
+                    <span className="font-bold text-gray-900">Pagos Programados (Próximos {getDaysFromToday()} días)</span>
                     <span className="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
                       {scheduledPayments.length}
                     </span>
@@ -1893,7 +1909,7 @@ const Dashboard: React.FC = () => {
                 >
                   <div className="flex items-center">
                     <Calendar className="w-4 h-4 text-green-500 mr-2" />
-                    <span className="font-bold text-gray-900">Cobros Programados (Siguiente 5 dias)</span>
+                    <span className="font-bold text-gray-900">Cobros Programados (Próximos {getDaysFromToday()} días)</span>
                     <span className="ml-2 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">
                       {scheduledCollections.length}
                     </span>
@@ -1992,7 +2008,7 @@ const Dashboard: React.FC = () => {
                         onClick={() => toggleFixings('next5days')}
                         className="w-full px-3 py-2 flex items-center justify-between hover:bg-gray-50 transition-colors"
                       >
-                        <span className="font-semibold text-gray-800 text-sm">Periodo contractual siguiente 5d</span>
+                        <span className="font-semibold text-gray-800 text-sm">Periodo contractual próximos {getDaysFromToday()}d</span>
                         {expandedFixings.next5days ? (
                           <ChevronUp className="w-3 h-3 text-gray-400" />
                         ) : (
