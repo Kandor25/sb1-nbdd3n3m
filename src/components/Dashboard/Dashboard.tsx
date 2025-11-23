@@ -165,6 +165,7 @@ const Dashboard: React.FC = () => {
   const scheduledCollectionsRef = useRef<HTMLDivElement>(null);
   const upcomingFixingsRef = useRef<HTMLDivElement>(null);
   const gtcOrdersRef = useRef<HTMLDivElement>(null);
+  const overdueFixingsRef = useRef<HTMLDivElement>(null);
 
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     contratos: false,
@@ -196,6 +197,7 @@ const Dashboard: React.FC = () => {
   const [expandedFixings, setExpandedFixings] = useState<{ [key: string]: boolean }>({
     upcoming: false,
     gtc: false,
+    overdue: false,
     next5days: false,
     monthlyAverage: false
   });
@@ -1118,6 +1120,64 @@ const Dashboard: React.FC = () => {
     }
   ];
 
+  // Fijaciones Vencidas (Sin Fijaciones/Periodo Vencido)
+  const overdueFixings: UpcomingFixing[] = [
+    {
+      id: 'overdue1',
+      shipmentNumber: '10102015',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Oct.25',
+      periodType: 'next5days',
+      etaScheduled: '15Aug2025',
+      terms: {
+        metals: 'CU/AU/AG ==&gt; Oficial 15Aug.25',
+        period: 'Oficial 15Aug.25',
+        quantities: '4fmt Cu / 1000oz Ag / 45oz Au',
+        grades: 'Leyes Cu SGS Final / Ag SGS Final / Au SGS Final'
+      },
+      responsible: 'Juan Perez'
+    },
+    {
+      id: 'overdue2',
+      shipmentNumber: '10102019',
+      quantity: 25,
+      commodity: 'Concentrado Cu',
+      client: 'Trader A',
+      contract: 'Contrato 1',
+      quota: 'Nov.25',
+      periodType: 'monthlyAverage',
+      etaScheduled: '01Oct2025',
+      terms: {
+        metals: 'CU/AU/AG ==&gt; Promedio Mes Oct.25',
+        period: 'Promedio Mes Oct.25',
+        quantities: '4fmt Cu / 1000oz Ag / 45oz Au',
+        grades: 'Leyes Cu SGS Provisional / Ag SGS Final / Au SGS Final'
+      },
+      responsible: 'Roberto Zeta'
+    },
+    {
+      id: 'overdue3',
+      shipmentNumber: '10102020',
+      quantity: 30,
+      commodity: 'Concentrado Zn',
+      client: 'Peñasquito',
+      contract: 'Contrato 5',
+      quota: 'Sep.25',
+      periodType: 'next5days',
+      etaScheduled: '10Aug2025',
+      terms: {
+        metals: 'CU/AU/AG ==&gt; Oficial 10Aug.25',
+        period: 'Oficial 10Aug.25',
+        quantities: '5fmt Cu / 1200oz Ag / 50oz Au',
+        grades: 'Leyes Cu SGS Provisional / Ag SGS Provisional / Au SGS Final'
+      },
+      responsible: 'Sofia Ramirez'
+    }
+  ];
+
   // Obtener lista única de responsables
   const allResponsibles = Array.from(new Set([
     ...pendingContracts.map(c => c.responsible),
@@ -1132,7 +1192,8 @@ const Dashboard: React.FC = () => {
     ...scheduledPayments.map(p => p.responsible),
     ...scheduledCollections.map(c => c.responsible),
     ...upcomingFixings.map(f => f.responsible),
-    ...gtcOrders.map(o => o.responsible)
+    ...gtcOrders.map(o => o.responsible),
+    ...overdueFixings.map(f => f.responsible)
   ])).sort();
 
   // Función para scroll a una subsección específica
@@ -1221,6 +1282,7 @@ const Dashboard: React.FC = () => {
   const filteredScheduledCollections = filterByFutureDate(filterByResponsible(scheduledCollections));
   const filteredUpcomingFixings = filterByFutureDate(filterByResponsible(upcomingFixings));
   const filteredGtcOrders = filterByResponsible(gtcOrders);
+  const filteredOverdueFixings = filterByResponsible(overdueFixings);
 
   // Toggle de categorías
   const toggleCategory = (category: string) => {
@@ -2168,9 +2230,18 @@ const Dashboard: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  scrollToSubsection(overdueFixingsRef, 'fijaciones', 'overdue');
+                }}
+                className="ml-3 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-red-200 transition-colors cursor-pointer"
+              >
+                {overdueFixings.length} Sin Fijaciones/Vencidas
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
                   scrollToSubsection(upcomingFixingsRef, 'fijaciones', 'period');
                 }}
-                className="ml-3 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-blue-200 transition-colors cursor-pointer"
+                className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-blue-200 transition-colors cursor-pointer"
               >
                 {upcomingFixings.length} Próximas Fijaciones
               </button>
@@ -2193,6 +2264,58 @@ const Dashboard: React.FC = () => {
 
           {expandedSections.fijaciones && (
             <div className="px-6 pb-5 space-y-3">
+              {/* Sin Fijaciones/Periodo Vencido */}
+              <div ref={overdueFixingsRef} className="bg-red-50 rounded-lg border border-red-300">
+                <button
+                  onClick={() => toggleFixings('overdue')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-red-100 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <AlertCircle className="w-4 h-4 text-red-600 mr-2" />
+                    <span className="font-bold text-red-900">Sin Fijaciones/Periodo Vencido</span>
+                    <span className="ml-2 bg-red-200 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">
+                      {overdueFixings.length}
+                    </span>
+                  </div>
+                  {expandedFixings.overdue ? (
+                    <ChevronUp className="w-4 h-4 text-red-600" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-red-600" />
+                  )}
+                </button>
+
+                {expandedFixings.overdue && (
+                  <div className="px-4 pb-4 space-y-2">
+                    {filteredOverdueFixings.map((fixing) => {
+                      const daysOverdue = getDaysOverdue(fixing.terms.period.includes('Oficial') ? fixing.terms.period : fixing.etaScheduled);
+                      return (
+                        <div key={fixing.id} className="bg-white rounded-lg p-3 border border-red-200">
+                          <div className="text-sm space-y-1">
+                            <p className="text-gray-700">
+                              Embarque {fixing.shipmentNumber} / <span className="font-semibold">{fixing.quantity}dmt</span> / {fixing.commodity} / Cliente {fixing.client} / {fixing.contract} / Cuota {fixing.quota}
+                            </p>
+                            <div className="mt-2 space-y-1 text-xs bg-red-50 p-2 rounded border border-red-200">
+                              <p className="text-red-700 font-semibold">
+                                <span className="font-semibold">Términos:</span> ({fixing.terms.metals}) ==&gt; {daysOverdue}d ATRASADO
+                              </p>
+                              <p className="text-gray-700">
+                                {fixing.terms.quantities}
+                              </p>
+                              <p className="text-gray-600">
+                                Leyes {fixing.terms.grades}
+                              </p>
+                              <p className="text-gray-600 mt-1">
+                                <span className="font-semibold">Responsable:</span> {fixing.responsible}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               {/* Próximas fijaciones */}
               <div className="bg-gray-50 rounded-lg border border-gray-200">
                 <button
