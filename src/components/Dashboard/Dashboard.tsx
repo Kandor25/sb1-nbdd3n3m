@@ -2287,7 +2287,7 @@ const Dashboard: React.FC = () => {
                 {expandedFixings.overdue && (
                   <div className="px-4 pb-4 space-y-2">
                     {filteredOverdueFixings.map((fixing) => {
-                      const daysOverdue = getDaysOverdue(fixing.terms.period.includes('Oficial') ? fixing.terms.period : fixing.etaScheduled);
+                      const daysOverdue = getDaysOverdue(fixing.etaScheduled);
                       return (
                         <div key={fixing.id} className="bg-white rounded-lg p-3 border border-red-200">
                           <div className="text-sm space-y-1">
