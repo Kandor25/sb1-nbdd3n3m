@@ -239,37 +239,46 @@ const Dashboard: React.FC = () => {
     }));
   };
 
-  const expandAllLogistics = () => {
+  const toggleExpandAllLogistics = () => {
+    const allExpanded = expandedLogistics.patio && expandedLogistics.transito;
     setExpandedLogistics({
-      patio: true,
-      transito: true
+      patio: !allExpanded,
+      transito: !allExpanded
     });
   };
 
-  const expandAllAssays = () => {
+  const toggleExpandAllAssays = () => {
+    const allExpanded = expandedAssays.weights && expandedAssays.assays &&
+                        expandedAssays.scheduledWeights && expandedAssays.scheduledAssays;
     setExpandedAssays({
-      unreported: true,
-      scheduled: true
+      weights: !allExpanded,
+      assays: !allExpanded,
+      scheduledWeights: !allExpanded,
+      scheduledAssays: !allExpanded
     });
   };
 
-  const expandAllPayments = () => {
+  const toggleExpandAllPayments = () => {
+    const allExpanded = expandedPayments.payments && expandedPayments.collections &&
+                        expandedPayments.scheduledPayments && expandedPayments.scheduledCollections;
     setExpandedPayments({
-      overdue: true,
-      scheduled: true,
-      overdueCollections: true,
-      scheduledCollections: true
+      payments: !allExpanded,
+      collections: !allExpanded,
+      scheduledPayments: !allExpanded,
+      scheduledCollections: !allExpanded
     });
   };
 
-  const expandAllFixings = () => {
+  const toggleExpandAllFixings = () => {
+    const allExpanded = expandedFixings.upcoming && expandedFixings.gtc &&
+                        expandedFixings.expiredGtc && expandedFixings.overdue;
     setExpandedFixings({
-      upcoming: true,
-      gtc: true,
-      expiredGtc: true,
-      overdue: true,
-      next5days: true,
-      monthlyAverage: true
+      upcoming: !allExpanded,
+      gtc: !allExpanded,
+      expiredGtc: !allExpanded,
+      overdue: !allExpanded,
+      next5days: !allExpanded,
+      monthlyAverage: !allExpanded
     });
   };
 
@@ -1778,11 +1787,11 @@ const Dashboard: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  expandAllLogistics();
+                  toggleExpandAllLogistics();
                 }}
                 className="mr-2 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
               >
-                Expandir Todo
+                {expandedLogistics.patio && expandedLogistics.transito ? 'Contraer Todo' : 'Expandir Todo'}
               </button>
             )}
             {expandedSections.logistica ? (
@@ -1949,11 +1958,11 @@ const Dashboard: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  expandAllAssays();
+                  toggleExpandAllAssays();
                 }}
                 className="mr-2 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
               >
-                Expandir Todo
+                {expandedAssays.weights && expandedAssays.assays && expandedAssays.scheduledWeights && expandedAssays.scheduledAssays ? 'Contraer Todo' : 'Expandir Todo'}
               </button>
             )}
             {expandedSections.ensayos ? (
@@ -2217,11 +2226,11 @@ const Dashboard: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  expandAllPayments();
+                  toggleExpandAllPayments();
                 }}
                 className="mr-2 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
               >
-                Expandir Todo
+                {expandedPayments.payments && expandedPayments.collections && expandedPayments.scheduledPayments && expandedPayments.scheduledCollections ? 'Contraer Todo' : 'Expandir Todo'}
               </button>
             )}
             {expandedSections.pagos ? (
@@ -2504,11 +2513,11 @@ const Dashboard: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  expandAllFixings();
+                  toggleExpandAllFixings();
                 }}
                 className="mr-2 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
               >
-                Expandir Todo
+                {expandedFixings.upcoming && expandedFixings.gtc && expandedFixings.expiredGtc && expandedFixings.overdue ? 'Contraer Todo' : 'Expandir Todo'}
               </button>
             )}
             {expandedSections.fijaciones ? (
