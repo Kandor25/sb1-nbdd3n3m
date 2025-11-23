@@ -239,37 +239,37 @@ const Dashboard: React.FC = () => {
     }));
   };
 
-  const collapseAllLogistics = () => {
+  const expandAllLogistics = () => {
     setExpandedLogistics({
-      patio: false,
-      transito: false
+      patio: true,
+      transito: true
     });
   };
 
-  const collapseAllAssays = () => {
+  const expandAllAssays = () => {
     setExpandedAssays({
-      unreported: false,
-      scheduled: false
+      unreported: true,
+      scheduled: true
     });
   };
 
-  const collapseAllPayments = () => {
+  const expandAllPayments = () => {
     setExpandedPayments({
-      overdue: false,
-      scheduled: false,
-      overdueCollections: false,
-      scheduledCollections: false
+      overdue: true,
+      scheduled: true,
+      overdueCollections: true,
+      scheduledCollections: true
     });
   };
 
-  const collapseAllFixings = () => {
+  const expandAllFixings = () => {
     setExpandedFixings({
-      upcoming: false,
-      gtc: false,
-      expiredGtc: false,
-      overdue: false,
-      next5days: false,
-      monthlyAverage: false
+      upcoming: true,
+      gtc: true,
+      expiredGtc: true,
+      overdue: true,
+      next5days: true,
+      monthlyAverage: true
     });
   };
 
@@ -1778,11 +1778,11 @@ const Dashboard: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  collapseAllLogistics();
+                  expandAllLogistics();
                 }}
                 className="mr-2 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
               >
-                Colapsar Todo
+                Expandir Todo
               </button>
             )}
             {expandedSections.logistica ? (
@@ -1949,11 +1949,11 @@ const Dashboard: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  collapseAllAssays();
+                  expandAllAssays();
                 }}
                 className="mr-2 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
               >
-                Colapsar Todo
+                Expandir Todo
               </button>
             )}
             {expandedSections.ensayos ? (
@@ -2217,11 +2217,11 @@ const Dashboard: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  collapseAllPayments();
+                  expandAllPayments();
                 }}
                 className="mr-2 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
               >
-                Colapsar Todo
+                Expandir Todo
               </button>
             )}
             {expandedSections.pagos ? (
@@ -2504,11 +2504,11 @@ const Dashboard: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  collapseAllFixings();
+                  expandAllFixings();
                 }}
                 className="mr-2 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
               >
-                Colapsar Todo
+                Expandir Todo
               </button>
             )}
             {expandedSections.fijaciones ? (
