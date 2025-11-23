@@ -239,6 +239,40 @@ const Dashboard: React.FC = () => {
     }));
   };
 
+  const collapseAllLogistics = () => {
+    setExpandedLogistics({
+      patio: false,
+      transito: false
+    });
+  };
+
+  const collapseAllAssays = () => {
+    setExpandedAssays({
+      unreported: false,
+      scheduled: false
+    });
+  };
+
+  const collapseAllPayments = () => {
+    setExpandedPayments({
+      overdue: false,
+      scheduled: false,
+      overdueCollections: false,
+      scheduledCollections: false
+    });
+  };
+
+  const collapseAllFixings = () => {
+    setExpandedFixings({
+      upcoming: false,
+      gtc: false,
+      expiredGtc: false,
+      overdue: false,
+      next5days: false,
+      monthlyAverage: false
+    });
+  };
+
   // Cerrar dropdowns al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -1718,7 +1752,7 @@ const Dashboard: React.FC = () => {
             onClick={() => toggleSection('logistica')}
             className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
           >
-            <div className="flex items-center">
+            <div className="flex items-center flex-1">
               <Truck className="w-5 h-5 text-blue-600 mr-3" />
               <h2 className="text-lg font-bold text-gray-900">2. Logística</h2>
               <button
@@ -1728,7 +1762,7 @@ const Dashboard: React.FC = () => {
                 }}
                 className="ml-3 bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-emerald-200 transition-colors cursor-pointer"
               >
-                {patioOperations.length} En Patio
+                {filteredPatioOperations.length} En Patio
               </button>
               <button
                 onClick={(e) => {
@@ -1737,9 +1771,20 @@ const Dashboard: React.FC = () => {
                 }}
                 className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-blue-200 transition-colors cursor-pointer"
               >
-                {transitOperations.length} En Tránsito
+                {filteredTransitOperations.length} En Tránsito
               </button>
             </div>
+            {expandedSections.logistica && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  collapseAllLogistics();
+                }}
+                className="mr-2 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+              >
+                Colapsar Todo
+              </button>
+            )}
             {expandedSections.logistica ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
             ) : (
@@ -1860,7 +1905,7 @@ const Dashboard: React.FC = () => {
             onClick={() => toggleSection('ensayos')}
             className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
           >
-            <div className="flex items-center">
+            <div className="flex items-center flex-1">
               <Package className="w-5 h-5 text-emerald-600 mr-3" />
               <h2 className="text-lg font-bold text-gray-900">3. Ensayos & Pesos</h2>
               <button
@@ -1870,7 +1915,7 @@ const Dashboard: React.FC = () => {
                 }}
                 className="ml-3 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-red-200 transition-colors cursor-pointer"
               >
-                {unreportedWeights.length} Pesos No Reportados
+                {filteredUnreportedWeights.length} Pesos No Reportados
               </button>
               <button
                 onClick={(e) => {
@@ -1879,7 +1924,7 @@ const Dashboard: React.FC = () => {
                 }}
                 className="ml-2 bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-orange-200 transition-colors cursor-pointer"
               >
-                {unreportedAssays.length} Ensayes No Reportados
+                {filteredUnreportedAssays.length} Ensayes No Reportados
               </button>
               <button
                 onClick={(e) => {
@@ -1888,7 +1933,7 @@ const Dashboard: React.FC = () => {
                 }}
                 className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-blue-200 transition-colors cursor-pointer"
               >
-                {scheduledWeights.length} Pesos Programados
+                {filteredScheduledWeights.length} Pesos Programados
               </button>
               <button
                 onClick={(e) => {
@@ -1897,9 +1942,20 @@ const Dashboard: React.FC = () => {
                 }}
                 className="ml-2 bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-green-200 transition-colors cursor-pointer"
               >
-                {scheduledAssays.length} Ensayes Programados
+                {filteredScheduledAssays.length} Ensayes Programados
               </button>
             </div>
+            {expandedSections.ensayos && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  collapseAllAssays();
+                }}
+                className="mr-2 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+              >
+                Colapsar Todo
+              </button>
+            )}
             {expandedSections.ensayos ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
             ) : (
@@ -2117,7 +2173,7 @@ const Dashboard: React.FC = () => {
             onClick={() => toggleSection('pagos')}
             className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
           >
-            <div className="flex items-center">
+            <div className="flex items-center flex-1">
               <DollarSign className="w-5 h-5 text-green-600 mr-3" />
               <h2 className="text-lg font-bold text-gray-900">4. Pagos & Cobros</h2>
               <button
@@ -2127,7 +2183,7 @@ const Dashboard: React.FC = () => {
                 }}
                 className="ml-3 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-red-200 transition-colors cursor-pointer"
               >
-                {overduePayments.length} Pagos Vencidos
+                {filteredOverduePayments.length} Pagos Vencidos
               </button>
               <button
                 onClick={(e) => {
@@ -2136,7 +2192,7 @@ const Dashboard: React.FC = () => {
                 }}
                 className="ml-2 bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-orange-200 transition-colors cursor-pointer"
               >
-                {overdueCollections.length} Cobros Vencidos
+                {filteredOverdueCollections.length} Cobros Vencidos
               </button>
               <button
                 onClick={(e) => {
@@ -2145,7 +2201,7 @@ const Dashboard: React.FC = () => {
                 }}
                 className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-blue-200 transition-colors cursor-pointer"
               >
-                {scheduledPayments.length} Pagos Programados
+                {filteredScheduledPayments.length} Pagos Programados
               </button>
               <button
                 onClick={(e) => {
@@ -2154,9 +2210,20 @@ const Dashboard: React.FC = () => {
                 }}
                 className="ml-2 bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-green-200 transition-colors cursor-pointer"
               >
-                {scheduledCollections.length} Cobros Programados
+                {filteredScheduledCollections.length} Cobros Programados
               </button>
             </div>
+            {expandedSections.pagos && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  collapseAllPayments();
+                }}
+                className="mr-2 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+              >
+                Colapsar Todo
+              </button>
+            )}
             {expandedSections.pagos ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
             ) : (
@@ -2393,7 +2460,7 @@ const Dashboard: React.FC = () => {
             onClick={() => toggleSection('fijaciones')}
             className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
           >
-            <div className="flex items-center">
+            <div className="flex items-center flex-1">
               <TrendingUp className="w-5 h-5 text-orange-600 mr-3" />
               <h2 className="text-lg font-bold text-gray-900">5. Fijaciones</h2>
               <button
@@ -2403,7 +2470,7 @@ const Dashboard: React.FC = () => {
                 }}
                 className="ml-3 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-red-200 transition-colors cursor-pointer"
               >
-                {overdueFixings.length} Sin Fijaciones/Vencidas
+                {filteredOverdueFixings.length} Sin Fijaciones/Vencidas
               </button>
               <button
                 onClick={(e) => {
@@ -2412,7 +2479,7 @@ const Dashboard: React.FC = () => {
                 }}
                 className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-blue-200 transition-colors cursor-pointer"
               >
-                {upcomingFixings.length} Próximas Fijaciones
+                {filteredUpcomingFixings.length} Próximas Fijaciones
               </button>
               <button
                 onClick={(e) => {
@@ -2433,6 +2500,17 @@ const Dashboard: React.FC = () => {
                 {filteredExpiredGtcOrders.length} GTC Expiradas
               </button>
             </div>
+            {expandedSections.fijaciones && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  collapseAllFixings();
+                }}
+                className="mr-2 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+              >
+                Colapsar Todo
+              </button>
+            )}
             {expandedSections.fijaciones ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
             ) : (
