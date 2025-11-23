@@ -300,6 +300,27 @@ const Dashboard: React.FC = () => {
     return diffDays > 0 ? diffDays : 0;
   };
 
+  const getDaysOverdueFromMonthAverage = (periodText: string): number => {
+    const monthMatch = periodText.match(/Promedio\s+Mes\s+([A-Za-z]{3})\.(\d{2})/i);
+    if (!monthMatch) {
+      return 0;
+    }
+    const [, month, yearShort] = monthMatch;
+    const monthMap: {[key: string]: number} = {'Jan':0,'Feb':1,'Mar':2,'Apr':3,'May':4,'Jun':5,'Jul':6,'Aug':7,'Sep':8,'Oct':9,'Nov':10,'Dec':11};
+    const monthIndex = monthMap[month];
+    if (monthIndex === undefined) {
+      return 0;
+    }
+    const year = 2000 + parseInt(yearShort);
+    const firstDayOfMonth = new Date(year, monthIndex, 1);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    firstDayOfMonth.setHours(0, 0, 0, 0);
+    const diffMs = now.getTime() - firstDayOfMonth.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
   // Mock data for pending contracts
   const pendingContracts: PendingContract[] = [
     {
@@ -2287,7 +2308,10 @@ const Dashboard: React.FC = () => {
                 {expandedFixings.overdue && (
                   <div className="px-4 pb-4 space-y-2">
                     {filteredOverdueFixings.map((fixing) => {
-                      const daysOverdue = getDaysOverdue(fixing.etaScheduled);
+                      const isMonthAverage = fixing.terms.period.includes('Promedio Mes');
+                      const daysOverdue = isMonthAverage
+                        ? getDaysOverdueFromMonthAverage(fixing.terms.period)
+                        : getDaysOverdue(fixing.etaScheduled);
                       return (
                         <div key={fixing.id} className="bg-white rounded-lg p-3 border border-red-200">
                           <div className="text-sm space-y-1">
