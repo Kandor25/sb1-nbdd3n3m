@@ -1187,6 +1187,90 @@ const Dashboard: React.FC = () => {
         }
       ],
       responsible: 'Maria Torres'
+    },
+    {
+      id: '3',
+      shipmentNumber: '101020055',
+      quantity: 28,
+      commodity: 'Concentrado Cu',
+      client: 'Trader C',
+      contract: 'Contrato 7',
+      quota: 'Nov.25',
+      actions: [
+        {
+          metal: 'Cu',
+          action: 'Vender',
+          quantity: '12fmt',
+          price: '10,400',
+          period: 'Promedio Dic.25',
+          expiration: '30Nov2025',
+          exchange: 'LME Select',
+          reference: '1250'
+        },
+        {
+          metal: 'Ag',
+          action: 'Vender',
+          quantity: '1,100oz',
+          price: '54',
+          period: 'Promedio Dic.25',
+          expiration: '30Nov2025',
+          exchange: 'LME Select',
+          reference: '1251'
+        },
+        {
+          metal: 'Au',
+          action: 'Vender',
+          quantity: '58oz',
+          price: '4,120',
+          period: 'Promedio Dic.25',
+          expiration: '30Nov2025',
+          exchange: 'LME Select',
+          reference: '1252'
+        }
+      ],
+      responsible: 'Carlos Ruiz'
+    },
+    {
+      id: '4',
+      shipmentNumber: '101020067',
+      quantity: 32,
+      commodity: 'Concentrado Zn',
+      client: 'IMX',
+      contract: 'Contrato 15',
+      quota: 'Dic.25',
+      actions: [
+        {
+          metal: 'Cu',
+          action: 'Vender',
+          quantity: '14fmt',
+          price: '10,450',
+          period: 'Promedio Ene.26',
+          expiration: '31Dec2025',
+          exchange: 'LME Select',
+          reference: '1260'
+        },
+        {
+          metal: 'Ag',
+          action: 'Vender',
+          quantity: '1,300oz',
+          price: '57',
+          period: 'Promedio Ene.26',
+          expiration: '31Dec2025',
+          exchange: 'LME Select',
+          reference: '1261'
+        },
+        {
+          metal: 'Au',
+          action: 'Vender',
+          quantity: '62oz',
+          price: '4,200',
+          period: 'Promedio Ene.26',
+          expiration: '31Dec2025',
+          exchange: 'LME Select',
+          reference: '1262'
+        }
+      ],
+      responsible: 'Laura Sanchez'
     }
   ];
 
@@ -2324,7 +2408,7 @@ const Dashboard: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  scrollToSubsection(upcomingFixingsRef, 'fijaciones', 'period');
+                  scrollToSubsection(upcomingFixingsRef, 'fijaciones', 'upcoming');
                 }}
                 className="ml-2 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-blue-200 transition-colors cursor-pointer"
               >
