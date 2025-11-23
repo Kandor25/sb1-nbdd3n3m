@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FileText, Package, Truck, DollarSign, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Scale, FlaskConical, MapPin, TruckIcon, Calendar, ListChecks, Filter, X, User } from 'lucide-react';
+import { FileText, Package, Truck, DollarSign, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Scale, FlaskConical, MapPin, TruckIcon, Calendar, ListChecks, Filter, X, User, XCircle } from 'lucide-react';
 import MetricCard from './MetricCard';
 import { mockDashboardMetrics, mockContracts, mockInventoryLots, mockShipments } from '../../data/mockData';
 
@@ -165,6 +165,7 @@ const Dashboard: React.FC = () => {
   const scheduledCollectionsRef = useRef<HTMLDivElement>(null);
   const upcomingFixingsRef = useRef<HTMLDivElement>(null);
   const gtcOrdersRef = useRef<HTMLDivElement>(null);
+  const expiredGtcOrdersRef = useRef<HTMLDivElement>(null);
   const overdueFixingsRef = useRef<HTMLDivElement>(null);
 
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
@@ -197,6 +198,7 @@ const Dashboard: React.FC = () => {
   const [expandedFixings, setExpandedFixings] = useState<{ [key: string]: boolean }>({
     upcoming: false,
     gtc: false,
+    expiredGtc: false,
     overdue: false,
     next5days: false,
     monthlyAverage: false
@@ -1138,6 +1140,48 @@ const Dashboard: React.FC = () => {
         }
       ],
       responsible: 'Diego Lopez'
+    },
+    {
+      id: '2',
+      shipmentNumber: '101020045',
+      quantity: 30,
+      commodity: 'Concentrado Cu',
+      client: 'Trader B',
+      contract: 'Contrato 3',
+      quota: 'Oct.25',
+      actions: [
+        {
+          metal: 'Cu',
+          action: 'Vender',
+          quantity: '13fmt',
+          price: '10,500',
+          period: 'Promedio Nov.25',
+          expiration: '31Oct2025',
+          exchange: 'LME Select',
+          reference: '1240'
+        },
+        {
+          metal: 'Ag',
+          action: 'Vender',
+          quantity: '1,200oz',
+          price: '56',
+          period: 'Promedio Nov.25',
+          expiration: '31Oct2025',
+          exchange: 'LME Select',
+          reference: '1241'
+        },
+        {
+          metal: 'Au',
+          action: 'Vender',
+          quantity: '60oz',
+          price: '4,150',
+          period: 'Promedio Nov.25',
+          expiration: '31Oct2025',
+          exchange: 'LME Select',
+          reference: '1242'
+        }
+      ],
+      responsible: 'Maria Torres'
     }
   ];
 
@@ -1302,7 +1346,22 @@ const Dashboard: React.FC = () => {
   const filteredScheduledPayments = filterByFutureDate(filterByResponsible(scheduledPayments));
   const filteredScheduledCollections = filterByFutureDate(filterByResponsible(scheduledCollections));
   const filteredUpcomingFixings = filterByFutureDate(filterByResponsible(upcomingFixings));
-  const filteredGtcOrders = filterByResponsible(gtcOrders);
+  const filteredGtcOrders = filterByResponsible(gtcOrders.filter(order => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return order.actions.some(action => {
+      const expirationDate = parseDate(action.expiration);
+      return expirationDate >= now;
+    });
+  }));
+  const filteredExpiredGtcOrders = filterByResponsible(gtcOrders.filter(order => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return order.actions.every(action => {
+      const expirationDate = parseDate(action.expiration);
+      return expirationDate < now;
+    });
+  }));
   const filteredOverdueFixings = filterByResponsible(overdueFixings);
 
   // Toggle de categorías
@@ -2273,7 +2332,16 @@ const Dashboard: React.FC = () => {
                 }}
                 className="ml-2 bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-green-200 transition-colors cursor-pointer"
               >
-                {gtcOrders.length} GTC Abiertas
+                {filteredGtcOrders.length} GTC Abiertas
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSubsection(expiredGtcOrdersRef, 'fijaciones', 'expiredGtc');
+                }}
+                className="ml-2 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold hover:bg-red-200 transition-colors cursor-pointer"
+              >
+                {filteredExpiredGtcOrders.length} GTC Expiradas
               </button>
             </div>
             {expandedSections.fijaciones ? (
@@ -2506,6 +2574,65 @@ const Dashboard: React.FC = () => {
                                   </p>
                                 </div>
                               ))}
+                            </div>
+                            <p className="text-gray-600 text-xs mt-2">
+                              <span className="font-semibold">Responsable:</span> {order.responsible}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* GTC Expiradas No Renovadas */}
+              <div ref={expiredGtcOrdersRef} className="bg-gray-50 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => toggleFixings('expiredGtc')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <XCircle className="w-4 h-4 text-red-500 mr-2" />
+                    <span className="font-bold text-gray-900">GTC Expiradas No Renovadas</span>
+                    <span className="ml-2 bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                      {filteredExpiredGtcOrders.length}
+                    </span>
+                  </div>
+                  {expandedFixings.expiredGtc ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+
+                {expandedFixings.expiredGtc && (
+                  <div className="px-4 pb-4">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {filteredExpiredGtcOrders.map((order) => (
+                        <div key={order.id} className="bg-white rounded-lg p-4 border border-red-200 hover:shadow-md transition-all">
+                          <div className="text-sm space-y-2">
+                            <p className="text-gray-700">
+                              Embarque {order.shipmentNumber} / <span className="font-semibold">{order.quantity}dmt</span> / {order.commodity} / Cliente {order.client} / {order.contract} / Cuota {order.quota}
+                            </p>
+                            <div className="mt-2 space-y-2">
+                              <p className="font-semibold text-gray-900 text-xs">Actions:</p>
+                              {order.actions.map((action, index) => {
+                                const daysOverdue = getDaysOverdue(action.expiration);
+                                return (
+                                  <div key={index} className="text-xs bg-red-50 p-2 rounded border border-red-200">
+                                    <p className="text-gray-900">
+                                      <span className="font-semibold">{action.metal}</span> ==&gt;{action.action} {action.quantity}@{action.price} {action.period}
+                                    </p>
+                                    <p className="text-red-700 font-semibold mt-0.5">
+                                      Exp {action.expiration} ==&gt; {daysOverdue}d ATRASADO
+                                    </p>
+                                    <p className="text-gray-600 mt-0.5">
+                                      {action.exchange} / Referencia {action.reference}
+                                    </p>
+                                  </div>
+                                );
+                              })}
                             </div>
                             <p className="text-gray-600 text-xs mt-2">
                               <span className="font-semibold">Responsable:</span> {order.responsible}
