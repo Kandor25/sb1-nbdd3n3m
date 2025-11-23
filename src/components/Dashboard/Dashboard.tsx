@@ -282,21 +282,26 @@ const Dashboard: React.FC = () => {
     return `${day}${month}${year}`;
   };
 
-  const getDaysOverdue = (eta: string): number => {
-    const match = eta.match(/(\d+)([A-Za-z]{3})(\d+)/);
+  const parseDateString = (dateStr: string): Date => {
+    const match = dateStr.match(/(\d+)([A-Za-z]{3})(\d+)/);
     if (!match) {
-      return 0;
+      return new Date();
     }
     const [, day, month, year] = match;
     const monthMap: {[key: string]: number} = {'Jan':0,'Feb':1,'Mar':2,'Apr':3,'May':4,'Jun':5,'Jul':6,'Aug':7,'Sep':8,'Oct':9,'Nov':10,'Dec':11};
     const monthIndex = monthMap[month];
     if (monthIndex === undefined) {
-      return 0;
+      return new Date();
     }
-    const etaDate = new Date(parseInt(year), monthIndex, parseInt(day));
+    const date = new Date(parseInt(year), monthIndex, parseInt(day));
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
+
+  const getDaysOverdue = (eta: string): number => {
+    const etaDate = parseDateString(eta);
     const now = new Date();
     now.setHours(0, 0, 0, 0);
-    etaDate.setHours(0, 0, 0, 0);
     const diffMs = now.getTime() - etaDate.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : 0;
@@ -1350,7 +1355,7 @@ const Dashboard: React.FC = () => {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     return order.actions.some(action => {
-      const expirationDate = parseDate(action.expiration);
+      const expirationDate = parseDateString(action.expiration);
       return expirationDate >= now;
     });
   }));
@@ -1358,7 +1363,7 @@ const Dashboard: React.FC = () => {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     return order.actions.every(action => {
-      const expirationDate = parseDate(action.expiration);
+      const expirationDate = parseDateString(action.expiration);
       return expirationDate < now;
     });
   }));
