@@ -2631,10 +2631,6 @@ const Dashboard: React.FC = () => {
                                     Embarque {fixing.shipmentNumber} / <span className="font-semibold">{fixing.quantity}dmt</span> / {fixing.commodity} / Cliente {fixing.client} / {fixing.contract} / Cuota {fixing.quota}
                                   </p>
                                   <div className="mt-2 space-y-1 text-xs bg-white p-2 rounded">
-                                    <p className={isOverdue ? 'text-red-600 font-semibold' : 'text-gray-900'}>
-                                      <span className="font-semibold">ETA Programada &gt;</span> {fixing.etaScheduled}
-                                      {isOverdue && <span>  ==&gt;{daysOverdue}d ATRASADO</span>}
-                                    </p>
                                     <p className="text-gray-900">
                                       <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
                                     </p>
@@ -2681,10 +2677,6 @@ const Dashboard: React.FC = () => {
                                     Embarque {fixing.shipmentNumber} / <span className="font-semibold">{fixing.quantity}dmt</span> / {fixing.commodity} / Cliente {fixing.client} / {fixing.contract} / Cuota {fixing.quota}
                                   </p>
                                   <div className="mt-2 space-y-1 text-xs bg-white p-2 rounded">
-                                    <p className={isOverdue ? 'text-red-600 font-semibold' : 'text-gray-900'}>
-                                      <span className="font-semibold">ETA Programada &gt;</span> {fixing.etaScheduled}
-                                      {isOverdue && <span>  ==&gt;{daysOverdue}d ATRASADO</span>}
-                                    </p>
                                     <p className="text-gray-900">
                                       <span className="font-semibold">Términos:</span> ({fixing.terms.metals})
                                     </p>
