@@ -2115,7 +2115,7 @@ const Dashboard: React.FC = () => {
                               Embarque {weight.shipmentNumber} / <span className="font-semibold">{weight.quantity}dmt</span> / {weight.commodity} / Cliente {weight.client} / {weight.contract} / Cuota {weight.quota} / Laboratorio: {weight.laboratory}
                             </p>
                             <p className="text-gray-700">
-                              <span className="font-semibold">ETA Programada &gt;</span> {weight.etaScheduled}
+                              <span className="font-semibold">ETA Programada {'==>'}</span> {weight.etaScheduled}
                             </p>
                             <p className="text-gray-600 text-xs mt-1">
                               <span className="font-semibold">Responsable:</span> {weight.responsible}
@@ -2158,7 +2158,7 @@ const Dashboard: React.FC = () => {
                               Embarque {assay.shipmentNumber} / <span className="font-semibold">{assay.quantity}dmt</span> / {assay.commodity} / Cliente {assay.client} / {assay.contract} / Cuota {assay.quota} / Laboratorio: {assay.laboratory}
                             </p>
                             <p className="text-gray-700">
-                              <span className="font-semibold">ETA Programada &gt;</span> {assay.etaScheduled}
+                              <span className="font-semibold">ETA Programada {'==>'}</span> {assay.etaScheduled}
                             </p>
                             <p className="text-gray-600 text-xs mt-1">
                               <span className="font-semibold">Responsable:</span> {assay.responsible}
@@ -2393,7 +2393,7 @@ const Dashboard: React.FC = () => {
                               <span className="font-semibold">&gt;</span> Embarque {payment.shipmentNumber} / <span className="font-semibold">{payment.quantity}dmt</span> / {payment.commodity} / Cliente {payment.client} / {payment.contract} / Cuota {payment.quota}
                             </p>
                             <p className="text-gray-600 text-xs">
-                              <span className="font-semibold">ETA Programada &gt;</span> {payment.etaScheduled}
+                              <span className="font-semibold">ETA Programada {'==>'}</span> {payment.etaScheduled}
                             </p>
                             <p className="text-gray-900 text-sm font-semibold">
                               Monto: ${payment.amount.toLocaleString()}
@@ -2442,7 +2442,7 @@ const Dashboard: React.FC = () => {
                               <span className="font-semibold">&gt;</span> Embarque {collection.shipmentNumber} / <span className="font-semibold">{collection.quantity}dmt</span> / {collection.commodity} / Cliente {collection.client} / {collection.contract} / Cuota {collection.quota}
                             </p>
                             <p className="text-gray-600 text-xs">
-                              <span className="font-semibold">Programada &gt;</span> {collection.scheduled}
+                              <span className="font-semibold">ETA Programada {'==>'}</span> {collection.scheduled}
                             </p>
                             <p className="text-gray-900 text-sm font-semibold">
                               Monto: ${collection.amount.toLocaleString()}
