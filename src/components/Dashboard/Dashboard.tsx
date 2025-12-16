@@ -127,6 +127,271 @@ interface GTCOrder {
   responsible: string;
 }
 
+interface TechnicalIndicator {
+  indicator: string;
+  currentValue: string;
+  signal: string;
+}
+
+interface MetalAnalysis {
+  metal: string;
+  indicators: TechnicalIndicator[];
+}
+
+// Mock data para análisis técnico de metales
+const mockTechnicalAnalysis: MetalAnalysis[] = [
+  {
+    metal: 'Plata',
+    indicators: [
+      {
+        indicator: 'SMA 10 (Simple)',
+        currentValue: 'SMA10 = $25.10 — precio por encima (25.50 > 25.10)',
+        signal: 'Confirmación de momentum corto plazo; suele atraer compradores; puede empujar hacia SMA50 y resistencia.'
+      },
+      {
+        indicator: 'SMA 20',
+        currentValue: 'SMA20 = $24.80 — precio por encima',
+        signal: 'Ruptura sostenida por encima indica tendencia positiva de corto/medio plazo; soporte en 24.80.'
+      },
+      {
+        indicator: 'SMA 50',
+        currentValue: 'SMA50 = $26.00 — precio por debajo (25.50 < 26.00)',
+        signal: 'Si rompe y cierra por encima de SMA50, señal técnica de reversión a tendencia alcista de medio plazo.'
+      },
+      {
+        indicator: 'EMA 9 (exp)',
+        currentValue: 'EMA9 = $25.30 — precio por encima',
+        signal: 'Ruptura arriba refuerza impulso intradiario/very short; traders intradia suelen entrar largo.'
+      },
+      {
+        indicator: 'EMA 21',
+        currentValue: 'EMA21 = $24.95 — precio por encima',
+        signal: 'Mantener por encima de EMA21 confirma fuerza de corto; stop lógico por debajo.'
+      },
+      {
+        indicator: 'EMA 50',
+        currentValue: 'EMA50 = $25.90 — precio por debajo',
+        signal: 'Cierre sostenido por encima de EMA50 confirmaría cambio de EMAs.'
+      },
+      {
+        indicator: 'RSI (14)',
+        currentValue: 'RSI = 58 (neutro-alcista) — no sobrecomprado',
+        signal: 'Si sube sobre 70 → condición sobrecomprada; posible toma de ganancias pero con fuerte momentum.'
+      },
+      {
+        indicator: 'MACD (12,26,9)',
+        currentValue: 'MACD hist = +0.07 (MACD > Signal) — línea MACD positiva',
+        signal: 'Mayor cruce alcista (ampliación) confirmaría rally; atrae momentum técnico.'
+      },
+      {
+        indicator: 'Soportes & Resistencias (Fibonacci entre low $24.00 y high $27.50)',
+        currentValue: 'Niveles clave:\n0% (27.50),\n23.6% = 26.674,\n38.2% = 26.163,\n50% = 25.750,\n61.8% = 25.337,\n100% = 24.00.',
+        signal: 'Si rompe por encima de 26.674 → siguiente objetivo es volumen en breakout confirma.'
+      }
+    ]
+  },
+  {
+    metal: 'Cobre',
+    indicators: [
+      {
+        indicator: 'SMA 10 (Simple)',
+        currentValue: 'SMA10 = $4.15 — precio por encima (4.25 > 4.15)',
+        signal: 'Confirmación de momentum corto plazo; suele atraer compradores; puede empujar hacia SMA50.'
+      },
+      {
+        indicator: 'SMA 20',
+        currentValue: 'SMA20 = $4.05 — precio por encima',
+        signal: 'Ruptura sostenida por encima indica tendencia positiva de corto/medio plazo; soporte en 4.05.'
+      },
+      {
+        indicator: 'SMA 50',
+        currentValue: 'SMA50 = $4.35 — precio por debajo (4.25 < 4.35)',
+        signal: 'Si rompe y cierra por encima de SMA50, señal técnica de reversión a tendencia alcista.'
+      },
+      {
+        indicator: 'EMA 9 (exp)',
+        currentValue: 'EMA9 = $4.20 — precio por encima',
+        signal: 'Ruptura arriba refuerza impulso intradiario; traders suelen entrar largo.'
+      },
+      {
+        indicator: 'EMA 21',
+        currentValue: 'EMA21 = $4.10 — precio por encima',
+        signal: 'Mantener por encima de EMA21 confirma fuerza de corto; stop lógico por debajo.'
+      },
+      {
+        indicator: 'EMA 50',
+        currentValue: 'EMA50 = $4.30 — precio por debajo',
+        signal: 'Cierre sostenido por encima de EMA50 confirmaría cambio de EMAs.'
+      },
+      {
+        indicator: 'RSI (14)',
+        currentValue: 'RSI = 62 (neutro-alcista) — no sobrecomprado',
+        signal: 'Si sube sobre 70 → condición sobrecomprada; posible toma de ganancias.'
+      },
+      {
+        indicator: 'MACD (12,26,9)',
+        currentValue: 'MACD hist = +0.05 (MACD > Signal) — línea MACD positiva',
+        signal: 'Mayor cruce alcista confirmaría rally; atrae momentum técnico.'
+      },
+      {
+        indicator: 'Soportes & Resistencias (Fibonacci)',
+        currentValue: 'Niveles clave:\n23.6% = 4.40,\n38.2% = 4.30,\n50% = 4.20,\n61.8% = 4.10',
+        signal: 'Si rompe por encima de 4.40 → siguiente objetivo con volumen confirma breakout.'
+      }
+    ]
+  },
+  {
+    metal: 'Plomo',
+    indicators: [
+      {
+        indicator: 'SMA 10 (Simple)',
+        currentValue: 'SMA10 = $2,100 — precio por encima (2,150 > 2,100)',
+        signal: 'Confirmación de momentum corto plazo; puede empujar hacia resistencias.'
+      },
+      {
+        indicator: 'SMA 20',
+        currentValue: 'SMA20 = $2,050 — precio por encima',
+        signal: 'Ruptura sostenida indica tendencia positiva; soporte en 2,050.'
+      },
+      {
+        indicator: 'SMA 50',
+        currentValue: 'SMA50 = $2,200 — precio por debajo (2,150 < 2,200)',
+        signal: 'Romper SMA50 señalaría reversión a tendencia alcista de medio plazo.'
+      },
+      {
+        indicator: 'EMA 9 (exp)',
+        currentValue: 'EMA9 = $2,120 — precio por encima',
+        signal: 'Refuerza impulso intradiario; entrada para traders de corto plazo.'
+      },
+      {
+        indicator: 'EMA 21',
+        currentValue: 'EMA21 = $2,080 — precio por encima',
+        signal: 'Mantener sobre EMA21 confirma fuerza; stop lógico por debajo.'
+      },
+      {
+        indicator: 'EMA 50',
+        currentValue: 'EMA50 = $2,180 — precio por debajo',
+        signal: 'Cierre sobre EMA50 confirmaría cambio de tendencia.'
+      },
+      {
+        indicator: 'RSI (14)',
+        currentValue: 'RSI = 55 (neutro) — no sobrecomprado',
+        signal: 'Sobre 70 indica sobrecompra; posible toma de ganancias.'
+      },
+      {
+        indicator: 'MACD (12,26,9)',
+        currentValue: 'MACD hist = +15 (MACD > Signal) — positivo',
+        signal: 'Cruce alcista confirmaría rally; atrae momentum.'
+      },
+      {
+        indicator: 'Soportes & Resistencias (Fibonacci)',
+        currentValue: 'Niveles: 23.6% = 2,250, 38.2% = 2,200, 50% = 2,150, 61.8% = 2,100',
+        signal: 'Romper 2,250 → siguiente objetivo con volumen confirmado.'
+      }
+    ]
+  },
+  {
+    metal: 'Zinc',
+    indicators: [
+      {
+        indicator: 'SMA 10 (Simple)',
+        currentValue: 'SMA10 = $2,800 — precio por encima (2,850 > 2,800)',
+        signal: 'Momentum corto plazo confirmado; puede avanzar hacia resistencias.'
+      },
+      {
+        indicator: 'SMA 20',
+        currentValue: 'SMA20 = $2,750 — precio por encima',
+        signal: 'Tendencia positiva de corto/medio plazo; soporte en 2,750.'
+      },
+      {
+        indicator: 'SMA 50',
+        currentValue: 'SMA50 = $2,900 — precio por debajo (2,850 < 2,900)',
+        signal: 'Romper SMA50 señalaría reversión alcista de medio plazo.'
+      },
+      {
+        indicator: 'EMA 9 (exp)',
+        currentValue: 'EMA9 = $2,820 — precio por encima',
+        signal: 'Impulso intradiario reforzado; entrada para traders corto plazo.'
+      },
+      {
+        indicator: 'EMA 21',
+        currentValue: 'EMA21 = $2,780 — precio por encima',
+        signal: 'Mantener sobre EMA21 confirma fuerza; stop por debajo.'
+      },
+      {
+        indicator: 'EMA 50',
+        currentValue: 'EMA50 = $2,880 — precio por debajo',
+        signal: 'Cierre sobre EMA50 confirmaría cambio de EMAs.'
+      },
+      {
+        indicator: 'RSI (14)',
+        currentValue: 'RSI = 60 (neutro-alcista) — no sobrecomprado',
+        signal: 'Sobre 70 indica sobrecompra; posible corrección.'
+      },
+      {
+        indicator: 'MACD (12,26,9)',
+        currentValue: 'MACD hist = +20 (MACD > Signal) — positivo',
+        signal: 'Cruce alcista confirma rally; atrae momentum técnico.'
+      },
+      {
+        indicator: 'Soportes & Resistencias (Fibonacci)',
+        currentValue: 'Niveles: 23.6% = 2,950, 38.2% = 2,900, 50% = 2,850, 61.8% = 2,800',
+        signal: 'Romper 2,950 → objetivo siguiente con volumen.'
+      }
+    ]
+  },
+  {
+    metal: 'Oro',
+    indicators: [
+      {
+        indicator: 'SMA 10 (Simple)',
+        currentValue: 'SMA10 = $2,050 — precio por encima (2,080 > 2,050)',
+        signal: 'Momentum corto plazo confirmado; puede empujar hacia SMA50.'
+      },
+      {
+        indicator: 'SMA 20',
+        currentValue: 'SMA20 = $2,020 — precio por encima',
+        signal: 'Tendencia positiva confirmada; soporte en 2,020.'
+      },
+      {
+        indicator: 'SMA 50',
+        currentValue: 'SMA50 = $2,100 — precio por debajo (2,080 < 2,100)',
+        signal: 'Romper SMA50 señalaría reversión alcista de medio plazo.'
+      },
+      {
+        indicator: 'EMA 9 (exp)',
+        currentValue: 'EMA9 = $2,060 — precio por encima',
+        signal: 'Impulso intradiario fuerte; entrada para traders corto.'
+      },
+      {
+        indicator: 'EMA 21',
+        currentValue: 'EMA21 = $2,035 — precio por encima',
+        signal: 'Mantener sobre EMA21 confirma fuerza; stop por debajo.'
+      },
+      {
+        indicator: 'EMA 50',
+        currentValue: 'EMA50 = $2,090 — precio por debajo',
+        signal: 'Cierre sobre EMA50 confirmaría cambio de tendencia.'
+      },
+      {
+        indicator: 'RSI (14)',
+        currentValue: 'RSI = 65 (neutro-alcista) — cerca de sobrecompra',
+        signal: 'Sobre 70 indica sobrecompra; posible toma de ganancias.'
+      },
+      {
+        indicator: 'MACD (12,26,9)',
+        currentValue: 'MACD hist = +8 (MACD > Signal) — positivo',
+        signal: 'Cruce alcista confirma rally; atrae momentum.'
+      },
+      {
+        indicator: 'Soportes & Resistencias (Fibonacci)',
+        currentValue: 'Niveles: 23.6% = 2,120, 38.2% = 2,100, 50% = 2,080, 61.8% = 2,060',
+        signal: 'Romper 2,120 → objetivo siguiente con volumen confirmado.'
+      }
+    ]
+  }
+];
+
 const Dashboard: React.FC = () => {
   // Calcular fecha por defecto (hoy + 5 días)
   const getDefaultDate = () => {
@@ -146,7 +411,7 @@ const Dashboard: React.FC = () => {
   };
 
   // Filtros
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(['contratos', 'logistica', 'ensayos', 'pagos', 'fijaciones']);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['contratos', 'logistica', 'ensayos', 'pagos', 'fijaciones', 'mercados']);
   const [selectedResponsibles, setSelectedResponsibles] = useState<string[]>([]);
   const [futureDate, setFutureDate] = useState<string>(getDefaultDate());
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
@@ -173,7 +438,8 @@ const Dashboard: React.FC = () => {
     logistica: false,
     ensayos: false,
     pagos: false,
-    fijaciones: false
+    fijaciones: false,
+    mercados: false
   });
 
   const [expandedLogistics, setExpandedLogistics] = useState<{ [key: string]: boolean }>({
@@ -202,6 +468,11 @@ const Dashboard: React.FC = () => {
     overdue: false,
     next5days: false,
     monthlyAverage: false
+  });
+
+  const [expandedMarkets, setExpandedMarkets] = useState<{ [key: string]: boolean }>({
+    technicalAnalysis: false,
+    economicIndicators: false
   });
 
   const toggleSection = (section: string) => {
@@ -234,6 +505,13 @@ const Dashboard: React.FC = () => {
 
   const toggleFixings = (section: string) => {
     setExpandedFixings(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const toggleMarkets = (section: string) => {
+    setExpandedMarkets(prev => ({
       ...prev,
       [section]: !prev[section]
     }));
@@ -1547,7 +1825,7 @@ const Dashboard: React.FC = () => {
               className="w-full px-3 py-2 text-sm text-left bg-white border border-gray-300 rounded-lg hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between"
             >
               <span className="text-gray-700">
-                {selectedCategories.length === 5 ? 'Todas' : selectedCategories.length === 0 ? 'Ninguna' : `${selectedCategories.length} seleccionadas`}
+                {selectedCategories.length === 6 ? 'Todas' : selectedCategories.length === 0 ? 'Ninguna' : `${selectedCategories.length} seleccionadas`}
               </span>
               <ChevronDown className="w-4 h-4 text-gray-400" />
             </button>
@@ -1555,7 +1833,7 @@ const Dashboard: React.FC = () => {
             {showCategoryDropdown && (
               <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 <div className="p-2 space-y-1">
-                  {['contratos', 'logistica', 'ensayos', 'pagos', 'fijaciones'].map((category) => (
+                  {['contratos', 'logistica', 'ensayos', 'pagos', 'fijaciones', 'mercados'].map((category) => (
                     <label key={category} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
                       <input
                         type="checkbox"
@@ -1570,7 +1848,7 @@ const Dashboard: React.FC = () => {
                 <div className="border-t border-gray-200 p-2 flex gap-2">
                   <button
                     onClick={() => {
-                      setSelectedCategories(['contratos', 'logistica', 'ensayos', 'pagos', 'fijaciones']);
+                      setSelectedCategories(['contratos', 'logistica', 'ensayos', 'pagos', 'fijaciones', 'mercados']);
                       setShowCategoryDropdown(false);
                     }}
                     className="flex-1 text-xs text-blue-600 hover:text-blue-800 py-1"
@@ -2817,6 +3095,118 @@ const Dashboard: React.FC = () => {
         </div>
         )}
       </div>
+
+      {/* 6. Mercados */}
+      {shouldShowCategory('mercados') && (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <button
+          onClick={() => toggleSection('mercados')}
+          className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center flex-1">
+            <TrendingUp className="w-5 h-5 text-purple-600 mr-3" />
+            <h2 className="text-lg font-bold text-gray-900">6. Mercados</h2>
+          </div>
+          <ChevronDown
+            className={`w-5 h-5 text-gray-500 transition-transform ${
+              expandedSections.mercados ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+
+        {expandedSections.mercados && (
+          <div className="p-6 space-y-4 border-t border-gray-200">
+            {/* Análisis Técnico de Corto Plazo Precios */}
+            <div className="bg-gray-50 rounded-lg">
+              <button
+                onClick={() => toggleMarkets('technicalAnalysis')}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+              >
+                <div className="flex items-center">
+                  <TrendingUp className="w-4 h-4 text-purple-600 mr-2" />
+                  <h3 className="text-base font-semibold text-gray-900">
+                    a) Análisis Técnico de Corto Plazo Precios
+                  </h3>
+                </div>
+                {expandedMarkets.technicalAnalysis ? (
+                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                )}
+              </button>
+
+              {expandedMarkets.technicalAnalysis && (
+                <div className="px-4 pb-4 space-y-6">
+                  {mockTechnicalAnalysis.map((metalData) => (
+                    <div key={metalData.metal} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                      <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-4 py-3">
+                        <h4 className="text-lg font-bold text-white">{metalData.metal}</h4>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-gray-800 text-white">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-sm font-semibold">Indicador</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold">Valor / Estado actual</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold">Si el spot rompe por encima</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {metalData.indicators.map((indicator, idx) => (
+                              <tr key={idx} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-pre-wrap">
+                                  {indicator.indicator}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-700 whitespace-pre-wrap">
+                                  {indicator.currentValue}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-700 whitespace-pre-wrap">
+                                  {indicator.signal}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Indicadores Económicos Estados Unidos */}
+            <div className="bg-gray-50 rounded-lg">
+              <button
+                onClick={() => toggleMarkets('economicIndicators')}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors rounded-lg"
+              >
+                <div className="flex items-center">
+                  <DollarSign className="w-4 h-4 text-purple-600 mr-2" />
+                  <h3 className="text-base font-semibold text-gray-900">
+                    b) Indicadores Económicos Estados Unidos
+                  </h3>
+                </div>
+                {expandedMarkets.economicIndicators ? (
+                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                )}
+              </button>
+
+              {expandedMarkets.economicIndicators && (
+                <div className="px-4 pb-4">
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <p className="text-gray-600 text-center">
+                      Contenido de indicadores económicos (próximamente)
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+      )}
 
       {/* Recent Activity Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
