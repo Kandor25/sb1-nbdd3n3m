@@ -392,6 +392,131 @@ const mockTechnicalAnalysis: MetalAnalysis[] = [
   }
 ];
 
+interface EconomicIndicator {
+  date: string;
+  time: string;
+  indicator: string;
+  consensus: string;
+  impact: string;
+}
+
+interface CountryIndicators {
+  country: string;
+  indicators: EconomicIndicator[];
+}
+
+// Función para obtener los próximos 5 días
+const getNextFiveDays = () => {
+  const days = [];
+  const today = new Date();
+  for (let i = 0; i < 5; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = date.toLocaleString('es-ES', { month: 'short' });
+    days.push(`${day}-${month}`);
+  }
+  return days;
+};
+
+// Mock data para indicadores económicos
+const mockEconomicIndicators: CountryIndicators[] = [
+  {
+    country: 'Estados Unidos',
+    indicators: [
+      {
+        date: getNextFiveDays()[0],
+        time: 'varias',
+        indicator: 'Discursos del Fed (Powell y Bowman)',
+        consensus: 'N/A (discursos)',
+        impact: 'Los comentarios de miembros de la Fed pueden influir en expectativas de tasas (hawkish/dovish). Alto impacto en bonos, dólar y metales preciosos.'
+      },
+      {
+        date: getNextFiveDays()[1],
+        time: '12:00 PM',
+        indicator: 'MBA Mortgage Applications (semanal)',
+        consensus: '-0.2% (dato MBA típico listado)',
+        impact: 'Indicador de actividad hipotecaria; impacto moderado en mercados de renta fija y USD de corto plazo.'
+      },
+      {
+        date: getNextFiveDays()[2],
+        time: '01:30 PM',
+        indicator: 'Initial Jobless Claims (Pedidos de subsidio de desempleo)',
+        consensus: '220.0K (consenso), Trading Economics',
+        impact: 'Dato de empleo semanal; sorpresa al alza → mejora confianza → alza en USD; sorpresa a la baja → mejora riesgo → posible debilidad USD.'
+      },
+      {
+        date: getNextFiveDays()[3],
+        time: '03:00 PM',
+        indicator: 'Core PCE (mensual) — Índice de Precios PCE núcleo (monthly)',
+        consensus: '0.2% (consenso), Trading Economics',
+        impact: 'Principal medida de inflación preferida por la Fed; dato más alto de lo esperado → sube volatilidad en bonos, USD y metales; lenguaje más restrictivo de la Fed posible.'
+      },
+      {
+        date: getNextFiveDays()[3],
+        time: '03:00 PM',
+        indicator: 'University of Michigan Consumer Sentiment (preliminar)',
+        consensus: '51.0 (consenso), Trading Economics',
+        impact: 'Mide confianza del consumidor; fuerte sorpresa influye en expectativas de consumo → efecto en USD y activos de riesgo; más indirecto para metales.'
+      },
+      {
+        date: getNextFiveDays()[4],
+        time: 'varios',
+        indicator: 'Balances del Fed, reportes WASDE, subasta de notas (10y) etc.',
+        consensus: 'varios',
+        impact: 'Subastas y balances pueden mover liquidez y yields; efecto en USD y bonos principalmente.'
+      }
+    ]
+  },
+  {
+    country: 'China',
+    indicators: [
+      {
+        date: getNextFiveDays()[0],
+        time: '10:00 PM',
+        indicator: 'Loan Prime Rate (LPR) 1Y y 5Y',
+        consensus: 'Sin cambio esperado (3.10% / 3.60%)',
+        impact: 'Tasa de referencia para préstamos; cambio inesperado impacta sentimiento sobre estímulo chino → afecta demanda de metales industriales (cobre, zinc).'
+      },
+      {
+        date: getNextFiveDays()[1],
+        time: '09:30 PM',
+        indicator: 'Industrial Production (mensual)',
+        consensus: '+5.5% (consenso estimado)',
+        impact: 'Medida de actividad manufacturera; dato fuerte → optimismo en demanda de metales base; dato débil → presión bajista en cobre, zinc, plomo.'
+      },
+      {
+        date: getNextFiveDays()[2],
+        time: '09:30 PM',
+        indicator: 'Retail Sales (mensual)',
+        consensus: '+3.8% (consenso estimado)',
+        impact: 'Consumo interno chino; sorpresa positiva refuerza recuperación económica → potencial alza en commodities; dato bajo → preocupación por demanda.'
+      },
+      {
+        date: getNextFiveDays()[3],
+        time: '02:00 AM',
+        indicator: 'PBoC Interest Rate Decision',
+        consensus: 'Sin cambio esperado (3.45%)',
+        impact: 'Decisión de tasas del banco central; cambio o señales dovish/hawkish mueven CNY y expectativas de crecimiento → impacto directo en metales industriales.'
+      },
+      {
+        date: getNextFiveDays()[3],
+        time: '09:30 PM',
+        indicator: 'Fixed Asset Investment (YTD/YoY)',
+        consensus: '+3.4% (consenso estimado)',
+        impact: 'Inversión en infraestructura y manufactura; dato robusto → señal positiva para demanda de cobre, acero; dato débil → preocupación en sector construcción.'
+      },
+      {
+        date: getNextFiveDays()[4],
+        time: '10:30 PM',
+        indicator: 'Caixin Manufacturing PMI (preliminar)',
+        consensus: '51.2 (consenso estimado)',
+        impact: 'PMI manufacturero del sector privado; lectura >50 indica expansión → positivo para metales base; <50 señala contracción → presión bajista.'
+      }
+    ]
+  }
+];
+
 const Dashboard: React.FC = () => {
   // Calcular fecha por defecto (hoy + 5 días)
   const getDefaultDate = () => {
@@ -3174,7 +3299,7 @@ const Dashboard: React.FC = () => {
               )}
             </div>
 
-            {/* Indicadores Económicos Estados Unidos */}
+            {/* Indicadores Económicos */}
             <div className="bg-gray-50 rounded-lg">
               <button
                 onClick={() => toggleMarkets('economicIndicators')}
@@ -3183,7 +3308,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center">
                   <DollarSign className="w-4 h-4 text-purple-600 mr-2" />
                   <h3 className="text-base font-semibold text-gray-900">
-                    b) Indicadores Económicos Estados Unidos
+                    b) Indicadores Económicos
                   </h3>
                 </div>
                 {expandedMarkets.economicIndicators ? (
@@ -3194,12 +3319,61 @@ const Dashboard: React.FC = () => {
               </button>
 
               {expandedMarkets.economicIndicators && (
-                <div className="px-4 pb-4">
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <p className="text-gray-600 text-center">
-                      Contenido de indicadores económicos (próximamente)
-                    </p>
-                  </div>
+                <div className="px-4 pb-4 space-y-6">
+                  {mockEconomicIndicators.map((countryData) => (
+                    <div key={countryData.country} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                      <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-4 py-3">
+                        <h4 className="text-lg font-bold text-white">{countryData.country}</h4>
+                      </div>
+                      <div className="p-4">
+                        <div className="mb-3 text-sm text-gray-600">
+                          Para ver datos reales dirigirse a{' '}
+                          <a
+                            href="https://tradingeconomics.com/calendar"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 font-semibold underline"
+                          >
+                            Economic Calendar
+                          </a>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead className="bg-gray-800 text-white">
+                              <tr>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Fecha (2025)</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Hora (ET aprox.)</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Indicador</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Consenso (analistas)</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Por qué impacta la volatilidad / efecto esperado</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              {countryData.indicators.map((indicator, idx) => (
+                                <tr key={idx} className="hover:bg-gray-50">
+                                  <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                    {indicator.date}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-gray-700">
+                                    {indicator.time}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-gray-700">
+                                    {indicator.indicator}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-gray-700">
+                                    {indicator.consensus}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-gray-700">
+                                    {indicator.impact}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
