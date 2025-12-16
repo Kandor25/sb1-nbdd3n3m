@@ -70,6 +70,7 @@ interface OverduePayment {
   quota: string;
   etaScheduled: string;
   amount: number;
+  counterparty: string;
   responsible: string;
 }
 
@@ -84,6 +85,7 @@ interface OverdueCollection {
   quota: string;
   scheduled: string;
   amount: number;
+  counterparty: string;
   responsible: string;
 }
 
@@ -1230,6 +1232,7 @@ const Dashboard: React.FC = () => {
       quota: 'Jul.25',
       etaScheduled: '3Oct2025',
       amount: 15000,
+      counterparty: 'Laboratorio SGS del Perú SAC',
       responsible: 'Carlos Mendez'
     },
     {
@@ -1243,6 +1246,7 @@ const Dashboard: React.FC = () => {
       quota: 'Aug.25',
       etaScheduled: '5Oct2025',
       amount: 22000,
+      counterparty: 'Laboratorio ALS de México S.A.',
       responsible: 'Juan Perez'
     },
     {
@@ -1256,6 +1260,7 @@ const Dashboard: React.FC = () => {
       quota: 'Sep.25',
       etaScheduled: '8Oct2025',
       amount: 18500,
+      counterparty: 'Transportes Unidos S.A.',
       responsible: 'Sofia Ramirez'
     },
     {
@@ -1269,6 +1274,7 @@ const Dashboard: React.FC = () => {
       quota: 'Sep.25',
       etaScheduled: '10Oct2025',
       amount: 12500,
+      counterparty: 'Laboratorio Intertek Chile Ltda.',
       responsible: 'Pedro Gomez'
     }
   ];
@@ -1285,6 +1291,7 @@ const Dashboard: React.FC = () => {
       quota: 'Jun.25',
       etaScheduled: getFutureDateString(1),
       amount: 45000,
+      counterparty: 'Laboratorio SGS del Perú SAC',
       responsible: 'Laura Sanchez'
     },
     {
@@ -1298,6 +1305,7 @@ const Dashboard: React.FC = () => {
       quota: 'Sep.25',
       etaScheduled: getFutureDateString(4),
       amount: 28000,
+      counterparty: 'Naviera del Pacífico S.A.',
       responsible: 'Roberto Cruz'
     },
     {
@@ -1311,6 +1319,7 @@ const Dashboard: React.FC = () => {
       quota: 'Oct.25',
       etaScheduled: getFutureDateString(7),
       amount: 32000,
+      counterparty: 'Laboratorio AD Lab Chile Ltda.',
       responsible: 'Ana Martinez'
     },
     {
@@ -1324,6 +1333,7 @@ const Dashboard: React.FC = () => {
       quota: 'Nov.25',
       etaScheduled: getFutureDateString(11),
       amount: 18000,
+      counterparty: 'Almacenes Generales de Depósito S.A.',
       responsible: 'Carlos Mendez'
     }
   ];
@@ -1340,6 +1350,7 @@ const Dashboard: React.FC = () => {
       quota: 'Jul.25',
       scheduled: '7Oct2025',
       amount: 125000,
+      counterparty: 'Trader A International Ltd.',
       responsible: 'Diego Lopez'
     },
     {
@@ -1353,6 +1364,7 @@ const Dashboard: React.FC = () => {
       quota: 'Oct.25',
       scheduled: '10Jan2029',
       amount: 350000,
+      counterparty: 'Minera Peñasquito S.A. de C.V.',
       responsible: 'Fernanda Ruiz'
     },
     {
@@ -1366,6 +1378,7 @@ const Dashboard: React.FC = () => {
       quota: 'Aug.25',
       scheduled: '12Oct2025',
       amount: 180000,
+      counterparty: 'Glencore International AG',
       responsible: 'Alex Cheap'
     },
     {
@@ -1379,6 +1392,7 @@ const Dashboard: React.FC = () => {
       quota: 'Sep.25',
       scheduled: '15Oct2025',
       amount: 145000,
+      counterparty: 'Trader A International Ltd.',
       responsible: 'Maria Torres'
     }
   ];
@@ -1395,6 +1409,7 @@ const Dashboard: React.FC = () => {
       quota: 'Aug.25',
       scheduled: getFutureDateString(2),
       amount: 225000,
+      counterparty: 'IMX Trading Corporation',
       responsible: 'Carlos Mendez'
     },
     {
@@ -1408,6 +1423,7 @@ const Dashboard: React.FC = () => {
       quota: 'Sep.25',
       scheduled: getFutureDateString(5),
       amount: 180000,
+      counterparty: 'Trader C Global S.A.',
       responsible: 'Ana Martinez'
     },
     {
@@ -1421,6 +1437,7 @@ const Dashboard: React.FC = () => {
       quota: 'Oct.25',
       scheduled: getFutureDateString(9),
       amount: 275000,
+      counterparty: 'Trader B Metals Inc.',
       responsible: 'Diego Lopez'
     },
     {
@@ -1434,6 +1451,7 @@ const Dashboard: React.FC = () => {
       quota: 'Nov.25',
       scheduled: getFutureDateString(13),
       amount: 210000,
+      counterparty: 'Glencore International AG',
       responsible: 'Juan Perez'
     }
   ];
@@ -2692,6 +2710,9 @@ const Dashboard: React.FC = () => {
                               <p className="text-gray-900 text-sm font-semibold">
                                 Monto: ${payment.amount.toLocaleString()}
                               </p>
+                              <p className="text-gray-700 text-xs mt-1">
+                                <span className="font-semibold">Contraparte:</span> {payment.counterparty}
+                              </p>
                               <p className="text-gray-600 text-xs mt-1">
                                 <span className="font-semibold">Responsable:</span> {payment.responsible}
                               </p>
@@ -2751,6 +2772,9 @@ const Dashboard: React.FC = () => {
                               <p className="text-gray-900 text-sm font-semibold">
                                 Monto: ${collection.amount.toLocaleString()}
                               </p>
+                              <p className="text-gray-700 text-xs mt-1">
+                                <span className="font-semibold">Contraparte:</span> {collection.counterparty}
+                              </p>
                               <p className="text-gray-600 text-xs mt-1">
                                 <span className="font-semibold">Responsable:</span> {collection.responsible}
                               </p>
@@ -2801,6 +2825,9 @@ const Dashboard: React.FC = () => {
                             <p className="text-gray-900 text-sm font-semibold">
                               Monto: ${payment.amount.toLocaleString()}
                             </p>
+                            <p className="text-gray-700 text-xs mt-1">
+                              <span className="font-semibold">Contraparte:</span> {payment.counterparty}
+                            </p>
                             <p className="text-gray-600 text-xs mt-1">
                               <span className="font-semibold">Responsable:</span> {payment.responsible}
                             </p>
@@ -2849,6 +2876,9 @@ const Dashboard: React.FC = () => {
                             </p>
                             <p className="text-gray-900 text-sm font-semibold">
                               Monto: ${collection.amount.toLocaleString()}
+                            </p>
+                            <p className="text-gray-700 text-xs mt-1">
+                              <span className="font-semibold">Contraparte:</span> {collection.counterparty}
                             </p>
                             <p className="text-gray-600 text-xs mt-1">
                               <span className="font-semibold">Responsable:</span> {collection.responsible}
