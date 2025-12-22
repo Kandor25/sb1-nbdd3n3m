@@ -3352,7 +3352,7 @@ const Dashboard: React.FC = () => {
                 <div className="px-4 pb-4 space-y-6">
                   {mockEconomicIndicators.map((countryData) => (
                     <div key={countryData.country} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                      <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-4 py-3">
+                      <div className="bg-gradient-to-r from-slate-400 to-slate-500 px-4 py-3">
                         <h4 className="text-lg font-bold text-white">{countryData.country}</h4>
                       </div>
                       <div className="p-4">
