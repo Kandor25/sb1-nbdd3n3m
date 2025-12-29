@@ -4,6 +4,7 @@ import Header from './components/Layout/Header';
 import Dashboard from './components/Dashboard/Dashboard';
 import CounterpartyList from './components/Counterparties/CounterpartyList';
 import ContractList from './components/Contracts/ContractList';
+import ContractForm from './components/Contracts/ContractForm';
 import InventoryList from './components/Inventory/InventoryList';
 import LogisticsList from './components/Logistics/LogisticsList';
 import SettlementList from './components/Settlements/SettlementList';
@@ -14,6 +15,7 @@ import type { User, Counterparty, Contract, InventoryLot, Shipment, Settlement }
 
 function App() {
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [showContractForm, setShowContractForm] = useState(false);
   
   const currentUser: User = {
     id: '1',
@@ -33,7 +35,15 @@ function App() {
   };
 
   const handleCreateContract = () => {
-    console.log('Create new contract');
+    setShowContractForm(true);
+  };
+
+  const handleContractFormClose = () => {
+    setShowContractForm(false);
+  };
+
+  const handleContractFormSuccess = () => {
+    setShowContractForm(false);
   };
 
   const handleViewContract = (contract: Contract) => {
@@ -116,9 +126,9 @@ function App() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <Sidebar 
-        activeSection={activeSection} 
-        onSectionChange={setActiveSection} 
+      <Sidebar
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header currentUser={currentUser} />
@@ -126,6 +136,13 @@ function App() {
           {renderActiveSection()}
         </main>
       </div>
+
+      {showContractForm && (
+        <ContractForm
+          onClose={handleContractFormClose}
+          onSuccess={handleContractFormSuccess}
+        />
+      )}
     </div>
   );
 }
