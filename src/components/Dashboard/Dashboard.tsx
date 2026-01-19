@@ -1667,15 +1667,15 @@ const Dashboard: React.FC = () => {
       commodity: 'Concentrado Cu',
       client: 'Trader A',
       contract: 'Contrato 1',
-      quota: 'Sep.25',
+      quota: 'Ene.26',
       actions: [
         {
           metal: 'Cu',
           action: 'Vender',
           quantity: '11fmt',
           price: '10,350',
-          period: 'Promedio Nov.25',
-          expiration: '31Oct2025',
+          period: 'Promedio Feb.26',
+          expiration: '31Jan2026',
           exchange: 'LME Select',
           reference: '1234'
         },
@@ -1684,8 +1684,8 @@ const Dashboard: React.FC = () => {
           action: 'Vender',
           quantity: '1,000oz',
           price: '55',
-          period: 'Promedio Nov.25',
-          expiration: '31Oct2025',
+          period: 'Promedio Feb.26',
+          expiration: '31Jan2026',
           exchange: 'LME Select',
           reference: '1235'
         },
@@ -1694,8 +1694,8 @@ const Dashboard: React.FC = () => {
           action: 'Vender',
           quantity: '55oz',
           price: '4,100',
-          period: 'Promedio Nov.25',
-          expiration: '31Oct2025',
+          period: 'Promedio Feb.26',
+          expiration: '31Jan2026',
           exchange: 'LME Select',
           reference: '1237'
         }
@@ -1709,15 +1709,15 @@ const Dashboard: React.FC = () => {
       commodity: 'Concentrado Cu',
       client: 'Trader B',
       contract: 'Contrato 3',
-      quota: 'Oct.25',
+      quota: 'Ene.26',
       actions: [
         {
           metal: 'Cu',
           action: 'Vender',
           quantity: '13fmt',
           price: '10,500',
-          period: 'Promedio Nov.25',
-          expiration: '31Oct2025',
+          period: 'Promedio Feb.26',
+          expiration: '31Jan2026',
           exchange: 'LME Select',
           reference: '1240'
         },
@@ -1726,8 +1726,8 @@ const Dashboard: React.FC = () => {
           action: 'Vender',
           quantity: '1,200oz',
           price: '56',
-          period: 'Promedio Nov.25',
-          expiration: '31Oct2025',
+          period: 'Promedio Feb.26',
+          expiration: '31Jan2026',
           exchange: 'LME Select',
           reference: '1241'
         },
@@ -1736,8 +1736,8 @@ const Dashboard: React.FC = () => {
           action: 'Vender',
           quantity: '60oz',
           price: '4,150',
-          period: 'Promedio Nov.25',
-          expiration: '31Oct2025',
+          period: 'Promedio Feb.26',
+          expiration: '31Jan2026',
           exchange: 'LME Select',
           reference: '1242'
         }
@@ -1751,15 +1751,15 @@ const Dashboard: React.FC = () => {
       commodity: 'Concentrado Cu',
       client: 'Trader C',
       contract: 'Contrato 7',
-      quota: 'Nov.25',
+      quota: 'Feb.26',
       actions: [
         {
           metal: 'Cu',
           action: 'Vender',
           quantity: '12fmt',
           price: '10,400',
-          period: 'Promedio Dic.25',
-          expiration: '30Nov2025',
+          period: 'Promedio Mar.26',
+          expiration: '28Feb2026',
           exchange: 'LME Select',
           reference: '1250'
         },
@@ -1768,8 +1768,8 @@ const Dashboard: React.FC = () => {
           action: 'Vender',
           quantity: '1,100oz',
           price: '54',
-          period: 'Promedio Dic.25',
-          expiration: '30Nov2025',
+          period: 'Promedio Mar.26',
+          expiration: '28Feb2026',
           exchange: 'LME Select',
           reference: '1251'
         },
@@ -1778,8 +1778,8 @@ const Dashboard: React.FC = () => {
           action: 'Vender',
           quantity: '58oz',
           price: '4,120',
-          period: 'Promedio Dic.25',
-          expiration: '30Nov2025',
+          period: 'Promedio Mar.26',
+          expiration: '28Feb2026',
           exchange: 'LME Select',
           reference: '1252'
         }
@@ -1793,15 +1793,15 @@ const Dashboard: React.FC = () => {
       commodity: 'Concentrado Zn',
       client: 'IMX',
       contract: 'Contrato 15',
-      quota: 'Dic.25',
+      quota: 'Mar.26',
       actions: [
         {
           metal: 'Cu',
           action: 'Vender',
           quantity: '14fmt',
           price: '10,450',
-          period: 'Promedio Ene.26',
-          expiration: '31Dec2025',
+          period: 'Promedio Abr.26',
+          expiration: '31Mar2026',
           exchange: 'LME Select',
           reference: '1260'
         },
@@ -1810,8 +1810,8 @@ const Dashboard: React.FC = () => {
           action: 'Vender',
           quantity: '1,300oz',
           price: '57',
-          period: 'Promedio Ene.26',
-          expiration: '31Dec2025',
+          period: 'Promedio Abr.26',
+          expiration: '31Mar2026',
           exchange: 'LME Select',
           reference: '1261'
         },
@@ -1820,8 +1820,8 @@ const Dashboard: React.FC = () => {
           action: 'Vender',
           quantity: '62oz',
           price: '4,200',
-          period: 'Promedio Ene.26',
-          expiration: '31Dec2025',
+          period: 'Promedio Abr.26',
+          expiration: '31Mar2026',
           exchange: 'LME Select',
           reference: '1262'
         }
