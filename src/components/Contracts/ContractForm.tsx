@@ -684,18 +684,18 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
                             </button>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-4">
+                            {/* Primera fila: Tipo de Fórmula (full width) */}
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Fórmula
+                                Tipo de Fórmula <span className="text-red-500">*</span>
                               </label>
                               <select
                                 value={payable.formulaId}
                                 onChange={(e) =>
                                   updatePayable(payable.id, 'formulaId', e.target.value)
                                 }
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-                                disabled
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               >
                                 {payableFormulas.map((formula) => (
                                   <option key={formula.id} value={formula.id}>
@@ -705,87 +705,93 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
                               </select>
                             </div>
 
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Metal <span className="text-red-500">*</span>
-                              </label>
-                              <select
-                                value={payable.metal}
-                                onChange={(e) =>
-                                  updatePayable(payable.id, 'metal', e.target.value)
-                                }
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              >
-                                <option value="CU">Cu (Cobre)</option>
-                                <option value="AG">Ag (Plata)</option>
-                                <option value="AU">Au (Oro)</option>
-                              </select>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Deducción <span className="text-red-500">*</span>
-                              </label>
-                              <div className="flex space-x-2">
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  value={payable.deductionValue}
-                                  onChange={(e) =>
-                                    updatePayable(payable.id, 'deductionValue', e.target.value)
-                                  }
-                                  placeholder="Ej: 1.2"
-                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
+                            {/* Segunda fila: Metal e Índice de Mercado */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Metal <span className="text-red-500">*</span>
+                                </label>
                                 <select
-                                  value={payable.deductionUnit}
+                                  value={payable.metal}
                                   onChange={(e) =>
-                                    updatePayable(payable.id, 'deductionUnit', e.target.value)
+                                    updatePayable(payable.id, 'metal', e.target.value)
                                   }
-                                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 >
-                                  <option value="%">%</option>
-                                  <option value="g/tms">g/tms</option>
+                                  <option value="CU">Cu (Cobre)</option>
+                                  <option value="AG">Ag (Plata)</option>
+                                  <option value="AU">Au (Oro)</option>
+                                </select>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Índice de Mercado <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  value={payable.marketIndexId}
+                                  onChange={(e) =>
+                                    updatePayable(payable.id, 'marketIndexId', e.target.value)
+                                  }
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  <option value="">Seleccionar índice...</option>
+                                  {marketIndices.map((index) => (
+                                    <option key={index.id} value={index.id}>
+                                      {index.name}
+                                    </option>
+                                  ))}
                                 </select>
                               </div>
                             </div>
 
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Balance % <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                max="100"
-                                value={payable.balancePercentage}
-                                onChange={(e) =>
-                                  updatePayable(payable.id, 'balancePercentage', e.target.value)
-                                }
-                                placeholder="Ej: 90"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              />
-                            </div>
+                            {/* Tercera fila: Deducción y Balance */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Deducción <span className="text-red-500">*</span>
+                                </label>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={payable.deductionValue}
+                                    onChange={(e) =>
+                                      updatePayable(payable.id, 'deductionValue', e.target.value)
+                                    }
+                                    placeholder="Ej: 1.2"
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  />
+                                  <select
+                                    value={payable.deductionUnit}
+                                    onChange={(e) =>
+                                      updatePayable(payable.id, 'deductionUnit', e.target.value)
+                                    }
+                                    className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  >
+                                    <option value="%">%</option>
+                                    <option value="g/tms">g/tms</option>
+                                  </select>
+                                </div>
+                              </div>
 
-                            <div className="md:col-span-2">
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Índice de Mercado <span className="text-red-500">*</span>
-                              </label>
-                              <select
-                                value={payable.marketIndexId}
-                                onChange={(e) =>
-                                  updatePayable(payable.id, 'marketIndexId', e.target.value)
-                                }
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              >
-                                <option value="">Seleccionar índice...</option>
-                                {marketIndices.map((index) => (
-                                  <option key={index.id} value={index.id}>
-                                    {index.name}
-                                  </option>
-                                ))}
-                              </select>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Balance % <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  max="100"
+                                  value={payable.balancePercentage}
+                                  onChange={(e) =>
+                                    updatePayable(payable.id, 'balancePercentage', e.target.value)
+                                  }
+                                  placeholder="Ej: 90"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                              </div>
                             </div>
                           </div>
 
