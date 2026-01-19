@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, Save, Check } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Save, Check, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface ContractFormProps {
@@ -18,6 +18,7 @@ interface FormData {
   quotas: QuotaData[];
   incotermId: string;
   deliveryLocation: string;
+  payables: PayableData[];
 }
 
 interface QuotaData {
@@ -56,6 +57,30 @@ interface Incoterm {
   description: string;
 }
 
+interface PayableFormula {
+  id: string;
+  name: string;
+  description: string;
+  is_deduction: boolean;
+}
+
+interface MarketIndex {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+}
+
+interface PayableData {
+  id: string;
+  formulaId: string;
+  metal: 'CU' | 'AG' | 'AU';
+  deductionValue: string;
+  deductionUnit: '%' | 'g/tms';
+  balancePercentage: string;
+  marketIndexId: string;
+}
+
 const SECTIONS = [
   { id: 'basic', label: 'Información Básica/Cantidad/Plazo' },
   { id: 'incoterm', label: 'Incoterm Entrega' },
@@ -81,6 +106,8 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
   const [incoterms, setIncoterms] = useState<Incoterm[]>([]);
+  const [payableFormulas, setPayableFormulas] = useState<PayableFormula[]>([]);
+  const [marketIndices, setMarketIndices] = useState<MarketIndex[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     contractType: 'purchase',
@@ -93,6 +120,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
     quotas: [],
     incotermId: '',
     deliveryLocation: '',
+    payables: [],
   });
 
   useEffect(() => {
@@ -107,17 +135,21 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
 
   const loadFormData = async () => {
     try {
-      const [vendorsRes, buyersRes, productsRes, countriesRes, incotermsRes] = await Promise.all([
+      const [vendorsRes, buyersRes, productsRes, countriesRes, incotermsRes, formulasRes, indicesRes] = await Promise.all([
         supabase.from('vendors').select('*').order('name'),
         supabase.from('buyers').select('*').order('name'),
         supabase.from('products').select('*').order('name'),
         supabase.from('countries').select('*').order('name'),
         supabase.from('incoterms').select('*').order('code'),
+        supabase.from('payable_formulas').select('*').order('name'),
+        supabase.from('market_indices').select('*').order('name'),
       ]);
 
       if (vendorsRes.data) setVendors(vendorsRes.data);
       if (buyersRes.data) setBuyers(buyersRes.data);
       if (productsRes.data) setProducts(productsRes.data);
+      if (formulasRes.data) setPayableFormulas(formulasRes.data);
+      if (indicesRes.data) setMarketIndices(indicesRes.data);
       if (countriesRes.data) {
         setCountries(countriesRes.data);
         const peru = countriesRes.data.find(c => c.code === 'PE');
@@ -159,6 +191,49 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
     const newQuotas = [...formData.quotas];
     newQuotas[index] = { ...newQuotas[index], [field]: value };
     setFormData(prev => ({ ...prev, quotas: newQuotas }));
+  };
+
+  const addPayable = () => {
+    const deductionFormula = payableFormulas.find(f => f.is_deduction);
+    if (!deductionFormula) return;
+
+    const newPayable: PayableData = {
+      id: `temp-${Date.now()}`,
+      formulaId: deductionFormula.id,
+      metal: 'CU',
+      deductionValue: '',
+      deductionUnit: '%',
+      balancePercentage: '',
+      marketIndexId: '',
+    };
+
+    setFormData(prev => ({ ...prev, payables: [...prev.payables, newPayable] }));
+  };
+
+  const removePayable = (id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      payables: prev.payables.filter(p => p.id !== id)
+    }));
+  };
+
+  const updatePayable = (id: string, field: keyof PayableData, value: any) => {
+    const newPayables = formData.payables.map(p =>
+      p.id === id ? { ...p, [field]: value } : p
+    );
+    setFormData(prev => ({ ...prev, payables: newPayables }));
+  };
+
+  const generateFormulaText = (payable: PayableData): string => {
+    const metalName = payable.metal;
+    const deduction = payable.deductionValue;
+    const unit = payable.deductionUnit;
+    const balance = payable.balancePercentage;
+    const index = marketIndices.find(i => i.id === payable.marketIndexId);
+
+    if (!deduction || !balance || !index) return '';
+
+    return `(${metalName}): (Ensaye - ${deduction}${unit}) * ${balance}% ==> Índice ${index.name}`;
   };
 
   const isBasicSectionValid = () => {
@@ -246,6 +321,25 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
           .insert(quotasToInsert);
 
         if (quotasError) throw quotasError;
+
+        if (formData.payables.length > 0) {
+          const payablesToInsert = formData.payables.map(p => ({
+            contract_id: contract.id,
+            formula_id: p.formulaId,
+            metal: p.metal,
+            deduction_value: parseFloat(p.deductionValue),
+            deduction_unit: p.deductionUnit,
+            balance_percentage: parseFloat(p.balancePercentage),
+            market_index_id: p.marketIndexId,
+            formula_text: generateFormulaText(p),
+          }));
+
+          const { error: payablesError } = await supabase
+            .from('contract_payables')
+            .insert(payablesToInsert);
+
+          if (payablesError) throw payablesError;
+        }
       }
 
       alert('Contrato guardado exitosamente');
@@ -527,7 +621,170 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
                 </div>
               )}
 
-              {!['basic', 'incoterm'].includes(currentSection) && (
+              {currentSection === 'payables' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-gray-900">Pagables</h3>
+                    <button
+                      onClick={addPayable}
+                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Agregar Pagable
+                    </button>
+                  </div>
+
+                  {formData.payables.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                      <p className="text-gray-500">No hay pagables agregados</p>
+                      <p className="text-gray-400 text-sm mt-2">
+                        Haga clic en "Agregar Pagable" para comenzar
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {formData.payables.map((payable, index) => (
+                        <div
+                          key={payable.id}
+                          className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm"
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-lg font-semibold text-gray-900">
+                              Pagable #{index + 1}
+                            </h4>
+                            <button
+                              onClick={() => removePayable(payable.id)}
+                              className="text-red-600 hover:text-red-700 transition-colors"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Fórmula
+                              </label>
+                              <select
+                                value={payable.formulaId}
+                                onChange={(e) =>
+                                  updatePayable(payable.id, 'formulaId', e.target.value)
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                                disabled
+                              >
+                                {payableFormulas.map((formula) => (
+                                  <option key={formula.id} value={formula.id}>
+                                    {formula.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Metal <span className="text-red-500">*</span>
+                              </label>
+                              <select
+                                value={payable.metal}
+                                onChange={(e) =>
+                                  updatePayable(payable.id, 'metal', e.target.value)
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="CU">Cu (Cobre)</option>
+                                <option value="AG">Ag (Plata)</option>
+                                <option value="AU">Au (Oro)</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Deducción <span className="text-red-500">*</span>
+                              </label>
+                              <div className="flex space-x-2">
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  value={payable.deductionValue}
+                                  onChange={(e) =>
+                                    updatePayable(payable.id, 'deductionValue', e.target.value)
+                                  }
+                                  placeholder="Ej: 1.2"
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                                <select
+                                  value={payable.deductionUnit}
+                                  onChange={(e) =>
+                                    updatePayable(payable.id, 'deductionUnit', e.target.value)
+                                  }
+                                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  <option value="%">%</option>
+                                  <option value="g/tms">g/tms</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Balance % <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max="100"
+                                value={payable.balancePercentage}
+                                onChange={(e) =>
+                                  updatePayable(payable.id, 'balancePercentage', e.target.value)
+                                }
+                                placeholder="Ej: 90"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+
+                            <div className="md:col-span-2">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Índice de Mercado <span className="text-red-500">*</span>
+                              </label>
+                              <select
+                                value={payable.marketIndexId}
+                                onChange={(e) =>
+                                  updatePayable(payable.id, 'marketIndexId', e.target.value)
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="">Seleccionar índice...</option>
+                                {marketIndices.map((index) => (
+                                  <option key={index.id} value={index.id}>
+                                    {index.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          {payable.deductionValue &&
+                            payable.balancePercentage &&
+                            payable.marketIndexId && (
+                              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-sm font-medium text-gray-700 mb-1">
+                                  Fórmula Generada:
+                                </p>
+                                <p className="text-base font-mono text-blue-900">
+                                  {generateFormulaText(payable)}
+                                </p>
+                              </div>
+                            )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!['basic', 'incoterm', 'payables'].includes(currentSection) && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">
                     Esta sección está en desarrollo
