@@ -148,8 +148,18 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
       if (vendorsRes.data) setVendors(vendorsRes.data);
       if (buyersRes.data) setBuyers(buyersRes.data);
       if (productsRes.data) setProducts(productsRes.data);
-      if (formulasRes.data) setPayableFormulas(formulasRes.data);
-      if (indicesRes.data) setMarketIndices(indicesRes.data);
+      if (formulasRes.data) {
+        console.log('Fórmulas cargadas:', formulasRes.data);
+        setPayableFormulas(formulasRes.data);
+      } else {
+        console.error('Error al cargar fórmulas:', formulasRes.error);
+      }
+      if (indicesRes.data) {
+        console.log('Índices cargados:', indicesRes.data);
+        setMarketIndices(indicesRes.data);
+      } else {
+        console.error('Error al cargar índices:', indicesRes.error);
+      }
       if (countriesRes.data) {
         setCountries(countriesRes.data);
         const peru = countriesRes.data.find(c => c.code === 'PE');
@@ -195,7 +205,12 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
 
   const addPayable = () => {
     const deductionFormula = payableFormulas.find(f => f.is_deduction);
-    if (!deductionFormula) return;
+
+    if (!deductionFormula) {
+      alert('No se encontró la fórmula de deducción. Por favor, recargue la página.');
+      console.error('Fórmulas disponibles:', payableFormulas);
+      return;
+    }
 
     const newPayable: PayableData = {
       id: `temp-${Date.now()}`,
@@ -627,12 +642,21 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
                     <h3 className="text-xl font-bold text-gray-900">Pagables</h3>
                     <button
                       onClick={addPayable}
-                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      disabled={payableFormulas.length === 0}
+                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Agregar Pagable
                     </button>
                   </div>
+
+                  {payableFormulas.length === 0 && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-yellow-800 text-sm">
+                        Cargando fórmulas... Si este mensaje persiste, intente recargar la página.
+                      </p>
+                    </div>
+                  )}
 
                   {formData.payables.length === 0 ? (
                     <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
