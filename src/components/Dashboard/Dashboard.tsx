@@ -2133,7 +2133,7 @@ const Dashboard: React.FC = () => {
               <FileText className="w-5 h-5 text-blue-600 mr-3" />
               <h2 className="text-lg font-bold text-gray-900">1. Contratos</h2>
               <span className="ml-3 bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-xs font-semibold">
-                {pendingContracts.length} Por Confirmar
+                {filteredPendingContracts.length} Por Confirmar
               </span>
             </div>
             {expandedSections.contratos ? (
@@ -2234,7 +2234,7 @@ const Dashboard: React.FC = () => {
                     <MapPin className="w-4 h-4 text-emerald-500 mr-2" />
                     <span className="font-bold text-gray-900">En Patio de Salidas</span>
                     <span className="ml-2 bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {patioOperations.length}
+                      {filteredPatioOperations.length}
                     </span>
                   </div>
                   {expandedLogistics.patio ? (
@@ -2284,7 +2284,7 @@ const Dashboard: React.FC = () => {
                     <TruckIcon className="w-4 h-4 text-blue-500 mr-2" />
                     <span className="font-bold text-gray-900">En Tránsito</span>
                     <span className="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {transitOperations.length}
+                      {filteredTransitOperations.length}
                     </span>
                   </div>
                   {expandedLogistics.transito ? (
@@ -2405,7 +2405,7 @@ const Dashboard: React.FC = () => {
                     <Scale className="w-4 h-4 text-red-500 mr-2" />
                     <span className="font-bold text-gray-900">Pesos no Reportados</span>
                     <span className="ml-2 bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {unreportedWeights.length}
+                      {filteredUnreportedWeights.length}
                     </span>
                   </div>
                   {expandedAssays.weights ? (
@@ -2458,7 +2458,7 @@ const Dashboard: React.FC = () => {
                     <FlaskConical className="w-4 h-4 text-orange-500 mr-2" />
                     <span className="font-bold text-gray-900">Ensayes no Reportados</span>
                     <span className="ml-2 bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {unreportedAssays.length}
+                      {filteredUnreportedAssays.length}
                     </span>
                   </div>
                   {expandedAssays.assays ? (
@@ -2516,7 +2516,7 @@ const Dashboard: React.FC = () => {
                     <Scale className="w-4 h-4 text-blue-500 mr-2" />
                     <span className="font-bold text-gray-900">Pesos Programados (Próximos {getDaysFromToday()} días)</span>
                     <span className="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {scheduledWeights.length}
+                      {filteredScheduledWeights.length}
                     </span>
                   </div>
                   {expandedAssays.scheduledWeights ? (
@@ -2559,7 +2559,7 @@ const Dashboard: React.FC = () => {
                     <FlaskConical className="w-4 h-4 text-green-500 mr-2" />
                     <span className="font-bold text-gray-900">Ensayes Programados (Próximos {getDaysFromToday()} días)</span>
                     <span className="ml-2 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {scheduledAssays.length}
+                      {filteredScheduledAssays.length}
                     </span>
                   </div>
                   {expandedAssays.scheduledAssays ? (
@@ -2671,9 +2671,9 @@ const Dashboard: React.FC = () => {
                 >
                   <div className="flex items-center">
                     <AlertCircle className="w-4 h-4 text-red-500 mr-2" />
-                    <span className="font-bold text-gray-900">Pagos Vencidos - ${overduePayments.reduce((sum, p) => sum + p.amount, 0).toLocaleString()}</span>
+                    <span className="font-bold text-gray-900">Pagos Vencidos - ${filteredOverduePayments.reduce((sum, p) => sum + p.amount, 0).toLocaleString()}</span>
                     <span className="ml-2 bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {overduePayments.length}
+                      {filteredOverduePayments.length}
                     </span>
                   </div>
                   {expandedPayments.payments ? (
@@ -2733,9 +2733,9 @@ const Dashboard: React.FC = () => {
                 >
                   <div className="flex items-center">
                     <TrendingUp className="w-4 h-4 text-orange-500 mr-2" />
-                    <span className="font-bold text-gray-900">Cobros Vencidos - ${overdueCollections.reduce((sum, c) => sum + c.amount, 0).toLocaleString()}</span>
+                    <span className="font-bold text-gray-900">Cobros Vencidos - ${filteredOverdueCollections.reduce((sum, c) => sum + c.amount, 0).toLocaleString()}</span>
                     <span className="ml-2 bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {overdueCollections.length}
+                      {filteredOverdueCollections.length}
                     </span>
                   </div>
                   {expandedPayments.collections ? (
@@ -2797,7 +2797,7 @@ const Dashboard: React.FC = () => {
                     <Calendar className="w-4 h-4 text-blue-500 mr-2" />
                     <span className="font-bold text-gray-900">Pagos Programados (Próximos {getDaysFromToday()} días)</span>
                     <span className="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {scheduledPayments.length}
+                      {filteredScheduledPayments.length}
                     </span>
                   </div>
                   {expandedPayments.scheduledPayments ? (
@@ -2849,7 +2849,7 @@ const Dashboard: React.FC = () => {
                     <Calendar className="w-4 h-4 text-green-500 mr-2" />
                     <span className="font-bold text-gray-900">Cobros Programados (Próximos {getDaysFromToday()} días)</span>
                     <span className="ml-2 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {scheduledCollections.length}
+                      {filteredScheduledCollections.length}
                     </span>
                   </div>
                   {expandedPayments.scheduledCollections ? (
@@ -2972,7 +2972,7 @@ const Dashboard: React.FC = () => {
                     <AlertCircle className="w-4 h-4 text-red-600 mr-2" />
                     <span className="font-bold text-red-900">Sin Fijaciones/Periodo Vencido</span>
                     <span className="ml-2 bg-red-200 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {overdueFixings.length}
+                      {filteredOverdueFixings.length}
                     </span>
                   </div>
                   {expandedFixings.overdue ? (
@@ -3027,7 +3027,7 @@ const Dashboard: React.FC = () => {
                     <Calendar className="w-4 h-4 text-blue-500 mr-2" />
                     <span className="font-bold text-gray-900">Próximas Fijaciones</span>
                     <span className="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {upcomingFixings.length}
+                      {filteredUpcomingFixings.length}
                     </span>
                   </div>
                   {expandedFixings.upcoming ? (
@@ -3144,7 +3144,7 @@ const Dashboard: React.FC = () => {
                     <ListChecks className="w-4 h-4 text-green-500 mr-2" />
                     <span className="font-bold text-gray-900">GTC Abiertas</span>
                     <span className="ml-2 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {gtcOrders.length}
+                      {filteredGtcOrders.length}
                     </span>
                   </div>
                   {expandedFixings.gtc ? (
