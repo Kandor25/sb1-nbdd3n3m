@@ -133,6 +133,8 @@ interface TechnicalIndicator {
   indicator: string;
   currentValue: string;
   signal: string;
+  breakdownSignal: string;
+  technicalSignal: string;
 }
 
 interface MetalAnalysis {
@@ -148,47 +150,65 @@ const mockTechnicalAnalysis: MetalAnalysis[] = [
       {
         indicator: 'SMA 10 (Simple)',
         currentValue: 'SMA10 = $25.10 — precio por encima (25.50 > 25.10)',
-        signal: 'Confirmación de momentum corto plazo; suele atraer compradores; puede empujar hacia SMA50 y resistencia.'
+        signal: 'Confirmación de momentum corto plazo; suele atraer compradores; puede empujar hacia SMA50 y resistencia.',
+        breakdownSignal: 'Si cae por debajo de SMA10, pérdida de impulso corto; riesgo de caídas hacia SMA20.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'SMA 20',
         currentValue: 'SMA20 = $24.80 — precio por encima',
-        signal: 'Ruptura sostenida por encima indica tendencia positiva de corto/medio plazo; soporte en 24.80.'
+        signal: 'Ruptura sostenida por encima indica tendencia positiva de corto/medio plazo; soporte en 24.80.',
+        breakdownSignal: 'Quiebre debajo debilita tendencia; posible test a 50 días.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'SMA 50',
         currentValue: 'SMA50 = $26.00 — precio por debajo (25.50 < 26.00)',
-        signal: 'Si rompe y cierra por encima de SMA50, señal técnica de reversión a tendencia alcista de medio plazo.'
+        signal: 'Si rompe y cierra por encima de SMA50, señal técnica de reversión a tendencia alcista de medio plazo.',
+        breakdownSignal: 'Mantenerse debajo confirma resistencia de medio plazo; aumenta probabilidad de continuación bajista.',
+        technicalSignal: 'Neutra / Ligeramente bajista'
       },
       {
         indicator: 'EMA 9 (exp)',
         currentValue: 'EMA9 = $25.30 — precio por encima',
-        signal: 'Ruptura arriba refuerza impulso intradiario/very short; traders intradia suelen entrar largo.'
+        signal: 'Ruptura arriba refuerza impulso intradiario/very short; traders intradia suelen entrar largo.',
+        breakdownSignal: 'Caída debajo de EMA9 suele acelerar salidas cortas y stops intradía.',
+        technicalSignal: 'Alcista (corto plazo)'
       },
       {
         indicator: 'EMA 21',
         currentValue: 'EMA21 = $24.95 — precio por encima',
-        signal: 'Mantener por encima de EMA21 confirma fuerza de corto; stop lógico por debajo.'
+        signal: 'Mantener por encima de EMA21 confirma fuerza de corto; stop lógico por debajo.',
+        breakdownSignal: 'Perder EMA21 daría primera señal de reversión de corto plazo.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'EMA 50',
         currentValue: 'EMA50 = $25.90 — precio por debajo',
-        signal: 'Cierre sostenido por encima de EMA50 confirmaría cambio de EMAs.'
+        signal: 'Cierre sostenido por encima de EMA50 confirmaría cambio de EMAs.',
+        breakdownSignal: 'Rechazo en EMA50 refuerza estructura lateral/bajista de fondo.',
+        technicalSignal: 'Neutra'
       },
       {
         indicator: 'RSI (14)',
         currentValue: 'RSI = 58 (neutro-alcista) — no sobrecomprado',
-        signal: 'Si sube sobre 70 → condición sobrecomprada; posible toma de ganancias pero con fuerte momentum.'
+        signal: 'Si sube sobre 70 → condición sobrecomprada; posible toma de ganancias pero con fuerte momentum.',
+        breakdownSignal: 'Si cae por debajo de 50 → indica pérdida de impulso y sesgo más bajista.',
+        technicalSignal: 'Alcista moderado'
       },
       {
         indicator: 'MACD (12,26,9)',
         currentValue: 'MACD hist = +0.07 (MACD > Signal) — línea MACD positiva',
-        signal: 'Mayor cruce alcista (ampliación) confirmaría rally; atrae momentum técnico.'
+        signal: 'Mayor cruce alcista (ampliación) confirmaría rally; atrae momentum técnico.',
+        breakdownSignal: 'Cruce a negativo (MACD < Signal) sugiere pérdida de impulso y posible corrección.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'Soportes & Resistencias (Fibonacci entre low $24.00 y high $27.50)',
         currentValue: 'Niveles clave:\n0% (27.50),\n23.6% = 26.674,\n38.2% = 26.163,\n50% = 25.750,\n61.8% = 25.337,\n100% = 24.00.',
-        signal: 'Si rompe por encima de 26.674 → siguiente objetivo es volumen en breakout confirma.'
+        signal: 'Si rompe por encima de 26.674 → siguiente objetivo es volumen en breakout confirma.',
+        breakdownSignal: 'Si rompe por debajo de 25.337 (Fibo 61.8%) → probabilidad d',
+        technicalSignal: 'Neutra'
       }
     ]
   },
@@ -198,47 +218,65 @@ const mockTechnicalAnalysis: MetalAnalysis[] = [
       {
         indicator: 'SMA 10 (Simple)',
         currentValue: 'SMA10 = $4.15 — precio por encima (4.25 > 4.15)',
-        signal: 'Confirmación de momentum corto plazo; suele atraer compradores; puede empujar hacia SMA50.'
+        signal: 'Confirmación de momentum corto plazo; suele atraer compradores; puede empujar hacia SMA50.',
+        breakdownSignal: 'Caída por debajo de SMA10 señala pérdida de impulso corto; riesgo hacia SMA20.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'SMA 20',
         currentValue: 'SMA20 = $4.05 — precio por encima',
-        signal: 'Ruptura sostenida por encima indica tendencia positiva de corto/medio plazo; soporte en 4.05.'
+        signal: 'Ruptura sostenida por encima indica tendencia positiva de corto/medio plazo; soporte en 4.05.',
+        breakdownSignal: 'Quiebre debajo debilita tendencia; test a niveles inferiores.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'SMA 50',
         currentValue: 'SMA50 = $4.35 — precio por debajo (4.25 < 4.35)',
-        signal: 'Si rompe y cierra por encima de SMA50, señal técnica de reversión a tendencia alcista.'
+        signal: 'Si rompe y cierra por encima de SMA50, señal técnica de reversión a tendencia alcista.',
+        breakdownSignal: 'Mantenerse debajo confirma resistencia; sesgo bajista de medio plazo.',
+        technicalSignal: 'Neutra / Bajista'
       },
       {
         indicator: 'EMA 9 (exp)',
         currentValue: 'EMA9 = $4.20 — precio por encima',
-        signal: 'Ruptura arriba refuerza impulso intradiario; traders suelen entrar largo.'
+        signal: 'Ruptura arriba refuerza impulso intradiario; traders suelen entrar largo.',
+        breakdownSignal: 'Caída bajo EMA9 acelera salidas y stops intradía.',
+        technicalSignal: 'Alcista (corto)'
       },
       {
         indicator: 'EMA 21',
         currentValue: 'EMA21 = $4.10 — precio por encima',
-        signal: 'Mantener por encima de EMA21 confirma fuerza de corto; stop lógico por debajo.'
+        signal: 'Mantener por encima de EMA21 confirma fuerza de corto; stop lógico por debajo.',
+        breakdownSignal: 'Perder EMA21 primera señal de reversión de corto plazo.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'EMA 50',
         currentValue: 'EMA50 = $4.30 — precio por debajo',
-        signal: 'Cierre sostenido por encima de EMA50 confirmaría cambio de EMAs.'
+        signal: 'Cierre sostenido por encima de EMA50 confirmaría cambio de EMAs.',
+        breakdownSignal: 'Rechazo refuerza estructura lateral/bajista.',
+        technicalSignal: 'Neutra'
       },
       {
         indicator: 'RSI (14)',
         currentValue: 'RSI = 62 (neutro-alcista) — no sobrecomprado',
-        signal: 'Si sube sobre 70 → condición sobrecomprada; posible toma de ganancias.'
+        signal: 'Si sube sobre 70 → condición sobrecomprada; posible toma de ganancias.',
+        breakdownSignal: 'Caída bajo 50 indica pérdida de impulso; sesgo bajista.',
+        technicalSignal: 'Alcista moderado'
       },
       {
         indicator: 'MACD (12,26,9)',
         currentValue: 'MACD hist = +0.05 (MACD > Signal) — línea MACD positiva',
-        signal: 'Mayor cruce alcista confirmaría rally; atrae momentum técnico.'
+        signal: 'Mayor cruce alcista confirmaría rally; atrae momentum técnico.',
+        breakdownSignal: 'Cruce a negativo sugiere pérdida de impulso; corrección.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'Soportes & Resistencias (Fibonacci)',
         currentValue: 'Niveles clave:\n23.6% = 4.40,\n38.2% = 4.30,\n50% = 4.20,\n61.8% = 4.10',
-        signal: 'Si rompe por encima de 4.40 → siguiente objetivo con volumen confirma breakout.'
+        signal: 'Si rompe por encima de 4.40 → siguiente objetivo con volumen confirma breakout.',
+        breakdownSignal: 'Romper 4.10 (Fibo 61.8%) → siguiente nivel bajista.',
+        technicalSignal: 'Neutra'
       }
     ]
   },
@@ -248,47 +286,65 @@ const mockTechnicalAnalysis: MetalAnalysis[] = [
       {
         indicator: 'SMA 10 (Simple)',
         currentValue: 'SMA10 = $2,100 — precio por encima (2,150 > 2,100)',
-        signal: 'Confirmación de momentum corto plazo; puede empujar hacia resistencias.'
+        signal: 'Confirmación de momentum corto plazo; puede empujar hacia resistencias.',
+        breakdownSignal: 'Caída bajo SMA10 indica pérdida de impulso; riesgo hacia SMA20.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'SMA 20',
         currentValue: 'SMA20 = $2,050 — precio por encima',
-        signal: 'Ruptura sostenida indica tendencia positiva; soporte en 2,050.'
+        signal: 'Ruptura sostenida indica tendencia positiva; soporte en 2,050.',
+        breakdownSignal: 'Quiebre debajo debilita tendencia; test a niveles inferiores.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'SMA 50',
         currentValue: 'SMA50 = $2,200 — precio por debajo (2,150 < 2,200)',
-        signal: 'Romper SMA50 señalaría reversión a tendencia alcista de medio plazo.'
+        signal: 'Romper SMA50 señalaría reversión a tendencia alcista de medio plazo.',
+        breakdownSignal: 'Mantenerse debajo confirma resistencia; sesgo bajista medio plazo.',
+        technicalSignal: 'Neutra / Bajista'
       },
       {
         indicator: 'EMA 9 (exp)',
         currentValue: 'EMA9 = $2,120 — precio por encima',
-        signal: 'Refuerza impulso intradiario; entrada para traders de corto plazo.'
+        signal: 'Refuerza impulso intradiario; entrada para traders de corto plazo.',
+        breakdownSignal: 'Caída bajo EMA9 acelera salidas y stops intradía.',
+        technicalSignal: 'Alcista (corto)'
       },
       {
         indicator: 'EMA 21',
         currentValue: 'EMA21 = $2,080 — precio por encima',
-        signal: 'Mantener sobre EMA21 confirma fuerza; stop lógico por debajo.'
+        signal: 'Mantener sobre EMA21 confirma fuerza; stop lógico por debajo.',
+        breakdownSignal: 'Perder EMA21 primera señal de reversión de corto.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'EMA 50',
         currentValue: 'EMA50 = $2,180 — precio por debajo',
-        signal: 'Cierre sobre EMA50 confirmaría cambio de tendencia.'
+        signal: 'Cierre sobre EMA50 confirmaría cambio de tendencia.',
+        breakdownSignal: 'Rechazo refuerza estructura lateral/bajista.',
+        technicalSignal: 'Neutra'
       },
       {
         indicator: 'RSI (14)',
         currentValue: 'RSI = 55 (neutro) — no sobrecomprado',
-        signal: 'Sobre 70 indica sobrecompra; posible toma de ganancias.'
+        signal: 'Sobre 70 indica sobrecompra; posible toma de ganancias.',
+        breakdownSignal: 'Caída bajo 50 indica pérdida de impulso; sesgo bajista.',
+        technicalSignal: 'Neutra'
       },
       {
         indicator: 'MACD (12,26,9)',
         currentValue: 'MACD hist = +15 (MACD > Signal) — positivo',
-        signal: 'Cruce alcista confirmaría rally; atrae momentum.'
+        signal: 'Cruce alcista confirmaría rally; atrae momentum.',
+        breakdownSignal: 'Cruce a negativo sugiere pérdida de impulso.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'Soportes & Resistencias (Fibonacci)',
         currentValue: 'Niveles: 23.6% = 2,250, 38.2% = 2,200, 50% = 2,150, 61.8% = 2,100',
-        signal: 'Romper 2,250 → siguiente objetivo con volumen confirmado.'
+        signal: 'Romper 2,250 → siguiente objetivo con volumen confirmado.',
+        breakdownSignal: 'Romper 2,100 (Fibo 61.8%) → siguiente nivel bajista.',
+        technicalSignal: 'Neutra'
       }
     ]
   },
@@ -298,47 +354,65 @@ const mockTechnicalAnalysis: MetalAnalysis[] = [
       {
         indicator: 'SMA 10 (Simple)',
         currentValue: 'SMA10 = $2,800 — precio por encima (2,850 > 2,800)',
-        signal: 'Momentum corto plazo confirmado; puede avanzar hacia resistencias.'
+        signal: 'Momentum corto plazo confirmado; puede avanzar hacia resistencias.',
+        breakdownSignal: 'Caída bajo SMA10 indica pérdida de impulso; riesgo hacia SMA20.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'SMA 20',
         currentValue: 'SMA20 = $2,750 — precio por encima',
-        signal: 'Tendencia positiva de corto/medio plazo; soporte en 2,750.'
+        signal: 'Tendencia positiva de corto/medio plazo; soporte en 2,750.',
+        breakdownSignal: 'Quiebre debajo debilita tendencia; test a niveles inferiores.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'SMA 50',
         currentValue: 'SMA50 = $2,900 — precio por debajo (2,850 < 2,900)',
-        signal: 'Romper SMA50 señalaría reversión alcista de medio plazo.'
+        signal: 'Romper SMA50 señalaría reversión alcista de medio plazo.',
+        breakdownSignal: 'Mantenerse debajo confirma resistencia; sesgo bajista medio plazo.',
+        technicalSignal: 'Neutra / Bajista'
       },
       {
         indicator: 'EMA 9 (exp)',
         currentValue: 'EMA9 = $2,820 — precio por encima',
-        signal: 'Impulso intradiario reforzado; entrada para traders corto plazo.'
+        signal: 'Impulso intradiario reforzado; entrada para traders corto plazo.',
+        breakdownSignal: 'Caída bajo EMA9 acelera salidas y stops intradía.',
+        technicalSignal: 'Alcista (corto)'
       },
       {
         indicator: 'EMA 21',
         currentValue: 'EMA21 = $2,780 — precio por encima',
-        signal: 'Mantener sobre EMA21 confirma fuerza; stop por debajo.'
+        signal: 'Mantener sobre EMA21 confirma fuerza; stop por debajo.',
+        breakdownSignal: 'Perder EMA21 primera señal de reversión de corto.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'EMA 50',
         currentValue: 'EMA50 = $2,880 — precio por debajo',
-        signal: 'Cierre sobre EMA50 confirmaría cambio de EMAs.'
+        signal: 'Cierre sobre EMA50 confirmaría cambio de EMAs.',
+        breakdownSignal: 'Rechazo refuerza estructura lateral/bajista.',
+        technicalSignal: 'Neutra'
       },
       {
         indicator: 'RSI (14)',
         currentValue: 'RSI = 60 (neutro-alcista) — no sobrecomprado',
-        signal: 'Sobre 70 indica sobrecompra; posible corrección.'
+        signal: 'Sobre 70 indica sobrecompra; posible corrección.',
+        breakdownSignal: 'Caída bajo 50 indica pérdida de impulso; sesgo bajista.',
+        technicalSignal: 'Alcista moderado'
       },
       {
         indicator: 'MACD (12,26,9)',
         currentValue: 'MACD hist = +20 (MACD > Signal) — positivo',
-        signal: 'Cruce alcista confirma rally; atrae momentum técnico.'
+        signal: 'Cruce alcista confirma rally; atrae momentum técnico.',
+        breakdownSignal: 'Cruce a negativo sugiere pérdida de impulso.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'Soportes & Resistencias (Fibonacci)',
         currentValue: 'Niveles: 23.6% = 2,950, 38.2% = 2,900, 50% = 2,850, 61.8% = 2,800',
-        signal: 'Romper 2,950 → objetivo siguiente con volumen.'
+        signal: 'Romper 2,950 → objetivo siguiente con volumen.',
+        breakdownSignal: 'Romper 2,800 (Fibo 61.8%) → siguiente nivel bajista.',
+        technicalSignal: 'Neutra'
       }
     ]
   },
@@ -348,47 +422,65 @@ const mockTechnicalAnalysis: MetalAnalysis[] = [
       {
         indicator: 'SMA 10 (Simple)',
         currentValue: 'SMA10 = $2,050 — precio por encima (2,080 > 2,050)',
-        signal: 'Momentum corto plazo confirmado; puede empujar hacia SMA50.'
+        signal: 'Momentum corto plazo confirmado; puede empujar hacia SMA50.',
+        breakdownSignal: 'Caída bajo SMA10 indica pérdida de impulso; riesgo hacia SMA20.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'SMA 20',
         currentValue: 'SMA20 = $2,020 — precio por encima',
-        signal: 'Tendencia positiva confirmada; soporte en 2,020.'
+        signal: 'Tendencia positiva confirmada; soporte en 2,020.',
+        breakdownSignal: 'Quiebre debajo debilita tendencia; test a niveles inferiores.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'SMA 50',
         currentValue: 'SMA50 = $2,100 — precio por debajo (2,080 < 2,100)',
-        signal: 'Romper SMA50 señalaría reversión alcista de medio plazo.'
+        signal: 'Romper SMA50 señalaría reversión alcista de medio plazo.',
+        breakdownSignal: 'Mantenerse debajo confirma resistencia; sesgo bajista medio plazo.',
+        technicalSignal: 'Neutra / Bajista'
       },
       {
         indicator: 'EMA 9 (exp)',
         currentValue: 'EMA9 = $2,060 — precio por encima',
-        signal: 'Impulso intradiario fuerte; entrada para traders corto.'
+        signal: 'Impulso intradiario fuerte; entrada para traders corto.',
+        breakdownSignal: 'Caída bajo EMA9 acelera salidas y stops intradía.',
+        technicalSignal: 'Alcista (corto)'
       },
       {
         indicator: 'EMA 21',
         currentValue: 'EMA21 = $2,035 — precio por encima',
-        signal: 'Mantener sobre EMA21 confirma fuerza; stop por debajo.'
+        signal: 'Mantener sobre EMA21 confirma fuerza; stop por debajo.',
+        breakdownSignal: 'Perder EMA21 primera señal de reversión de corto.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'EMA 50',
         currentValue: 'EMA50 = $2,090 — precio por debajo',
-        signal: 'Cierre sobre EMA50 confirmaría cambio de tendencia.'
+        signal: 'Cierre sobre EMA50 confirmaría cambio de tendencia.',
+        breakdownSignal: 'Rechazo refuerza estructura lateral/bajista.',
+        technicalSignal: 'Neutra'
       },
       {
         indicator: 'RSI (14)',
         currentValue: 'RSI = 65 (neutro-alcista) — cerca de sobrecompra',
-        signal: 'Sobre 70 indica sobrecompra; posible toma de ganancias.'
+        signal: 'Sobre 70 indica sobrecompra; posible toma de ganancias.',
+        breakdownSignal: 'Caída bajo 50 indica pérdida de impulso; sesgo bajista.',
+        technicalSignal: 'Alcista moderado'
       },
       {
         indicator: 'MACD (12,26,9)',
         currentValue: 'MACD hist = +8 (MACD > Signal) — positivo',
-        signal: 'Cruce alcista confirma rally; atrae momentum.'
+        signal: 'Cruce alcista confirma rally; atrae momentum.',
+        breakdownSignal: 'Cruce a negativo sugiere pérdida de impulso.',
+        technicalSignal: 'Alcista'
       },
       {
         indicator: 'Soportes & Resistencias (Fibonacci)',
         currentValue: 'Niveles: 23.6% = 2,120, 38.2% = 2,100, 50% = 2,080, 61.8% = 2,060',
-        signal: 'Romper 2,120 → objetivo siguiente con volumen confirmado.'
+        signal: 'Romper 2,120 → objetivo siguiente con volumen confirmado.',
+        breakdownSignal: 'Romper 2,060 (Fibo 61.8%) → siguiente nivel bajista.',
+        technicalSignal: 'Neutra'
       }
     ]
   }
@@ -3304,6 +3396,8 @@ const Dashboard: React.FC = () => {
                               <th className="px-4 py-3 text-left text-sm font-semibold">Indicador</th>
                               <th className="px-4 py-3 text-left text-sm font-semibold">Valor / Estado actual</th>
                               <th className="px-4 py-3 text-left text-sm font-semibold">Si el spot rompe por encima</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold">Si el spot rompe por debajo</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold">Señal</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">
@@ -3317,6 +3411,12 @@ const Dashboard: React.FC = () => {
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-700 whitespace-pre-wrap">
                                   {indicator.signal}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-700 whitespace-pre-wrap">
+                                  {indicator.breakdownSignal}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-700 whitespace-pre-wrap">
+                                  {indicator.technicalSignal}
                                 </td>
                               </tr>
                             ))}
