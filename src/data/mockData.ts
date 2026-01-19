@@ -36,8 +36,8 @@ export const mockCounterparties: Counterparty[] = [
         isPrimary: true
       }
     ],
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-12-15')
+    createdAt: new Date('2025-01-15'),
+    updatedAt: new Date('2026-01-15')
   },
   {
     id: '2',
@@ -66,8 +66,8 @@ export const mockCounterparties: Counterparty[] = [
         isPrimary: true
       }
     ],
-    createdAt: new Date('2024-02-01'),
-    updatedAt: new Date('2024-12-10')
+    createdAt: new Date('2025-02-01'),
+    updatedAt: new Date('2026-01-10')
   },
   {
     id: '3',
@@ -96,8 +96,8 @@ export const mockCounterparties: Counterparty[] = [
         isPrimary: true
       }
     ],
-    createdAt: new Date('2024-03-01'),
-    updatedAt: new Date('2024-12-01')
+    createdAt: new Date('2025-03-01'),
+    updatedAt: new Date('2026-01-01')
   }
 ];
 
@@ -128,7 +128,7 @@ export const mockCommodities: Commodity[] = [
 export const mockContracts: Contract[] = [
   {
     id: '1',
-    number: 'PUR-2024-001',
+    number: 'PUR-2026-001',
     type: 'purchase',
     counterpartyId: '1',
     commodity: mockCommodities[0],
@@ -145,17 +145,17 @@ export const mockContracts: Contract[] = [
       currency: 'USD'
     },
     deliveryPeriod: {
-      start: new Date('2024-12-01'),
-      end: new Date('2024-12-31')
+      start: new Date('2026-01-01'),
+      end: new Date('2026-06-30')
     },
     incoterms: 'CIF Houston',
     status: 'active',
-    createdAt: new Date('2024-11-01'),
-    updatedAt: new Date('2024-11-15')
+    createdAt: new Date('2025-12-01'),
+    updatedAt: new Date('2026-01-15')
   },
   {
     id: '2',
-    number: 'SAL-2024-002',
+    number: 'SAL-2026-002',
     type: 'sale',
     counterpartyId: '2',
     commodity: mockCommodities[0],
@@ -171,17 +171,17 @@ export const mockContracts: Contract[] = [
       currency: 'USD'
     },
     deliveryPeriod: {
-      start: new Date('2025-01-15'),
-      end: new Date('2025-02-15')
+      start: new Date('2026-01-15'),
+      end: new Date('2026-03-31')
     },
     incoterms: 'FOB Origin',
     status: 'active',
-    createdAt: new Date('2024-11-10'),
-    updatedAt: new Date('2024-11-20')
+    createdAt: new Date('2025-12-10'),
+    updatedAt: new Date('2026-01-10')
   },
   {
     id: '3',
-    number: 'CONT-2026-001',
+    number: 'CONT-2026-003',
     type: 'purchase',
     counterpartyId: '2',
     commodity: mockCommodities[0],
@@ -197,20 +197,20 @@ export const mockContracts: Contract[] = [
       currency: 'USD'
     },
     deliveryPeriod: {
-      start: new Date('2026-01-01'),
+      start: new Date('2026-07-01'),
       end: new Date('2026-12-31')
     },
     incoterms: 'FOB Valparaiso',
     status: 'draft',
-    createdAt: new Date('2024-12-05'),
-    updatedAt: new Date('2024-12-05')
+    createdAt: new Date('2026-01-05'),
+    updatedAt: new Date('2026-01-05')
   }
 ];
 
 export const mockInventoryLots: InventoryLot[] = [
   {
     id: '1',
-    lotNumber: 'LOT-2024-001',
+    lotNumber: 'LOT-2026-001',
     contractId: '1',
     commodity: mockCommodities[0],
     weights: {
@@ -222,8 +222,8 @@ export const mockInventoryLots: InventoryLot[] = [
       {
         id: '1',
         laboratory: 'SGS Labs',
-        dateReceived: new Date('2024-12-10'),
-        dateCompleted: new Date('2024-12-12'),
+        dateReceived: new Date('2026-01-10'),
+        dateCompleted: new Date('2026-01-12'),
         results: [
           { element: 'Cu', value: 28.8, unit: '%', method: 'AAS' },
           { element: 'Au', value: 2.8, unit: 'g/t', method: 'FA-AAS' },
@@ -237,7 +237,7 @@ export const mockInventoryLots: InventoryLot[] = [
       position: 'Bay A-12',
       status: 'in_warehouse'
     },
-    receivedDate: new Date('2024-12-08'),
+    receivedDate: new Date('2026-01-08'),
     quality: [
       { element: 'Cu', value: 28.8, unit: '%', grade: 'payable' },
       { element: 'Au', value: 2.8, unit: 'g/t', grade: 'payable' },
@@ -247,7 +247,7 @@ export const mockInventoryLots: InventoryLot[] = [
   },
   {
     id: '2',
-    lotNumber: 'LOT-2024-002',
+    lotNumber: 'LOT-2026-002',
     contractId: '1',
     commodity: mockCommodities[0],
     weights: {
@@ -259,7 +259,7 @@ export const mockInventoryLots: InventoryLot[] = [
       {
         id: '2',
         laboratory: 'ALS Labs',
-        dateReceived: new Date('2024-12-15'),
+        dateReceived: new Date('2026-01-15'),
         results: [
           { element: 'Cu', value: 27.9, unit: '%', method: 'AAS' },
           { element: 'Au', value: 2.4, unit: 'g/t', method: 'FA-AAS' }
@@ -272,7 +272,7 @@ export const mockInventoryLots: InventoryLot[] = [
       position: 'Bay B-05',
       status: 'in_warehouse'
     },
-    receivedDate: new Date('2024-12-14'),
+    receivedDate: new Date('2026-01-14'),
     quality: [],
     documents: []
   }
@@ -281,9 +281,9 @@ export const mockInventoryLots: InventoryLot[] = [
 export const mockShipments: Shipment[] = [
   {
     id: '1',
-    number: '10102025',
+    number: '19012026',
     contractId: '1',
-    lots: ['LOT-2024-001'],
+    lots: ['LOT-2026-001'],
     type: 'outbound',
     transportMode: 'truck',
     carrier: 'Jaime Camil',
@@ -309,16 +309,16 @@ export const mockShipments: Shipment[] = [
       isPrimary: true
     },
     status: 'planned',
-    scheduledDate: new Date('2025-10-10T16:00:00'),
-    deliveryQuota: 'Cuota Oct.25',
+    scheduledDate: new Date('2026-01-25T16:00:00'),
+    deliveryQuota: 'Cuota Ene.26',
     weight: 25,
     documents: []
   },
   {
     id: '2',
-    number: '10102027',
+    number: '19012027',
     contractId: '1',
-    lots: ['LOT-2024-002'],
+    lots: ['LOT-2026-002'],
     type: 'outbound',
     transportMode: 'truck',
     carrier: 'Jaime Camil',
@@ -344,16 +344,16 @@ export const mockShipments: Shipment[] = [
       isPrimary: true
     },
     status: 'planned',
-    scheduledDate: new Date('2025-10-16T16:00:00'),
-    deliveryQuota: 'Cuota Oct.25P',
+    scheduledDate: new Date('2026-01-28T16:00:00'),
+    deliveryQuota: 'Cuota Ene.26',
     weight: 30,
     documents: []
   },
   {
     id: '3',
-    number: '10102022',
+    number: '19012022',
     contractId: '1',
-    lots: ['LOT-2024-001'],
+    lots: ['LOT-2026-001'],
     type: 'outbound',
     transportMode: 'truck',
     carrier: 'Jose Camil',
@@ -379,17 +379,17 @@ export const mockShipments: Shipment[] = [
       isPrimary: true
     },
     status: 'in_transit',
-    scheduledDate: new Date('2025-10-08T20:00:00'),
-    deliveryQuota: 'Cuota Oct.25',
+    scheduledDate: new Date('2026-01-19T20:00:00'),
+    deliveryQuota: 'Cuota Ene.26',
     weight: 25,
     currentLocation: 'En ruta',
     documents: []
   },
   {
     id: '4',
-    number: '10102023',
+    number: '19012023',
     contractId: '1',
-    lots: ['LOT-2024-001'],
+    lots: ['LOT-2026-001'],
     type: 'outbound',
     transportMode: 'truck',
     carrier: 'Fernando Camil',
@@ -415,17 +415,17 @@ export const mockShipments: Shipment[] = [
       isPrimary: true
     },
     status: 'in_transit',
-    scheduledDate: new Date('2025-10-08T21:00:00'),
-    deliveryQuota: 'Cuota Oct.25',
+    scheduledDate: new Date('2026-01-19T21:00:00'),
+    deliveryQuota: 'Cuota Ene.26',
     weight: 22,
     currentLocation: 'En ruta',
     documents: []
   },
   {
     id: '5',
-    number: '10102024',
+    number: '19012024',
     contractId: '1',
-    lots: ['LOT-2024-001'],
+    lots: ['LOT-2026-001'],
     type: 'outbound',
     transportMode: 'truck',
     carrier: 'Alberto Camil',
@@ -451,15 +451,15 @@ export const mockShipments: Shipment[] = [
       isPrimary: true
     },
     status: 'in_transit',
-    scheduledDate: new Date('2025-10-08T19:00:00'),
-    deliveryQuota: 'Cuota Oct.25',
+    scheduledDate: new Date('2026-01-19T19:00:00'),
+    deliveryQuota: 'Cuota Ene.26',
     weight: 23,
     currentLocation: 'En ruta',
     documents: []
   },
   {
     id: '6',
-    number: 'SHIP-2024-001',
+    number: 'SHIP-2026-001',
     contractId: '2',
     lots: ['1'],
     type: 'inbound',
@@ -486,7 +486,7 @@ export const mockShipments: Shipment[] = [
       isPrimary: true
     },
     status: 'delivered',
-    scheduledDate: new Date('2025-01-20'),
+    scheduledDate: new Date('2026-01-17'),
     documents: []
   }
 ];
@@ -520,7 +520,7 @@ export const mockSettlements: Settlement[] = [
     totalValue: 237880,
     currency: 'USD',
     status: 'draft',
-    createdAt: new Date('2024-12-15')
+    createdAt: new Date('2026-01-15')
   }
 ];
 
