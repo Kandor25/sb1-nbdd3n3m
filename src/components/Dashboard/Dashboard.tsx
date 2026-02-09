@@ -125,6 +125,15 @@ interface GTCOrder {
     expiration: string;
     exchange: string;
     reference: string;
+    gtcAnalysis: {
+      gtcPrice: string;
+      gtcPeriod: string;
+      maxPrice: string;
+      maxPeriod: string;
+      spreads: string;
+      maxQP: string;
+      execution: string;
+    };
   }>;
   responsible: string;
 }
@@ -1667,40 +1676,67 @@ const Dashboard: React.FC = () => {
       commodity: 'Concentrado Cu',
       client: 'Trader A',
       contract: 'Contrato 1',
-      quota: 'Ene.26',
+      quota: 'Sep.25',
       actions: [
         {
           metal: 'Cu',
           action: 'Vender',
           quantity: '11fmt',
-          price: '10,350',
-          period: 'Promedio Feb.26',
-          expiration: '31Jan2026',
+          price: '10,400',
+          period: 'Promedio Ene.26',
+          expiration: '28Feb2026',
           exchange: 'LME Select',
-          reference: '1234'
+          reference: '1234',
+          gtcAnalysis: {
+            gtcPrice: '10,400',
+            gtcPeriod: 'QP Ene26',
+            maxPrice: '10,425',
+            maxPeriod: '3M',
+            spreads: '50 contango',
+            maxQP: '10,475',
+            execution: 'Si toco, validar con la contraparte'
+          }
         },
         {
           metal: 'Ag',
           action: 'Vender',
           quantity: '1,000oz',
           price: '55',
-          period: 'Promedio Feb.26',
-          expiration: '31Jan2026',
+          period: 'Promedio Ene.26',
+          expiration: '28Feb2026',
           exchange: 'LME Select',
-          reference: '1235'
+          reference: '1235',
+          gtcAnalysis: {
+            gtcPrice: '55',
+            gtcPeriod: 'QP Ene26',
+            maxPrice: '60',
+            maxPeriod: 'Spot',
+            spreads: '-2 backwardation',
+            maxQP: '58',
+            execution: 'Si toco, validar con la contraparte'
+          }
         },
         {
           metal: 'Au',
           action: 'Vender',
           quantity: '55oz',
           price: '4,100',
-          period: 'Promedio Feb.26',
-          expiration: '31Jan2026',
+          period: 'Promedio Ene.26',
+          expiration: '28Feb2026',
           exchange: 'LME Select',
-          reference: '1237'
+          reference: '1237',
+          gtcAnalysis: {
+            gtcPrice: '4,100',
+            gtcPeriod: 'QP Ene26',
+            maxPrice: '4,050',
+            maxPeriod: 'Spot',
+            spreads: '10 contango',
+            maxQP: '4,060',
+            execution: 'No toco'
+          }
         }
       ],
-      responsible: 'Diego Lopez'
+      responsible: 'Carlos Ruiz'
     },
     {
       id: '2',
@@ -1709,124 +1745,67 @@ const Dashboard: React.FC = () => {
       commodity: 'Concentrado Cu',
       client: 'Trader B',
       contract: 'Contrato 3',
-      quota: 'Ene.26',
+      quota: 'Oct.25',
       actions: [
         {
           metal: 'Cu',
           action: 'Vender',
           quantity: '13fmt',
           price: '10,500',
-          period: 'Promedio Feb.26',
-          expiration: '31Jan2026',
+          period: 'Promedio Nov.25',
+          expiration: '31Oct2025',
           exchange: 'LME Select',
-          reference: '1240'
+          reference: '1240',
+          gtcAnalysis: {
+            gtcPrice: '10,500',
+            gtcPeriod: 'QP Nov25',
+            maxPrice: '10,550',
+            maxPeriod: '3M',
+            spreads: '75 contango',
+            maxQP: '10,625',
+            execution: 'Si toco, validar con la contraparte'
+          }
         },
         {
           metal: 'Ag',
           action: 'Vender',
           quantity: '1,200oz',
           price: '56',
-          period: 'Promedio Feb.26',
-          expiration: '31Jan2026',
+          period: 'Promedio Nov.25',
+          expiration: '31Oct2025',
           exchange: 'LME Select',
-          reference: '1241'
+          reference: '1241',
+          gtcAnalysis: {
+            gtcPrice: '56',
+            gtcPeriod: 'QP Nov25',
+            maxPrice: '58',
+            maxPeriod: 'Spot',
+            spreads: '-3 backwardation',
+            maxQP: '55',
+            execution: 'No toco'
+          }
         },
         {
           metal: 'Au',
           action: 'Vender',
           quantity: '60oz',
           price: '4,150',
-          period: 'Promedio Feb.26',
-          expiration: '31Jan2026',
+          period: 'Promedio Nov.25',
+          expiration: '31Oct2025',
           exchange: 'LME Select',
-          reference: '1242'
+          reference: '1242',
+          gtcAnalysis: {
+            gtcPrice: '4,150',
+            gtcPeriod: 'QP Nov25',
+            maxPrice: '4,100',
+            maxPeriod: 'Spot',
+            spreads: '15 contango',
+            maxQP: '4,115',
+            execution: 'No toco'
+          }
         }
       ],
       responsible: 'Maria Torres'
-    },
-    {
-      id: '3',
-      shipmentNumber: '101020055',
-      quantity: 28,
-      commodity: 'Concentrado Cu',
-      client: 'Trader C',
-      contract: 'Contrato 7',
-      quota: 'Feb.26',
-      actions: [
-        {
-          metal: 'Cu',
-          action: 'Vender',
-          quantity: '12fmt',
-          price: '10,400',
-          period: 'Promedio Mar.26',
-          expiration: '28Feb2026',
-          exchange: 'LME Select',
-          reference: '1250'
-        },
-        {
-          metal: 'Ag',
-          action: 'Vender',
-          quantity: '1,100oz',
-          price: '54',
-          period: 'Promedio Mar.26',
-          expiration: '28Feb2026',
-          exchange: 'LME Select',
-          reference: '1251'
-        },
-        {
-          metal: 'Au',
-          action: 'Vender',
-          quantity: '58oz',
-          price: '4,120',
-          period: 'Promedio Mar.26',
-          expiration: '28Feb2026',
-          exchange: 'LME Select',
-          reference: '1252'
-        }
-      ],
-      responsible: 'Carlos Ruiz'
-    },
-    {
-      id: '4',
-      shipmentNumber: '101020067',
-      quantity: 32,
-      commodity: 'Concentrado Zn',
-      client: 'IMX',
-      contract: 'Contrato 15',
-      quota: 'Mar.26',
-      actions: [
-        {
-          metal: 'Cu',
-          action: 'Vender',
-          quantity: '14fmt',
-          price: '10,450',
-          period: 'Promedio Abr.26',
-          expiration: '31Mar2026',
-          exchange: 'LME Select',
-          reference: '1260'
-        },
-        {
-          metal: 'Ag',
-          action: 'Vender',
-          quantity: '1,300oz',
-          price: '57',
-          period: 'Promedio Abr.26',
-          expiration: '31Mar2026',
-          exchange: 'LME Select',
-          reference: '1261'
-        },
-        {
-          metal: 'Au',
-          action: 'Vender',
-          quantity: '62oz',
-          price: '4,200',
-          period: 'Promedio Abr.26',
-          expiration: '31Mar2026',
-          exchange: 'LME Select',
-          reference: '1262'
-        }
-      ],
-      responsible: 'Laura Sanchez'
     }
   ];
 
@@ -3248,27 +3227,40 @@ const Dashboard: React.FC = () => {
 
                 {expandedFixings.gtc && (
                   <div className="px-4 pb-4">
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                    <div className="space-y-4 max-h-96 overflow-y-auto">
                       {filteredGtcOrders.map((order) => (
                         <div key={order.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                          <div className="text-sm space-y-2">
-                            <p className="text-gray-700">
+                          <div className="text-sm space-y-3">
+                            <p className="text-gray-700 font-medium">
                               Embarque {order.shipmentNumber} / <span className="font-semibold">{order.quantity}dmt</span> / {order.commodity} / Cliente {order.client} / {order.contract} / Cuota {order.quota}
                             </p>
-                            <div className="mt-2 space-y-2">
-                              <p className="font-semibold text-gray-900 text-xs">Actions:</p>
+                            <div className="mt-3 space-y-3">
                               {order.actions.map((action, index) => (
-                                <div key={index} className="text-xs bg-gray-50 p-2 rounded">
-                                  <p className="text-gray-900">
-                                    <span className="font-semibold">{action.metal}</span>  {'==>'}{action.action} {action.quantity}@{action.price} {action.period}
+                                <div key={index} className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                  <p className="text-gray-900 font-semibold mb-2">
+                                    {action.metal} {'==>'} {action.action} {action.quantity}@{action.price} {action.period} / Exp {action.expiration} {action.exchange} / Referencia {action.reference}
                                   </p>
-                                  <p className="text-gray-600 mt-0.5">
-                                    Exp {action.expiration} {action.exchange} / Referencia {action.reference}
-                                  </p>
+                                  <div className="ml-4 space-y-1 text-xs">
+                                    <p className="text-gray-700">
+                                      <span className="font-semibold">a)</span> GTC {action.gtcAnalysis.gtcPrice}@{action.gtcAnalysis.gtcPeriod}
+                                    </p>
+                                    <p className="text-gray-700">
+                                      <span className="font-semibold">b)</span> Max {action.gtcAnalysis.maxPeriod} {'==>'} {action.gtcAnalysis.maxPrice}
+                                    </p>
+                                    <p className="text-gray-700">
+                                      <span className="font-semibold">c)</span> Spreads {action.gtcAnalysis.maxPeriod}_{action.gtcAnalysis.gtcPeriod} {'==>'} {action.gtcAnalysis.spreads}
+                                    </p>
+                                    <p className="text-gray-700">
+                                      <span className="font-semibold">d)</span> Max {action.gtcAnalysis.gtcPeriod} {'==>'} (b+c) = {action.gtcAnalysis.maxQP}
+                                    </p>
+                                    <p className={`font-semibold ${action.gtcAnalysis.execution.includes('No toco') ? 'text-gray-700' : 'text-orange-600'}`}>
+                                      <span className="font-semibold">e)</span> Ejecución Max {action.gtcAnalysis.gtcPeriod} {'==>'} (d{action.gtcAnalysis.execution.includes('No toco') ? '<' : '>'}a) = "{action.gtcAnalysis.execution}"
+                                    </p>
+                                  </div>
                                 </div>
                               ))}
                             </div>
-                            <p className="text-gray-600 text-xs mt-2">
+                            <p className="text-gray-600 text-xs mt-3 pt-2 border-t border-gray-200">
                               <span className="font-semibold">Responsable:</span> {order.responsible}
                             </p>
                           </div>
