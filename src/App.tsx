@@ -5,6 +5,8 @@ import Dashboard from './components/Dashboard/Dashboard';
 import CounterpartyList from './components/Counterparties/CounterpartyList';
 import ContractList from './components/Contracts/ContractList';
 import ContractForm from './components/Contracts/ContractForm';
+import ContractCreationSelector from './components/Contracts/ContractCreationSelector';
+import ContractTemplateSelector from './components/Contracts/ContractTemplateSelector';
 import InventoryList from './components/Inventory/InventoryList';
 import LogisticsList from './components/Logistics/LogisticsList';
 import SettlementList from './components/Settlements/SettlementList';
@@ -13,9 +15,12 @@ import Settings from './components/Settings/Settings';
 import ChatInterface from './components/Chat/ChatInterface';
 import type { User, Counterparty, Contract, InventoryLot, Shipment, Settlement } from './types';
 
+type ContractCreationMode = 'selector' | 'template' | 'form' | null;
+
 function App() {
   const [activeSection, setActiveSection] = useState('dashboard');
-  const [showContractForm, setShowContractForm] = useState(false);
+  const [contractCreationMode, setContractCreationMode] = useState<ContractCreationMode>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   
   const currentUser: User = {
     id: '1',
@@ -35,15 +40,36 @@ function App() {
   };
 
   const handleCreateContract = () => {
-    setShowContractForm(true);
+    setContractCreationMode('selector');
   };
 
   const handleContractFormClose = () => {
-    setShowContractForm(false);
+    setContractCreationMode(null);
+    setSelectedTemplateId(null);
   };
 
   const handleContractFormSuccess = () => {
-    setShowContractForm(false);
+    setContractCreationMode(null);
+    setSelectedTemplateId(null);
+  };
+
+  const handleSelectNewContract = () => {
+    setContractCreationMode('form');
+    setSelectedTemplateId(null);
+  };
+
+  const handleSelectTemplateMode = () => {
+    setContractCreationMode('template');
+  };
+
+  const handleSelectTemplate = (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    setContractCreationMode('form');
+  };
+
+  const handleBackToSelector = () => {
+    setContractCreationMode('selector');
+    setSelectedTemplateId(null);
   };
 
   const handleViewContract = (contract: Contract) => {
@@ -137,10 +163,27 @@ function App() {
         </main>
       </div>
 
-      {showContractForm && (
+      {contractCreationMode === 'selector' && (
+        <ContractCreationSelector
+          onClose={handleContractFormClose}
+          onSelectNew={handleSelectNewContract}
+          onSelectTemplate={handleSelectTemplateMode}
+        />
+      )}
+
+      {contractCreationMode === 'template' && (
+        <ContractTemplateSelector
+          onClose={handleContractFormClose}
+          onBack={handleBackToSelector}
+          onSelectTemplate={handleSelectTemplate}
+        />
+      )}
+
+      {contractCreationMode === 'form' && (
         <ContractForm
           onClose={handleContractFormClose}
           onSuccess={handleContractFormSuccess}
+          templateId={selectedTemplateId}
         />
       )}
     </div>

@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 interface ContractFormProps {
   onClose: () => void;
   onSuccess: () => void;
+  templateId?: string | null;
 }
 
 interface FormData {
@@ -99,7 +100,7 @@ const SECTIONS = [
   { id: 'waste', label: 'Merma' },
 ];
 
-const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
+const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templateId }) => {
   const [currentSection, setCurrentSection] = useState('basic');
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [buyers, setBuyers] = useState<Buyer[]>([]);
@@ -126,6 +127,12 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
   useEffect(() => {
     loadFormData();
   }, []);
+
+  useEffect(() => {
+    if (templateId) {
+      loadTemplateData(templateId);
+    }
+  }, [templateId]);
 
   useEffect(() => {
     if (formData.startMonth && formData.endMonth) {
@@ -170,6 +177,50 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
       if (incotermsRes.data) setIncoterms(incotermsRes.data);
     } catch (error) {
       console.error('Error loading form data:', error);
+    }
+  };
+
+  const loadTemplateData = async (templateId: string) => {
+    try {
+      const { data: template, error: templateError } = await supabase
+        .from('contract_templates')
+        .select('*')
+        .eq('id', templateId)
+        .single();
+
+      if (templateError) throw templateError;
+
+      if (template) {
+        const { data: templatePayables, error: payablesError } = await supabase
+          .from('contract_template_payables')
+          .select('*')
+          .eq('template_id', templateId);
+
+        if (payablesError) throw payablesError;
+
+        const { data: incotermsData } = await supabase
+          .from('incoterms')
+          .select('*')
+          .eq('code', template.incoterm_code)
+          .maybeSingle();
+
+        setFormData(prev => ({
+          ...prev,
+          contractType: template.contract_type as 'purchase' | 'sale',
+          incotermId: incotermsData?.id || '',
+          payables: (templatePayables || []).map(tp => ({
+            id: `temp-${Date.now()}-${Math.random()}`,
+            formulaId: tp.formula_id,
+            metal: tp.metal as 'CU' | 'AG' | 'AU',
+            deductionValue: tp.deduction_value.toString(),
+            deductionUnit: tp.deduction_unit as '%' | 'g/tms',
+            balancePercentage: tp.balance_percentage.toString(),
+            marketIndexId: tp.market_index_id,
+          })),
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading template data:', error);
     }
   };
 
@@ -383,7 +434,14 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl h-[90vh] flex flex-col">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">Nuevo Contrato</h2>
+          <div className="flex items-center space-x-3">
+            <h2 className="text-2xl font-bold text-gray-900">Nuevo Contrato</h2>
+            {templateId && (
+              <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-full">
+                Desde Plantilla
+              </span>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
