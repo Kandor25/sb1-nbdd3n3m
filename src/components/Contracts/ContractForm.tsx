@@ -20,6 +20,7 @@ interface FormData {
   incotermId: string;
   deliveryLocation: string;
   payables: PayableData[];
+  penalties: PenaltyData[];
 }
 
 interface QuotaData {
@@ -82,6 +83,16 @@ interface PayableData {
   marketIndexId: string;
 }
 
+interface PenaltyData {
+  id: string;
+  metal: string;
+  amountUsd: string;
+  lowerLimit: string;
+  lowerLimitUnit: string;
+  upperLimit: string;
+  upperLimitUnit: string;
+}
+
 const SECTIONS = [
   { id: 'basic', label: 'Información Básica/Cantidad/Plazo' },
   { id: 'incoterm', label: 'Incoterm Entrega' },
@@ -122,6 +133,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     incotermId: '',
     deliveryLocation: '',
     payables: [],
+    penalties: [],
   });
 
   useEffect(() => {
@@ -191,24 +203,30 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
       if (templateError) throw templateError;
 
       if (template) {
-        const { data: templatePayables, error: payablesError } = await supabase
-          .from('contract_template_payables')
-          .select('*')
-          .eq('template_id', templateId);
+        const [payablesRes, penaltiesRes, incotermsRes] = await Promise.all([
+          supabase
+            .from('contract_template_payables')
+            .select('*')
+            .eq('template_id', templateId),
+          supabase
+            .from('contract_template_penalties')
+            .select('*')
+            .eq('template_id', templateId),
+          supabase
+            .from('incoterms')
+            .select('*')
+            .eq('code', template.incoterm_code)
+            .maybeSingle(),
+        ]);
 
-        if (payablesError) throw payablesError;
-
-        const { data: incotermsData } = await supabase
-          .from('incoterms')
-          .select('*')
-          .eq('code', template.incoterm_code)
-          .maybeSingle();
+        if (payablesRes.error) throw payablesRes.error;
+        if (penaltiesRes.error) throw penaltiesRes.error;
 
         setFormData(prev => ({
           ...prev,
           contractType: template.contract_type as 'purchase' | 'sale',
-          incotermId: incotermsData?.id || '',
-          payables: (templatePayables || []).map(tp => ({
+          incotermId: incotermsRes.data?.id || '',
+          payables: (payablesRes.data || []).map(tp => ({
             id: `temp-${Date.now()}-${Math.random()}`,
             formulaId: tp.formula_id,
             metal: tp.metal as 'CU' | 'AG' | 'AU',
@@ -216,6 +234,15 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
             deductionUnit: tp.deduction_unit as '%' | 'g/tms',
             balancePercentage: tp.balance_percentage.toString(),
             marketIndexId: tp.market_index_id,
+          })),
+          penalties: (penaltiesRes.data || []).map(tp => ({
+            id: `temp-${Date.now()}-${Math.random()}`,
+            metal: tp.metal,
+            amountUsd: tp.amount_usd.toString(),
+            lowerLimit: tp.lower_limit.toString(),
+            lowerLimitUnit: tp.lower_limit_unit,
+            upperLimit: tp.upper_limit.toString(),
+            upperLimitUnit: tp.upper_limit_unit,
           })),
         }));
       }
@@ -300,6 +327,42 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     if (!deduction || !balance || !index) return '';
 
     return `(${metalName}): (Ensaye - ${deduction}${unit}) * ${balance}% ==> Índice ${index.name}`;
+  };
+
+  const addPenalty = () => {
+    const newPenalty: PenaltyData = {
+      id: `temp-${Date.now()}`,
+      metal: 'AS',
+      amountUsd: '',
+      lowerLimit: '',
+      lowerLimitUnit: '%',
+      upperLimit: '',
+      upperLimitUnit: '%',
+    };
+
+    setFormData(prev => ({ ...prev, penalties: [...prev.penalties, newPenalty] }));
+  };
+
+  const removePenalty = (id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      penalties: prev.penalties.filter(p => p.id !== id)
+    }));
+  };
+
+  const updatePenalty = (id: string, field: keyof PenaltyData, value: any) => {
+    const newPenalties = formData.penalties.map(p =>
+      p.id === id ? { ...p, [field]: value } : p
+    );
+    setFormData(prev => ({ ...prev, penalties: newPenalties }));
+  };
+
+  const generatePenaltyFormulaText = (penalty: PenaltyData): string => {
+    const { metal, amountUsd, lowerLimit, lowerLimitUnit, upperLimit, upperLimitUnit } = penalty;
+
+    if (!amountUsd || !lowerLimit || !upperLimit) return '';
+
+    return `(${metal}): $${amountUsd} por TMS por cada ${lowerLimit}${lowerLimitUnit} por encima de ${upperLimit}${upperLimitUnit}`;
   };
 
   const isBasicSectionValid = () => {
@@ -405,6 +468,25 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
             .insert(payablesToInsert);
 
           if (payablesError) throw payablesError;
+        }
+
+        if (formData.penalties.length > 0) {
+          const penaltiesToInsert = formData.penalties.map(p => ({
+            contract_id: contract.id,
+            metal: p.metal,
+            amount_usd: parseFloat(p.amountUsd),
+            lower_limit: parseFloat(p.lowerLimit),
+            lower_limit_unit: p.lowerLimitUnit,
+            upper_limit: parseFloat(p.upperLimit),
+            upper_limit_unit: p.upperLimitUnit,
+            penalty_formula: generatePenaltyFormulaText(p),
+          }));
+
+          const { error: penaltiesError } = await supabase
+            .from('contract_penalties')
+            .insert(penaltiesToInsert);
+
+          if (penaltiesError) throw penaltiesError;
         }
       }
 
@@ -872,7 +954,166 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                 </div>
               )}
 
-              {!['basic', 'incoterm', 'payables'].includes(currentSection) && (
+              {currentSection === 'penalties' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-gray-900">Penalidades</h3>
+                    <button
+                      onClick={addPenalty}
+                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Agregar Penalidad
+                    </button>
+                  </div>
+
+                  {formData.penalties.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                      <p className="text-gray-500">No hay penalidades agregadas</p>
+                      <p className="text-gray-400 text-sm mt-2">
+                        Haga clic en "Agregar Penalidad" para comenzar
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {formData.penalties.map((penalty, index) => (
+                        <div
+                          key={penalty.id}
+                          className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm"
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-lg font-semibold text-gray-900">
+                              Penalidad #{index + 1}
+                            </h4>
+                            <button
+                              onClick={() => removePenalty(penalty.id)}
+                              className="text-red-600 hover:text-red-700 transition-colors"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Metal <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  value={penalty.metal}
+                                  onChange={(e) =>
+                                    updatePenalty(penalty.id, 'metal', e.target.value)
+                                  }
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  <option value="AS">As (Arsénico)</option>
+                                  <option value="PB">Pb (Plomo)</option>
+                                  <option value="ZN">Zn (Zinc)</option>
+                                  <option value="SB">Sb (Antimonio)</option>
+                                  <option value="BI">Bi (Bismuto)</option>
+                                  <option value="HG">Hg (Mercurio)</option>
+                                  <option value="F">F (Flúor)</option>
+                                  <option value="CL">Cl (Cloro)</option>
+                                </select>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Monto en USD <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={penalty.amountUsd}
+                                    onChange={(e) =>
+                                      updatePenalty(penalty.id, 'amountUsd', e.target.value)
+                                    }
+                                    placeholder="Ej: 2.5"
+                                    className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Límite Inferior <span className="text-red-500">*</span>
+                                </label>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={penalty.lowerLimit}
+                                    onChange={(e) =>
+                                      updatePenalty(penalty.id, 'lowerLimit', e.target.value)
+                                    }
+                                    placeholder="Ej: 0.01"
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={penalty.lowerLimitUnit}
+                                    onChange={(e) =>
+                                      updatePenalty(penalty.id, 'lowerLimitUnit', e.target.value)
+                                    }
+                                    placeholder="%"
+                                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  />
+                                </div>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Límite Superior <span className="text-red-500">*</span>
+                                </label>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={penalty.upperLimit}
+                                    onChange={(e) =>
+                                      updatePenalty(penalty.id, 'upperLimit', e.target.value)
+                                    }
+                                    placeholder="Ej: 0.05"
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={penalty.upperLimitUnit}
+                                    onChange={(e) =>
+                                      updatePenalty(penalty.id, 'upperLimitUnit', e.target.value)
+                                    }
+                                    placeholder="%"
+                                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {penalty.amountUsd &&
+                            penalty.lowerLimit &&
+                            penalty.upperLimit && (
+                              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                                <p className="text-sm font-medium text-gray-700 mb-1">
+                                  Fórmula Generada:
+                                </p>
+                                <p className="text-base font-mono text-amber-900">
+                                  {generatePenaltyFormulaText(penalty)}
+                                </p>
+                              </div>
+                            )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!['basic', 'incoterm', 'payables', 'penalties'].includes(currentSection) && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">
                     Esta sección está en desarrollo
