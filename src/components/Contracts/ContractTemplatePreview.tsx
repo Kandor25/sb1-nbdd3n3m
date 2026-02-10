@@ -147,17 +147,20 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
         unit: r.unit,
       }));
 
-      setTemplate({
+      const finalTemplate = {
         ...templateData,
         payables,
         penalties,
         quality_specs: [],
         refining_expenses,
-      });
+      };
+      console.log('Setting template:', finalTemplate);
+      setTemplate(finalTemplate);
     } catch (error) {
       console.error('Error loading template details:', error);
       setError('Error al cargar los detalles de la plantilla');
     } finally {
+      console.log('Setting loading to false');
       setLoading(false);
     }
   };
@@ -173,7 +176,10 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
     return spec.formula_text;
   };
 
+  console.log('Render - loading:', loading, 'error:', error, 'template:', template);
+
   if (loading) {
+    console.log('Showing loading state');
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl p-8">
@@ -206,9 +212,11 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
   }
 
   if (!template) {
+    console.log('Template is null, not rendering modal');
     return null;
   }
 
+  console.log('Rendering template preview modal');
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
