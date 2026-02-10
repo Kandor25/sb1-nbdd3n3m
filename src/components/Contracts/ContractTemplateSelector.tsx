@@ -197,7 +197,10 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
 
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => setPreviewTemplateId(template.id)}
+                      onClick={() => {
+                        console.log('Preview button clicked for template:', template.id);
+                        setPreviewTemplateId(template.id);
+                      }}
                       className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium flex items-center justify-center"
                     >
                       <Eye className="w-4 h-4 mr-2" />

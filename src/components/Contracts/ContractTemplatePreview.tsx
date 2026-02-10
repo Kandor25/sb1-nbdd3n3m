@@ -58,51 +58,67 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
 }) => {
   const [template, setTemplate] = useState<TemplateDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('ContractTemplatePreview mounted with templateId:', templateId);
     loadTemplateDetails();
   }, [templateId]);
 
   const loadTemplateDetails = async () => {
     try {
+      console.log('Loading template details for:', templateId);
       setLoading(true);
+      setError(null);
 
       const { data: templateData, error: templateError } = await supabase
         .from('contract_templates')
         .select('*')
         .eq('id', templateId)
-        .single();
+        .maybeSingle();
 
-      if (templateError) throw templateError;
+      console.log('Template data:', templateData);
 
-      const [payablesRes, penaltiesRes, qualitySpecsRes, refiningExpensesRes] = await Promise.all([
-        supabase
-          .from('contract_template_payables')
-          .select(`
-            *,
-            formula:payable_formulas(name),
-            market_index:market_indices(name)
-          `)
-          .eq('template_id', templateId),
-        supabase
-          .from('contract_template_penalties')
-          .select(`
-            *,
-            formula:penalty_formulas(name)
-          `)
-          .eq('template_id', templateId),
-        supabase
-          .from('contract_template_quality_specs')
-          .select('*')
-          .eq('template_id', templateId),
-        supabase
-          .from('contract_template_refining_expenses')
-          .select(`
-            *,
-            formula:refining_expense_formulas(name)
-          `)
-          .eq('template_id', templateId),
-      ]);
+      if (templateError) {
+        console.error('Error loading template:', templateError);
+        setError('Error al cargar la plantilla');
+        throw templateError;
+      }
+
+      if (!templateData) {
+        console.error('Template not found');
+        setError('Plantilla no encontrada');
+        return;
+      }
+
+      const payablesRes = await supabase
+        .from('contract_template_payables')
+        .select(`
+          *,
+          formula:payable_formulas(name),
+          market_index:market_indices(name)
+        `)
+        .eq('template_id', templateId);
+
+      const penaltiesRes = await supabase
+        .from('contract_template_penalties')
+        .select(`
+          *,
+          formula:penalty_formulas(name)
+        `)
+        .eq('template_id', templateId);
+
+      const refiningExpensesRes = await supabase
+        .from('contract_template_refining_expenses')
+        .select(`
+          *,
+          formula:refining_expense_formulas(name)
+        `)
+        .eq('template_id', templateId);
+
+      if (payablesRes.error) console.error('Error loading payables:', payablesRes.error);
+      if (penaltiesRes.error) console.error('Error loading penalties:', penaltiesRes.error);
+      if (refiningExpensesRes.error) console.error('Error loading refining expenses:', refiningExpensesRes.error);
 
       const payables = (payablesRes.data || []).map((p: any) => ({
         metal: p.metal,
@@ -124,7 +140,6 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
         upper_limit_unit: p.upper_limit_unit,
       }));
 
-      const quality_specs = qualitySpecsRes.data || [];
       const refining_expenses = (refiningExpensesRes.data || []).map((r: any) => ({
         metal: r.metal,
         formula_name: r.formula?.name || '',
@@ -136,11 +151,12 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
         ...templateData,
         payables,
         penalties,
-        quality_specs,
+        quality_specs: [],
         refining_expenses,
       });
     } catch (error) {
       console.error('Error loading template details:', error);
+      setError('Error al cargar los detalles de la plantilla');
     } finally {
       setLoading(false);
     }
@@ -159,10 +175,30 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl p-8">
           <div className="flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+          <div className="text-center">
+            <div className="text-red-600 text-5xl mb-4">⚠️</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Error</h3>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <button
+              onClick={onClose}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Cerrar
+            </button>
           </div>
         </div>
       </div>
@@ -174,7 +210,7 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-700">
           <div className="flex items-center">
@@ -218,17 +254,6 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
               <InfoRow label="Incoterm" value={template.incoterm_code} />
             </Section>
 
-            {template.quality_specs.length > 0 && (
-              <Section title="Calidad / Granulometría">
-                {template.quality_specs.map((spec, index) => (
-                  <InfoRow
-                    key={index}
-                    label={spec.metal}
-                    value={formatSpecValue(spec)}
-                  />
-                ))}
-              </Section>
-            )}
 
             {template.payables.length > 0 && (
               <Section title="Pagables">
