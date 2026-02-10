@@ -85,12 +85,19 @@ interface PayableData {
 
 interface PenaltyData {
   id: string;
+  formulaId: string;
   metal: string;
   amountUsd: string;
   lowerLimit: string;
   lowerLimitUnit: string;
   upperLimit: string;
   upperLimitUnit: string;
+}
+
+interface PenaltyFormula {
+  id: string;
+  name: string;
+  description: string;
 }
 
 const SECTIONS = [
@@ -119,6 +126,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   const [countries, setCountries] = useState<Country[]>([]);
   const [incoterms, setIncoterms] = useState<Incoterm[]>([]);
   const [payableFormulas, setPayableFormulas] = useState<PayableFormula[]>([]);
+  const [penaltyFormulas, setPenaltyFormulas] = useState<PenaltyFormula[]>([]);
   const [marketIndices, setMarketIndices] = useState<MarketIndex[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -154,13 +162,14 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
 
   const loadFormData = async () => {
     try {
-      const [vendorsRes, buyersRes, productsRes, countriesRes, incotermsRes, formulasRes, indicesRes] = await Promise.all([
+      const [vendorsRes, buyersRes, productsRes, countriesRes, incotermsRes, formulasRes, penaltyFormulasRes, indicesRes] = await Promise.all([
         supabase.from('vendors').select('*').order('name'),
         supabase.from('buyers').select('*').order('name'),
         supabase.from('products').select('*').order('name'),
         supabase.from('countries').select('*').order('name'),
         supabase.from('incoterms').select('*').order('code'),
         supabase.from('payable_formulas').select('*').order('name'),
+        supabase.from('penalty_formulas').select('*').order('name'),
         supabase.from('market_indices').select('*').order('name'),
       ]);
 
@@ -172,6 +181,12 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         setPayableFormulas(formulasRes.data);
       } else {
         console.error('Error al cargar fórmulas:', formulasRes.error);
+      }
+      if (penaltyFormulasRes.data) {
+        console.log('Fórmulas de penalidades cargadas:', penaltyFormulasRes.data);
+        setPenaltyFormulas(penaltyFormulasRes.data);
+      } else {
+        console.error('Error al cargar fórmulas de penalidades:', penaltyFormulasRes.error);
       }
       if (indicesRes.data) {
         console.log('Índices cargados:', indicesRes.data);
@@ -237,12 +252,13 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
           })),
           penalties: (penaltiesRes.data || []).map(tp => ({
             id: `temp-${Date.now()}-${Math.random()}`,
-            metal: tp.metal,
-            amountUsd: tp.amount_usd.toString(),
-            lowerLimit: tp.lower_limit.toString(),
-            lowerLimitUnit: tp.lower_limit_unit,
-            upperLimit: tp.upper_limit.toString(),
-            upperLimitUnit: tp.upper_limit_unit,
+            formulaId: tp.formula_id || '',
+            metal: tp.metal || '',
+            amountUsd: tp.amount_usd?.toString() || '',
+            lowerLimit: tp.lower_limit?.toString() || '',
+            lowerLimitUnit: tp.lower_limit_unit || '',
+            upperLimit: tp.upper_limit?.toString() || '',
+            upperLimitUnit: tp.upper_limit_unit || '',
           })),
         }));
       }
@@ -332,6 +348,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   const addPenalty = () => {
     const newPenalty: PenaltyData = {
       id: `temp-${Date.now()}`,
+      formulaId: '',
       metal: 'AS',
       amountUsd: '',
       lowerLimit: '',
@@ -357,12 +374,24 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     setFormData(prev => ({ ...prev, penalties: newPenalties }));
   };
 
+  const isPenaltyFormulaNoAplica = (formulaId: string): boolean => {
+    const formula = penaltyFormulas.find(f => f.id === formulaId);
+    return formula?.name === 'No Aplica';
+  };
+
   const generatePenaltyFormulaText = (penalty: PenaltyData): string => {
+    if (isPenaltyFormulaNoAplica(penalty.formulaId)) {
+      return 'No Aplica';
+    }
+
     const { metal, amountUsd, lowerLimit, lowerLimitUnit, upperLimit, upperLimitUnit } = penalty;
 
     if (!amountUsd || !lowerLimit || !upperLimit) return '';
 
-    return `(${metal}): $${amountUsd} por TMS por cada ${lowerLimit}${lowerLimitUnit} por encima de ${upperLimit}${upperLimitUnit}`;
+    const formula = penaltyFormulas.find(f => f.id === penalty.formulaId);
+    const formulaName = formula?.name || '';
+
+    return `${formulaName} - (${metal}): $${amountUsd} por TMS por cada ${lowerLimit}${lowerLimitUnit} por encima de ${upperLimit}${upperLimitUnit}`;
   };
 
   const isBasicSectionValid = () => {
@@ -471,16 +500,21 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         }
 
         if (formData.penalties.length > 0) {
-          const penaltiesToInsert = formData.penalties.map(p => ({
-            contract_id: contract.id,
-            metal: p.metal,
-            amount_usd: parseFloat(p.amountUsd),
-            lower_limit: parseFloat(p.lowerLimit),
-            lower_limit_unit: p.lowerLimitUnit,
-            upper_limit: parseFloat(p.upperLimit),
-            upper_limit_unit: p.upperLimitUnit,
-            penalty_formula: generatePenaltyFormulaText(p),
-          }));
+          const penaltiesToInsert = formData.penalties.map(p => {
+            const isNoAplica = isPenaltyFormulaNoAplica(p.formulaId);
+
+            return {
+              contract_id: contract.id,
+              formula_id: p.formulaId,
+              metal: isNoAplica ? null : p.metal,
+              amount_usd: isNoAplica ? null : (p.amountUsd ? parseFloat(p.amountUsd) : null),
+              lower_limit: isNoAplica ? null : (p.lowerLimit ? parseFloat(p.lowerLimit) : null),
+              lower_limit_unit: isNoAplica ? null : p.lowerLimitUnit,
+              upper_limit: isNoAplica ? null : (p.upperLimit ? parseFloat(p.upperLimit) : null),
+              upper_limit_unit: isNoAplica ? null : p.upperLimitUnit,
+              penalty_formula: generatePenaltyFormulaText(p),
+            };
+          });
 
           const { error: penaltiesError } = await supabase
             .from('contract_penalties')
@@ -994,28 +1028,50 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                           </div>
 
                           <div className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  Metal <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                  value={penalty.metal}
-                                  onChange={(e) =>
-                                    updatePenalty(penalty.id, 'metal', e.target.value)
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                >
-                                  <option value="AS">As (Arsénico)</option>
-                                  <option value="PB">Pb (Plomo)</option>
-                                  <option value="ZN">Zn (Zinc)</option>
-                                  <option value="SB">Sb (Antimonio)</option>
-                                  <option value="BI">Bi (Bismuto)</option>
-                                  <option value="HG">Hg (Mercurio)</option>
-                                  <option value="F">F (Flúor)</option>
-                                  <option value="CL">Cl (Cloro)</option>
-                                </select>
-                              </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Fórmula <span className="text-red-500">*</span>
+                              </label>
+                              <select
+                                value={penalty.formulaId}
+                                onChange={(e) =>
+                                  updatePenalty(penalty.id, 'formulaId', e.target.value)
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="">Seleccione una fórmula</option>
+                                {penaltyFormulas.map((formula) => (
+                                  <option key={formula.id} value={formula.id}>
+                                    {formula.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            {penalty.formulaId && !isPenaltyFormulaNoAplica(penalty.formulaId) && (
+                              <>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Metal <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                      value={penalty.metal}
+                                      onChange={(e) =>
+                                        updatePenalty(penalty.id, 'metal', e.target.value)
+                                      }
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                      <option value="AS">As (Arsénico)</option>
+                                      <option value="PB">Pb (Plomo)</option>
+                                      <option value="ZN">Zn (Zinc)</option>
+                                      <option value="SB">Sb (Antimonio)</option>
+                                      <option value="BI">Bi (Bismuto)</option>
+                                      <option value="HG">Hg (Mercurio)</option>
+                                      <option value="F">F (Flúor)</option>
+                                      <option value="CL">Cl (Cloro)</option>
+                                    </select>
+                                  </div>
 
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1092,20 +1148,33 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                                 </div>
                               </div>
                             </div>
-                          </div>
 
-                          {penalty.amountUsd &&
-                            penalty.lowerLimit &&
-                            penalty.upperLimit && (
-                              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                                {penalty.amountUsd &&
+                                  penalty.lowerLimit &&
+                                  penalty.upperLimit && (
+                                    <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                                      <p className="text-sm font-medium text-gray-700 mb-1">
+                                        Fórmula Generada:
+                                      </p>
+                                      <p className="text-base font-mono text-amber-900">
+                                        {generatePenaltyFormulaText(penalty)}
+                                      </p>
+                                    </div>
+                                  )}
+                              </>
+                            )}
+
+                            {penalty.formulaId && isPenaltyFormulaNoAplica(penalty.formulaId) && (
+                              <div className="mt-4 p-4 bg-gray-100 border border-gray-300 rounded-lg">
                                 <p className="text-sm font-medium text-gray-700 mb-1">
-                                  Fórmula Generada:
+                                  Fórmula Seleccionada:
                                 </p>
-                                <p className="text-base font-mono text-amber-900">
-                                  {generatePenaltyFormulaText(penalty)}
+                                <p className="text-base font-mono text-gray-900">
+                                  No Aplica
                                 </p>
                               </div>
                             )}
+                          </div>
                         </div>
                       ))}
                     </div>
