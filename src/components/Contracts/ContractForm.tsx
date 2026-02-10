@@ -333,7 +333,16 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     setFormData(prev => ({ ...prev, payables: newPayables }));
   };
 
+  const isPayableFormulaNoAplica = (formulaId: string): boolean => {
+    const formula = payableFormulas.find(f => f.id === formulaId);
+    return formula?.name === 'No Aplica';
+  };
+
   const generateFormulaText = (payable: PayableData): string => {
+    if (isPayableFormulaNoAplica(payable.formulaId)) {
+      return 'No Aplica';
+    }
+
     const metalName = payable.metal;
     const deduction = payable.deductionValue;
     const unit = payable.deductionUnit;
@@ -342,7 +351,10 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
 
     if (!deduction || !balance || !index) return '';
 
-    return `(${metalName}): (Ensaye - ${deduction}${unit}) * ${balance}% ==> Índice ${index.name}`;
+    const formula = payableFormulas.find(f => f.id === payable.formulaId);
+    const formulaName = formula?.name || '';
+
+    return `${formulaName} - (${metalName}): (Ensaye - ${deduction}${unit}) * ${balance}% ==> Índice ${index.name}`;
   };
 
   const addPenalty = () => {
@@ -481,16 +493,20 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         if (quotasError) throw quotasError;
 
         if (formData.payables.length > 0) {
-          const payablesToInsert = formData.payables.map(p => ({
-            contract_id: contract.id,
-            formula_id: p.formulaId,
-            metal: p.metal,
-            deduction_value: parseFloat(p.deductionValue),
-            deduction_unit: p.deductionUnit,
-            balance_percentage: parseFloat(p.balancePercentage),
-            market_index_id: p.marketIndexId,
-            formula_text: generateFormulaText(p),
-          }));
+          const payablesToInsert = formData.payables.map(p => {
+            const isNoAplica = isPayableFormulaNoAplica(p.formulaId);
+
+            return {
+              contract_id: contract.id,
+              formula_id: p.formulaId,
+              metal: isNoAplica ? null : p.metal,
+              deduction_value: isNoAplica ? null : (p.deductionValue ? parseFloat(p.deductionValue) : null),
+              deduction_unit: isNoAplica ? null : p.deductionUnit,
+              balance_percentage: isNoAplica ? null : (p.balancePercentage ? parseFloat(p.balancePercentage) : null),
+              market_index_id: isNoAplica ? null : p.marketIndexId,
+              formula_text: generateFormulaText(p),
+            };
+          });
 
           const { error: payablesError } = await supabase
             .from('contract_payables')
@@ -879,24 +895,26 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                               </select>
                             </div>
 
-                            {/* Segunda fila: Metal e Índice de Mercado */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  Metal <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                  value={payable.metal}
-                                  onChange={(e) =>
-                                    updatePayable(payable.id, 'metal', e.target.value)
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                >
-                                  <option value="CU">Cu (Cobre)</option>
-                                  <option value="AG">Ag (Plata)</option>
-                                  <option value="AU">Au (Oro)</option>
-                                </select>
-                              </div>
+                            {payable.formulaId && !isPayableFormulaNoAplica(payable.formulaId) && (
+                              <>
+                                {/* Segunda fila: Metal e Índice de Mercado */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Metal <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                      value={payable.metal}
+                                      onChange={(e) =>
+                                        updatePayable(payable.id, 'metal', e.target.value)
+                                      }
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                      <option value="CU">Cu (Cobre)</option>
+                                      <option value="AG">Ag (Plata)</option>
+                                      <option value="AU">Au (Oro)</option>
+                                    </select>
+                                  </div>
 
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -967,20 +985,33 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                                 />
                               </div>
                             </div>
-                          </div>
 
-                          {payable.deductionValue &&
-                            payable.balancePercentage &&
-                            payable.marketIndexId && (
-                              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                {payable.deductionValue &&
+                                  payable.balancePercentage &&
+                                  payable.marketIndexId && (
+                                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                      <p className="text-sm font-medium text-gray-700 mb-1">
+                                        Fórmula Generada:
+                                      </p>
+                                      <p className="text-base font-mono text-blue-900">
+                                        {generateFormulaText(payable)}
+                                      </p>
+                                    </div>
+                                  )}
+                              </>
+                            )}
+
+                            {payable.formulaId && isPayableFormulaNoAplica(payable.formulaId) && (
+                              <div className="mt-4 p-4 bg-gray-100 border border-gray-300 rounded-lg">
                                 <p className="text-sm font-medium text-gray-700 mb-1">
-                                  Fórmula Generada:
+                                  Fórmula Seleccionada:
                                 </p>
-                                <p className="text-base font-mono text-blue-900">
-                                  {generateFormulaText(payable)}
+                                <p className="text-base font-mono text-gray-900">
+                                  No Aplica
                                 </p>
                               </div>
                             )}
+                          </div>
                         </div>
                       ))}
                     </div>
