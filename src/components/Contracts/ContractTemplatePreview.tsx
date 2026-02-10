@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, CheckCircle, Eye } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -59,13 +59,9 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
   const [template, setTemplate] = useState<TemplateDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const loadedRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    console.log('ContractTemplatePreview mounted with templateId:', templateId);
-    loadTemplateDetails();
-  }, [templateId]);
-
-  const loadTemplateDetails = async () => {
+  const loadTemplateDetails = useCallback(async () => {
     try {
       console.log('Loading template details for:', templateId);
       setLoading(true);
@@ -163,7 +159,15 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
       console.log('Setting loading to false');
       setLoading(false);
     }
-  };
+  }, [templateId]);
+
+  useEffect(() => {
+    console.log('ContractTemplatePreview mounted with templateId:', templateId);
+    if (loadedRef.current !== templateId) {
+      loadedRef.current = templateId;
+      loadTemplateDetails();
+    }
+  }, [templateId, loadTemplateDetails]);
 
   const formatSpecValue = (spec: any) => {
     if (spec.spec_type === 'range' && spec.min_value !== null && spec.max_value !== null) {
