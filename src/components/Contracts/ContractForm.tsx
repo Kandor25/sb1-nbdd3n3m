@@ -21,6 +21,7 @@ interface FormData {
   deliveryLocation: string;
   payables: PayableData[];
   penalties: PenaltyData[];
+  qualitySpecs: QualitySpecData[];
 }
 
 interface QuotaData {
@@ -94,6 +95,15 @@ interface PenaltyData {
   upperLimitUnit: string;
 }
 
+interface QualitySpecData {
+  id: string;
+  metal: string;
+  specType: 'range' | 'minimum' | 'maximum';
+  minValue: string;
+  maxValue: string;
+  unit: string;
+}
+
 interface PenaltyFormula {
   id: string;
   name: string;
@@ -142,6 +152,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     deliveryLocation: '',
     payables: [],
     penalties: [],
+    qualitySpecs: [],
   });
 
   useEffect(() => {
@@ -406,6 +417,47 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     return `${formulaName} - (${metal}): $${amountUsd} por TMS por cada ${lowerLimit}${lowerLimitUnit} por encima de ${upperLimit}${upperLimitUnit}`;
   };
 
+  const addQualitySpec = () => {
+    const newSpec: QualitySpecData = {
+      id: `temp-${Date.now()}`,
+      metal: 'CU',
+      specType: 'range',
+      minValue: '',
+      maxValue: '',
+      unit: '%',
+    };
+
+    setFormData(prev => ({ ...prev, qualitySpecs: [...prev.qualitySpecs, newSpec] }));
+  };
+
+  const removeQualitySpec = (id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      qualitySpecs: prev.qualitySpecs.filter(s => s.id !== id)
+    }));
+  };
+
+  const updateQualitySpec = (id: string, field: keyof QualitySpecData, value: any) => {
+    const newSpecs = formData.qualitySpecs.map(s =>
+      s.id === id ? { ...s, [field]: value } : s
+    );
+    setFormData(prev => ({ ...prev, qualitySpecs: newSpecs }));
+  };
+
+  const generateQualityFormulaText = (spec: QualitySpecData): string => {
+    const { metal, specType, minValue, maxValue, unit } = spec;
+
+    if (specType === 'range' && minValue && maxValue) {
+      return `${metal}: ${minValue} - ${maxValue} ${unit}`;
+    } else if (specType === 'minimum' && minValue) {
+      return `${metal}: >=${minValue} ${unit}`;
+    } else if (specType === 'maximum' && maxValue) {
+      return `${metal}: <${maxValue} ${unit}`;
+    }
+
+    return '';
+  };
+
   const isBasicSectionValid = () => {
     return (
       formData.contractType &&
@@ -537,6 +589,24 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
             .insert(penaltiesToInsert);
 
           if (penaltiesError) throw penaltiesError;
+        }
+
+        if (formData.qualitySpecs.length > 0) {
+          const qualitySpecsToInsert = formData.qualitySpecs.map(s => ({
+            contract_id: contract.id,
+            metal: s.metal,
+            spec_type: s.specType,
+            min_value: s.minValue ? parseFloat(s.minValue) : null,
+            max_value: s.maxValue ? parseFloat(s.maxValue) : null,
+            unit: s.unit,
+            formula_text: generateQualityFormulaText(s),
+          }));
+
+          const { error: qualitySpecsError } = await supabase
+            .from('contract_quality_specs')
+            .insert(qualitySpecsToInsert);
+
+          if (qualitySpecsError) throw qualitySpecsError;
         }
       }
 
@@ -1213,7 +1283,164 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                 </div>
               )}
 
-              {!['basic', 'incoterm', 'payables', 'penalties'].includes(currentSection) && (
+              {currentSection === 'quality' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-gray-900">Calidad / Granulometría</h3>
+                    <button
+                      onClick={addQualitySpec}
+                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Agregar Especificación
+                    </button>
+                  </div>
+
+                  {formData.qualitySpecs.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                      <p className="text-gray-500">No hay especificaciones de calidad agregadas</p>
+                      <p className="text-gray-400 text-sm mt-2">
+                        Haga clic en "Agregar Especificación" para comenzar
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {formData.qualitySpecs.map((spec, index) => (
+                        <div
+                          key={spec.id}
+                          className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm"
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-lg font-semibold text-gray-900">
+                              Especificación #{index + 1}
+                            </h4>
+                            <button
+                              onClick={() => removeQualitySpec(spec.id)}
+                              className="text-red-600 hover:text-red-700 transition-colors"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Metal / Elemento <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  value={spec.metal}
+                                  onChange={(e) =>
+                                    updateQualitySpec(spec.id, 'metal', e.target.value)
+                                  }
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  <option value="CU">Cu (Cobre)</option>
+                                  <option value="AG">Ag (Plata)</option>
+                                  <option value="AU">Au (Oro)</option>
+                                  <option value="AS">As (Arsénico)</option>
+                                  <option value="PB">Pb (Plomo)</option>
+                                  <option value="ZN">Zn (Zinc)</option>
+                                  <option value="FE">Fe (Hierro)</option>
+                                  <option value="S">S (Azufre)</option>
+                                  <option value="HG">Hg (Mercurio)</option>
+                                  <option value="BI">Bi (Bismuto)</option>
+                                </select>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Tipo de Especificación <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  value={spec.specType}
+                                  onChange={(e) =>
+                                    updateQualitySpec(spec.id, 'specType', e.target.value)
+                                  }
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  <option value="range">Por Rango</option>
+                                  <option value="minimum">Mínimo</option>
+                                  <option value="maximum">Máximo</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {(spec.specType === 'range' || spec.specType === 'minimum') && (
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Valor {spec.specType === 'range' ? 'Mínimo' : ''} <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={spec.minValue}
+                                    onChange={(e) =>
+                                      updateQualitySpec(spec.id, 'minValue', e.target.value)
+                                    }
+                                    placeholder="Ej: 20"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  />
+                                </div>
+                              )}
+
+                              {(spec.specType === 'range' || spec.specType === 'maximum') && (
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Valor {spec.specType === 'range' ? 'Máximo' : ''} <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={spec.maxValue}
+                                    onChange={(e) =>
+                                      updateQualitySpec(spec.id, 'maxValue', e.target.value)
+                                    }
+                                    placeholder="Ej: 25"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  />
+                                </div>
+                              )}
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Unidad <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  value={spec.unit}
+                                  onChange={(e) =>
+                                    updateQualitySpec(spec.id, 'unit', e.target.value)
+                                  }
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  <option value="%">% (Porcentaje)</option>
+                                  <option value="g/tms">g/tms (Gramos por tonelada métrica seca)</option>
+                                  <option value="oz/tc">oz/tc (Onzas por tonelada corta)</option>
+                                  <option value="ppm">ppm (Partes por millón)</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            {generateQualityFormulaText(spec) && (
+                              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                                <p className="text-sm font-medium text-gray-700 mb-1">
+                                  Fórmula Generada:
+                                </p>
+                                <p className="text-base font-mono text-green-900">
+                                  {generateQualityFormulaText(spec)}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!['basic', 'incoterm', 'payables', 'penalties', 'quality'].includes(currentSection) && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">
                     Esta sección está en desarrollo
