@@ -22,6 +22,7 @@ interface FormData {
   payables: PayableData[];
   penalties: PenaltyData[];
   qualitySpecs: QualitySpecData[];
+  refiningExpenses: RefiningExpenseData[];
 }
 
 interface QuotaData {
@@ -104,7 +105,21 @@ interface QualitySpecData {
   unit: string;
 }
 
+interface RefiningExpenseData {
+  id: string;
+  formulaId: string;
+  metal: string;
+  amountUsd: string;
+  unit: string;
+}
+
 interface PenaltyFormula {
+  id: string;
+  name: string;
+  description: string;
+}
+
+interface RefiningExpenseFormula {
   id: string;
   name: string;
   description: string;
@@ -137,6 +152,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   const [incoterms, setIncoterms] = useState<Incoterm[]>([]);
   const [payableFormulas, setPayableFormulas] = useState<PayableFormula[]>([]);
   const [penaltyFormulas, setPenaltyFormulas] = useState<PenaltyFormula[]>([]);
+  const [refiningExpenseFormulas, setRefiningExpenseFormulas] = useState<RefiningExpenseFormula[]>([]);
   const [marketIndices, setMarketIndices] = useState<MarketIndex[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -153,6 +169,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     payables: [],
     penalties: [],
     qualitySpecs: [],
+    refiningExpenses: [],
   });
 
   useEffect(() => {
@@ -173,7 +190,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
 
   const loadFormData = async () => {
     try {
-      const [vendorsRes, buyersRes, productsRes, countriesRes, incotermsRes, formulasRes, penaltyFormulasRes, indicesRes] = await Promise.all([
+      const [vendorsRes, buyersRes, productsRes, countriesRes, incotermsRes, formulasRes, penaltyFormulasRes, refiningExpenseFormulasRes, indicesRes] = await Promise.all([
         supabase.from('vendors').select('*').order('name'),
         supabase.from('buyers').select('*').order('name'),
         supabase.from('products').select('*').order('name'),
@@ -181,6 +198,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         supabase.from('incoterms').select('*').order('code'),
         supabase.from('payable_formulas').select('*').order('name'),
         supabase.from('penalty_formulas').select('*').order('name'),
+        supabase.from('refining_expense_formulas').select('*').order('name'),
         supabase.from('market_indices').select('*').order('name'),
       ]);
 
@@ -198,6 +216,12 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         setPenaltyFormulas(penaltyFormulasRes.data);
       } else {
         console.error('Error al cargar fórmulas de penalidades:', penaltyFormulasRes.error);
+      }
+      if (refiningExpenseFormulasRes.data) {
+        console.log('Fórmulas de gastos de refinación cargadas:', refiningExpenseFormulasRes.data);
+        setRefiningExpenseFormulas(refiningExpenseFormulasRes.data);
+      } else {
+        console.error('Error al cargar fórmulas de gastos de refinación:', refiningExpenseFormulasRes.error);
       }
       if (indicesRes.data) {
         console.log('Índices cargados:', indicesRes.data);
@@ -458,6 +482,49 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     return '';
   };
 
+  const addRefiningExpense = () => {
+    const newExpense: RefiningExpenseData = {
+      id: `temp-${Date.now()}`,
+      formulaId: '',
+      metal: 'CU',
+      amountUsd: '',
+      unit: '/lib',
+    };
+
+    setFormData(prev => ({ ...prev, refiningExpenses: [...prev.refiningExpenses, newExpense] }));
+  };
+
+  const removeRefiningExpense = (id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      refiningExpenses: prev.refiningExpenses.filter(e => e.id !== id)
+    }));
+  };
+
+  const updateRefiningExpense = (id: string, field: keyof RefiningExpenseData, value: any) => {
+    const newExpenses = formData.refiningExpenses.map(e =>
+      e.id === id ? { ...e, [field]: value } : e
+    );
+    setFormData(prev => ({ ...prev, refiningExpenses: newExpenses }));
+  };
+
+  const isRefiningExpenseFormulaNoAplica = (formulaId: string): boolean => {
+    const formula = refiningExpenseFormulas.find(f => f.id === formulaId);
+    return formula?.name === 'No Aplica';
+  };
+
+  const generateRefiningExpenseFormulaText = (expense: RefiningExpenseData): string => {
+    if (isRefiningExpenseFormulaNoAplica(expense.formulaId)) {
+      return 'No Aplica';
+    }
+
+    const { metal, amountUsd, unit } = expense;
+
+    if (!amountUsd) return '';
+
+    return `(${metal}): $${amountUsd}${unit}`;
+  };
+
   const isBasicSectionValid = () => {
     return (
       formData.contractType &&
@@ -607,6 +674,27 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
             .insert(qualitySpecsToInsert);
 
           if (qualitySpecsError) throw qualitySpecsError;
+        }
+
+        if (formData.refiningExpenses.length > 0) {
+          const refiningExpensesToInsert = formData.refiningExpenses.map(e => {
+            const isNoAplica = isRefiningExpenseFormulaNoAplica(e.formulaId);
+
+            return {
+              contract_id: contract.id,
+              formula_id: e.formulaId,
+              metal: isNoAplica ? null : e.metal,
+              amount_usd: isNoAplica ? null : (e.amountUsd ? parseFloat(e.amountUsd) : null),
+              unit: isNoAplica ? null : e.unit,
+              formula_text: generateRefiningExpenseFormulaText(e),
+            };
+          });
+
+          const { error: refiningExpensesError } = await supabase
+            .from('contract_refining_expenses')
+            .insert(refiningExpensesToInsert);
+
+          if (refiningExpensesError) throw refiningExpensesError;
         }
       }
 
@@ -1440,7 +1528,155 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                 </div>
               )}
 
-              {!['basic', 'incoterm', 'payables', 'penalties', 'quality'].includes(currentSection) && (
+              {currentSection === 'refining' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-gray-900">Gastos de Refinación</h3>
+                    <button
+                      onClick={addRefiningExpense}
+                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Agregar Gasto
+                    </button>
+                  </div>
+
+                  {formData.refiningExpenses.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                      <p className="text-gray-500">No hay gastos de refinación agregados</p>
+                      <p className="text-gray-400 text-sm mt-2">
+                        Haga clic en "Agregar Gasto" para comenzar
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {formData.refiningExpenses.map((expense, index) => (
+                        <div
+                          key={expense.id}
+                          className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm"
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-lg font-semibold text-gray-900">
+                              Gasto #{index + 1}
+                            </h4>
+                            <button
+                              onClick={() => removeRefiningExpense(expense.id)}
+                              className="text-red-600 hover:text-red-700 transition-colors"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Fórmula <span className="text-red-500">*</span>
+                              </label>
+                              <select
+                                value={expense.formulaId}
+                                onChange={(e) =>
+                                  updateRefiningExpense(expense.id, 'formulaId', e.target.value)
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="">Seleccione una fórmula</option>
+                                {refiningExpenseFormulas.map((formula) => (
+                                  <option key={formula.id} value={formula.id}>
+                                    {formula.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            {expense.formulaId && !isRefiningExpenseFormulaNoAplica(expense.formulaId) && (
+                              <>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Metal <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                      value={expense.metal}
+                                      onChange={(e) =>
+                                        updateRefiningExpense(expense.id, 'metal', e.target.value)
+                                      }
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                      <option value="CU">CU (Cobre)</option>
+                                      <option value="AG">AG (Plata)</option>
+                                      <option value="AU">AU (Oro)</option>
+                                      <option value="PB">PB (Plomo)</option>
+                                      <option value="ZN">ZN (Zinc)</option>
+                                    </select>
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Monto en USD <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      value={expense.amountUsd}
+                                      onChange={(e) =>
+                                        updateRefiningExpense(expense.id, 'amountUsd', e.target.value)
+                                      }
+                                      placeholder="Ej: 0.07"
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Unidad <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                      value={expense.unit}
+                                      onChange={(e) =>
+                                        updateRefiningExpense(expense.id, 'unit', e.target.value)
+                                      }
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                      <option value="/lib">/lib (por libra)</option>
+                                      <option value="/oz">/oz (por onza)</option>
+                                      <option value="/tms">/tms (por tonelada métrica seca)</option>
+                                      <option value="%">% (porcentaje)</option>
+                                    </select>
+                                  </div>
+                                </div>
+
+                                {expense.amountUsd && (
+                                  <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                                    <p className="text-sm font-medium text-gray-700 mb-1">
+                                      Fórmula Generada:
+                                    </p>
+                                    <p className="text-base font-mono text-purple-900">
+                                      {generateRefiningExpenseFormulaText(expense)}
+                                    </p>
+                                  </div>
+                                )}
+                              </>
+                            )}
+
+                            {expense.formulaId && isRefiningExpenseFormulaNoAplica(expense.formulaId) && (
+                              <div className="mt-4 p-4 bg-gray-100 border border-gray-300 rounded-lg">
+                                <p className="text-sm font-medium text-gray-700 mb-1">
+                                  Fórmula Seleccionada:
+                                </p>
+                                <p className="text-base font-mono text-gray-900">
+                                  No Aplica
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!['basic', 'incoterm', 'payables', 'penalties', 'quality', 'refining'].includes(currentSection) && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">
                     Esta sección está en desarrollo
