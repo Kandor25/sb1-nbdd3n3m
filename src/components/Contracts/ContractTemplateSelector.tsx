@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, FileText, CheckCircle } from 'lucide-react';
+import { X, ChevronLeft, FileText, CheckCircle, Eye } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import ContractTemplatePreview from './ContractTemplatePreview';
 
 interface ContractTemplate {
   id: string;
@@ -28,6 +29,7 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
   const [templates, setTemplates] = useState<ContractTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string>('all');
+  const [previewTemplateId, setPreviewTemplateId] = useState<string | null>(null);
 
   useEffect(() => {
     loadTemplates();
@@ -67,8 +69,19 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+    <>
+      {previewTemplateId && (
+        <ContractTemplatePreview
+          templateId={previewTemplateId}
+          onClose={() => setPreviewTemplateId(null)}
+          onSelect={() => {
+            onSelectTemplate(previewTemplateId);
+            setPreviewTemplateId(null);
+          }}
+        />
+      )}
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center">
             <button
@@ -146,10 +159,9 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredTemplates.map((template) => (
-                <button
+                <div
                   key={template.id}
-                  onClick={() => onSelectTemplate(template.id)}
-                  className="group bg-white border-2 border-gray-200 rounded-lg p-6 text-left hover:border-blue-500 hover:shadow-lg transition-all"
+                  className="group bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-blue-500 hover:shadow-lg transition-all"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
@@ -160,14 +172,13 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
                         {getTypeLabel(template.contract_type)}
                       </span>
                     </div>
-                    <CheckCircle className="w-6 h-6 text-gray-300 group-hover:text-blue-600 transition-colors flex-shrink-0 ml-2" />
                   </div>
 
                   <p className="text-gray-600 text-sm mb-4">
                     {template.description}
                   </p>
 
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-2 text-sm mb-4">
                     <div className="flex items-center text-gray-700">
                       <span className="font-medium mr-2">Producto:</span>
                       <span>{template.product_type}</span>
@@ -183,7 +194,24 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
                       </div>
                     )}
                   </div>
-                </button>
+
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setPreviewTemplateId(template.id)}
+                      className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium flex items-center justify-center"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Ver Preview
+                    </button>
+                    <button
+                      onClick={() => onSelectTemplate(template.id)}
+                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Seleccionar
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -208,6 +236,7 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
         </div>
       </div>
     </div>
+    </>
   );
 };
 
