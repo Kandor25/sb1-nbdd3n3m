@@ -11,6 +11,28 @@ interface TemplateDetails {
   incoterm_code: string;
   default_tolerance: number;
   default_h2o_percentage: number;
+  duration_months?: number;
+  monthly_quantity_tmh?: number;
+  monthly_quantity_tms?: number;
+  incoterm_delivery_location?: string;
+  rollback?: string;
+  treatment_charge_usd_per_tms?: number;
+  escalator_treatment_charge?: string;
+  escalator_refining_expenses?: string;
+  payment_provisional_percentage?: number;
+  payment_provisional_days?: number;
+  payment_provisional_conditions?: string;
+  payment_final_conditions?: string;
+  pricing_period?: string;
+  pricing_period_details?: string;
+  pricing_optionality?: boolean;
+  pricing_declaration_deadline?: string;
+  pricing_fixation_option?: boolean;
+  sampling_weights_location?: string;
+  sampling_assays_procedure?: string;
+  sampling_costs?: string;
+  sampling_final_assays?: string;
+  loss_percentage?: number;
   payables: Array<{
     metal: string;
     formula_id: string;
@@ -63,7 +85,6 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
 
   const loadTemplateDetails = useCallback(async () => {
     try {
-      console.log('Loading template details for:', templateId);
       setLoading(true);
       setError(null);
 
@@ -73,16 +94,12 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
         .eq('id', templateId)
         .maybeSingle();
 
-      console.log('Template data:', templateData);
-
       if (templateError) {
-        console.error('Error loading template:', templateError);
         setError('Error al cargar la plantilla');
         throw templateError;
       }
 
       if (!templateData) {
-        console.error('Template not found');
         setError('Plantilla no encontrada');
         return;
       }
@@ -112,9 +129,11 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
         `)
         .eq('template_id', templateId);
 
-      if (payablesRes.error) console.error('Error loading payables:', payablesRes.error);
-      if (penaltiesRes.error) console.error('Error loading penalties:', penaltiesRes.error);
-      if (refiningExpensesRes.error) console.error('Error loading refining expenses:', refiningExpensesRes.error);
+      const qualitySpecsRes = await supabase
+        .from('contract_template_quality_specs')
+        .select('*')
+        .eq('template_id', templateId);
+
 
       const payables = (payablesRes.data || []).map((p: any) => ({
         metal: p.metal,
@@ -143,26 +162,31 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
         unit: r.unit,
       }));
 
+      const quality_specs = (qualitySpecsRes.data || []).map((q: any) => ({
+        metal: q.metal,
+        spec_type: q.spec_type,
+        min_value: q.min_value,
+        max_value: q.max_value,
+        unit: q.unit,
+        formula_text: q.formula_text,
+      }));
+
       const finalTemplate = {
         ...templateData,
         payables,
         penalties,
-        quality_specs: [],
+        quality_specs,
         refining_expenses,
       };
-      console.log('Setting template:', finalTemplate);
       setTemplate(finalTemplate);
     } catch (error) {
-      console.error('Error loading template details:', error);
       setError('Error al cargar los detalles de la plantilla');
     } finally {
-      console.log('Setting loading to false');
       setLoading(false);
     }
   }, [templateId]);
 
   useEffect(() => {
-    console.log('ContractTemplatePreview mounted with templateId:', templateId);
     if (loadedRef.current !== templateId) {
       loadedRef.current = templateId;
       loadTemplateDetails();
@@ -180,10 +204,7 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
     return spec.formula_text;
   };
 
-  console.log('Render - loading:', loading, 'error:', error, 'template:', template);
-
   if (loading) {
-    console.log('Showing loading state');
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl p-8">
@@ -216,11 +237,9 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
   }
 
   if (!template) {
-    console.log('Template is null, not rendering modal');
     return null;
   }
 
-  console.log('Rendering template preview modal');
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
@@ -258,13 +277,48 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
 
           <div className="space-y-6">
             <Section title="Cantidad/Plazo">
-              <InfoRow label="Tolerancia" value={`${template.default_tolerance}%`} />
+              {template.duration_months && (
+                <InfoRow label="Duración" value={`${template.duration_months} meses`} />
+              )}
               <InfoRow label="H2O" value={`${template.default_h2o_percentage}%`} />
+              {template.monthly_quantity_tmh && template.monthly_quantity_tms && (
+                <InfoRow
+                  label="Cantidad Mensual"
+                  value={`${template.monthly_quantity_tmh} tmh / ${template.monthly_quantity_tms} tms por mes`}
+                />
+              )}
+              <InfoRow label="Tolerancia" value={`${template.default_tolerance}%`} />
             </Section>
 
             <Section title="Incoterm de Entrega">
               <InfoRow label="Incoterm" value={template.incoterm_code} />
+              {template.incoterm_delivery_location && (
+                <InfoRow label="Ubicación" value={template.incoterm_delivery_location} />
+              )}
             </Section>
+
+            {template.rollback && (
+              <Section title="Rollback">
+                <InfoRow label="" value={template.rollback} />
+              </Section>
+            )}
+
+            {template.quality_specs.length > 0 && (
+              <Section title="Calidad / Granulometría">
+                {template.quality_specs.map((spec, index) => {
+                  const metalName = spec.metal === 'CU' ? 'Cobre' :
+                                   spec.metal === 'AG' ? 'Plata' :
+                                   spec.metal === 'AU' ? 'Oro' : spec.metal;
+                  return (
+                    <InfoRow
+                      key={index}
+                      label={`${spec.metal} (${metalName})`}
+                      value={formatSpecValue(spec)}
+                    />
+                  );
+                })}
+              </Section>
+            )}
 
 
             {template.payables.length > 0 && (
@@ -294,6 +348,25 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
               </Section>
             )}
 
+            {(template.treatment_charge_usd_per_tms !== undefined || template.treatment_charge_usd_per_tms !== null) && (
+              <Section title="Maquila o Cargo de Tratamiento">
+                <InfoRow
+                  label=""
+                  value={
+                    template.treatment_charge_usd_per_tms === 0
+                      ? '$xxx/tms'
+                      : `$${template.treatment_charge_usd_per_tms}/tms`
+                  }
+                />
+              </Section>
+            )}
+
+            {template.escalator_treatment_charge && (
+              <Section title="Escalador en Maquila">
+                <InfoRow label="" value={template.escalator_treatment_charge} />
+              </Section>
+            )}
+
             {template.refining_expenses.length > 0 && (
               <Section title="Gastos de Refinación">
                 {template.refining_expenses.map((expense, index) => (
@@ -307,6 +380,12 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
                     }
                   />
                 ))}
+              </Section>
+            )}
+
+            {template.escalator_refining_expenses && (
+              <Section title="Escalador en Gastos de Refinación">
+                <InfoRow label="" value={template.escalator_refining_expenses} />
               </Section>
             )}
 
@@ -330,6 +409,78 @@ const ContractTemplatePreview: React.FC<ContractTemplatePreviewProps> = ({
                     </div>
                   </div>
                 ))}
+              </Section>
+            )}
+
+            {(template.payment_provisional_conditions || template.payment_final_conditions) && (
+              <Section title="Pagos">
+                {template.payment_provisional_conditions && (
+                  <div className="mb-3">
+                    <div className="font-semibold text-gray-800 mb-1">Pago Provisional:</div>
+                    <div className="text-gray-700 pl-4">{template.payment_provisional_conditions}</div>
+                  </div>
+                )}
+                {template.payment_final_conditions && (
+                  <div className="mb-3 last:mb-0">
+                    <div className="font-semibold text-gray-800 mb-1">Pago Final:</div>
+                    <div className="text-gray-700 pl-4">{template.payment_final_conditions}</div>
+                  </div>
+                )}
+              </Section>
+            )}
+
+            {(template.pricing_period || template.pricing_period_details) && (
+              <Section title="Período de Cotizaciones">
+                {template.pricing_period && (
+                  <InfoRow label="Período" value={template.pricing_period} />
+                )}
+                {template.pricing_period_details && (
+                  <div className="text-gray-700 whitespace-pre-line">{template.pricing_period_details}</div>
+                )}
+                {template.pricing_optionality !== undefined && (
+                  <InfoRow label="Opcionalidad" value={template.pricing_optionality ? 'Sí' : 'No'} />
+                )}
+                {template.pricing_declaration_deadline && (
+                  <InfoRow label="Declarable" value={template.pricing_declaration_deadline} />
+                )}
+                {template.pricing_fixation_option !== undefined && (
+                  <InfoRow label="Opción de fijación" value={template.pricing_fixation_option ? 'Sí' : 'No'} />
+                )}
+              </Section>
+            )}
+
+            {(template.sampling_weights_location || template.sampling_assays_procedure) && (
+              <Section title="Muestreo">
+                {template.sampling_weights_location && (
+                  <div className="mb-3">
+                    <div className="font-semibold text-gray-800 mb-1">Pesos:</div>
+                    <div className="text-gray-700 pl-4">{template.sampling_weights_location}</div>
+                  </div>
+                )}
+                {template.sampling_assays_procedure && (
+                  <div className="mb-3">
+                    <div className="font-semibold text-gray-800 mb-1">Ensayes:</div>
+                    <div className="text-gray-700 pl-4">{template.sampling_assays_procedure}</div>
+                  </div>
+                )}
+                {template.sampling_costs && (
+                  <div className="mb-3">
+                    <div className="font-semibold text-gray-800 mb-1">Costos:</div>
+                    <div className="text-gray-700 pl-4">{template.sampling_costs}</div>
+                  </div>
+                )}
+                {template.sampling_final_assays && (
+                  <div className="mb-3 last:mb-0">
+                    <div className="font-semibold text-gray-800 mb-1">Leyes finales:</div>
+                    <div className="text-gray-700 pl-4">{template.sampling_final_assays}</div>
+                  </div>
+                )}
+              </Section>
+            )}
+
+            {template.loss_percentage !== undefined && template.loss_percentage !== null && (
+              <Section title="Merma">
+                <InfoRow label="" value={`${template.loss_percentage}%`} />
               </Section>
             )}
           </div>
