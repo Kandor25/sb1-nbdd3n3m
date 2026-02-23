@@ -19,6 +19,9 @@ interface FormData {
   quotas: QuotaData[];
   incotermId: string;
   deliveryLocation: string;
+  rollbackApplies: boolean;
+  rollbackValue: string;
+  rollbackUnit: string;
   payables: PayableData[];
   penalties: PenaltyData[];
   qualitySpecs: QualitySpecData[];
@@ -166,6 +169,9 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     quotas: [],
     incotermId: '',
     deliveryLocation: '',
+    rollbackApplies: false,
+    rollbackValue: '',
+    rollbackUnit: '$/tm',
     payables: [],
     penalties: [],
     qualitySpecs: [],
@@ -589,6 +595,9 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
           end_month: formData.endMonth + '-01',
           incoterm_id: formData.incotermId,
           delivery_location: formData.deliveryLocation,
+          rollback_applies: formData.rollbackApplies,
+          rollback_value: formData.rollbackApplies && formData.rollbackValue ? parseFloat(formData.rollbackValue) : null,
+          rollback_unit: formData.rollbackApplies ? formData.rollbackUnit : null,
           status: 'draft',
         })
         .select()
@@ -980,6 +989,83 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {currentSection === 'rollback' && (
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-gray-900">Rollback</h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        ¿Aplica Rollback?
+                      </label>
+                      <div className="space-y-2">
+                        <label className="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                          <input
+                            type="radio"
+                            name="rollbackApplies"
+                            checked={!formData.rollbackApplies}
+                            onChange={() => {
+                              updateFormData('rollbackApplies', false);
+                              updateFormData('rollbackValue', '');
+                            }}
+                            className="w-4 h-4 text-blue-600"
+                          />
+                          <span className="text-gray-900 font-medium">No aplica</span>
+                        </label>
+
+                        <label className="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                          <input
+                            type="radio"
+                            name="rollbackApplies"
+                            checked={formData.rollbackApplies}
+                            onChange={() => updateFormData('rollbackApplies', true)}
+                            className="w-4 h-4 text-blue-600"
+                          />
+                          <span className="text-gray-900 font-medium">Aplicar</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {formData.rollbackApplies && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Valor <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={formData.rollbackValue}
+                              onChange={(e) => updateFormData('rollbackValue', e.target.value)}
+                              placeholder="Ej: 50"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Unidad <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.rollbackUnit}
+                              onChange={(e) => updateFormData('rollbackUnit', e.target.value)}
+                              placeholder="$/tm"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="text-sm text-blue-700">
+                          <strong>Vista previa:</strong> {formData.rollbackValue || '0'} {formData.rollbackUnit || '$/tm'}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
