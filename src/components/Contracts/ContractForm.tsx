@@ -24,6 +24,9 @@ interface FormData {
   rollbackUnit: string;
   payables: PayableData[];
   processing: ProcessingData[];
+  processingEscalatorApplies: boolean;
+  processingEscalatorValue: string;
+  processingEscalatorUnit: string;
   penalties: PenaltyData[];
   qualitySpecs: QualitySpecData[];
   refiningExpenses: RefiningExpenseData[];
@@ -193,6 +196,9 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     rollbackUnit: '$/tm',
     payables: [],
     processing: [],
+    processingEscalatorApplies: false,
+    processingEscalatorValue: '',
+    processingEscalatorUnit: '',
     penalties: [],
     qualitySpecs: [],
     refiningExpenses: [],
@@ -1490,6 +1496,84 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                 </div>
               )}
 
+              {currentSection === 'processing-escalator' && (
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-gray-900">Escalador en Maquila</h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        ¿Aplica Escalador en Maquila? <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="processingEscalatorApplies"
+                            checked={!formData.processingEscalatorApplies}
+                            onChange={() =>
+                              setFormData({ ...formData, processingEscalatorApplies: false, processingEscalatorValue: '', processingEscalatorUnit: '' })
+                            }
+                            className="mr-2"
+                          />
+                          No aplica
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="processingEscalatorApplies"
+                            checked={formData.processingEscalatorApplies}
+                            onChange={() =>
+                              setFormData({ ...formData, processingEscalatorApplies: true })
+                            }
+                            className="mr-2"
+                          />
+                          Aplicar
+                        </label>
+                      </div>
+                    </div>
+
+                    {formData.processingEscalatorApplies && (
+                      <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Valor <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={formData.processingEscalatorValue}
+                            onChange={(e) =>
+                              setFormData({ ...formData, processingEscalatorValue: e.target.value })
+                            }
+                            placeholder="Ej: 0.5"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Unidad <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            value={formData.processingEscalatorUnit}
+                            onChange={(e) =>
+                              setFormData({ ...formData, processingEscalatorUnit: e.target.value })
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="">Seleccionar unidad...</option>
+                            <option value="gtm">gtm</option>
+                            <option value="tms">tms</option>
+                            <option value="%">%</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {currentSection === 'penalties' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
@@ -1989,7 +2073,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                 </div>
               )}
 
-              {!['basic', 'incoterm', 'payables', 'penalties', 'quality', 'refining'].includes(currentSection) && (
+              {!['basic', 'incoterm', 'payables', 'penalties', 'quality', 'refining', 'processing', 'processing-escalator'].includes(currentSection) && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">
                     Esta sección está en desarrollo
