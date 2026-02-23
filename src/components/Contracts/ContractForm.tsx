@@ -2445,6 +2445,43 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                           </div>
                         </div>
                       ))}
+
+                      {formData.paymentTerms.length > 0 && (
+                        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-sm font-medium text-blue-900 mb-2">
+                            Fórmula Seleccionada:
+                          </p>
+                          <div className="space-y-2">
+                            {formData.paymentTerms.map((payment, index) => {
+                              const elementosLabel = payment.knownElements
+                                ? {
+                                    peso_humedo: 'Peso Húmedo',
+                                    peso_seco: 'Peso Seco',
+                                    ensayes: 'Ensayes',
+                                    cotizacion: 'Cotización',
+                                    todos: 'Todos los Elementos'
+                                  }[payment.knownElements] || payment.knownElements
+                                : '';
+
+                              return (
+                                <p key={payment.id} className="text-base font-mono text-blue-800">
+                                  {payment.paymentType === 'provisional' && payment.advancePercentage && payment.daysFromIssuance && (
+                                    <>Pago Provisional - {payment.advancePercentage}% a {payment.daysFromIssuance} días</>
+                                  )}
+                                  {payment.paymentType === 'final' && payment.knownElements && payment.daysFromIssuance && (
+                                    <>Pago Final - A Elementos Conocidos: {elementosLabel} - {payment.daysFromIssuance} días</>
+                                  )}
+                                  {(!payment.daysFromIssuance ||
+                                    (payment.paymentType === 'provisional' && !payment.advancePercentage) ||
+                                    (payment.paymentType === 'final' && !payment.knownElements)) && (
+                                    <span className="text-gray-500 italic">Pago #{index + 1} - Incompleto</span>
+                                  )}
+                                </p>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
