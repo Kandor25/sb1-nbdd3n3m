@@ -33,6 +33,9 @@ interface FormData {
   refiningEscalatorApplies: boolean;
   refiningEscalatorValue: string;
   refiningEscalatorUnit: string;
+  samplingFormulaId: string;
+  samplingIncotermId: string;
+  samplingReference: string;
 }
 
 interface QuotaData {
@@ -152,6 +155,14 @@ interface ProcessingData {
   unit: string;
 }
 
+interface SamplingFormula {
+  id: string;
+  name: string;
+  description: string;
+  requires_incoterm: boolean;
+  requires_reference: boolean;
+}
+
 const SECTIONS = [
   { id: 'basic', label: 'Información Básica/Cantidad/Plazo' },
   { id: 'incoterm', label: 'Incoterm Entrega' },
@@ -181,6 +192,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   const [processingFormulas, setProcessingFormulas] = useState<ProcessingFormula[]>([]);
   const [penaltyFormulas, setPenaltyFormulas] = useState<PenaltyFormula[]>([]);
   const [refiningExpenseFormulas, setRefiningExpenseFormulas] = useState<RefiningExpenseFormula[]>([]);
+  const [samplingFormulas, setSamplingFormulas] = useState<SamplingFormula[]>([]);
   const [marketIndices, setMarketIndices] = useState<MarketIndex[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -208,6 +220,9 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     refiningEscalatorApplies: false,
     refiningEscalatorValue: '',
     refiningEscalatorUnit: '',
+    samplingFormulaId: '',
+    samplingIncotermId: '',
+    samplingReference: '',
   });
 
   useEffect(() => {
@@ -228,7 +243,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
 
   const loadFormData = async () => {
     try {
-      const [vendorsRes, buyersRes, productsRes, countriesRes, incotermsRes, formulasRes, processingFormulasRes, penaltyFormulasRes, refiningExpenseFormulasRes, indicesRes] = await Promise.all([
+      const [vendorsRes, buyersRes, productsRes, countriesRes, incotermsRes, formulasRes, processingFormulasRes, penaltyFormulasRes, refiningExpenseFormulasRes, samplingFormulasRes, indicesRes] = await Promise.all([
         supabase.from('vendors').select('*').order('name'),
         supabase.from('buyers').select('*').order('name'),
         supabase.from('products').select('*').order('name'),
@@ -238,6 +253,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         supabase.from('processing_formulas').select('*').order('name'),
         supabase.from('penalty_formulas').select('*').order('name'),
         supabase.from('refining_expense_formulas').select('*').order('name'),
+        supabase.from('sampling_formulas').select('*').order('name'),
         supabase.from('market_indices').select('*').order('name'),
       ]);
 
@@ -267,6 +283,12 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         setRefiningExpenseFormulas(refiningExpenseFormulasRes.data);
       } else {
         console.error('Error al cargar fórmulas de gastos de refinación:', refiningExpenseFormulasRes.error);
+      }
+      if (samplingFormulasRes.data) {
+        console.log('Fórmulas de muestreo cargadas:', samplingFormulasRes.data);
+        setSamplingFormulas(samplingFormulasRes.data);
+      } else {
+        console.error('Error al cargar fórmulas de muestreo:', samplingFormulasRes.error);
       }
       if (indicesRes.data) {
         console.log('Índices cargados:', indicesRes.data);
@@ -2157,7 +2179,93 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                 </div>
               )}
 
-              {!['basic', 'incoterm', 'payables', 'penalties', 'quality', 'refining', 'processing', 'processing-escalator', 'refining-escalator'].includes(currentSection) && (
+              {currentSection === 'weight-sampling' && (
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-gray-900">Muestreo de Pesos</h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Fórmula de Muestreo <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={formData.samplingFormulaId}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            samplingFormulaId: e.target.value,
+                            samplingIncotermId: '',
+                            samplingReference: ''
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Seleccionar fórmula...</option>
+                        {samplingFormulas.map((formula) => (
+                          <option key={formula.id} value={formula.id}>
+                            {formula.name} - {formula.description}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {formData.samplingFormulaId && samplingFormulas.find(f => f.id === formData.samplingFormulaId)?.requires_incoterm && (
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Incoterm <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            value={formData.samplingIncotermId}
+                            onChange={(e) =>
+                              setFormData({ ...formData, samplingIncotermId: e.target.value })
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="">Seleccionar incoterm...</option>
+                            {incoterms.map((incoterm) => (
+                              <option key={incoterm.id} value={incoterm.id}>
+                                {incoterm.code} - {incoterm.description}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Referencia <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.samplingReference}
+                            onChange={(e) =>
+                              setFormData({ ...formData, samplingReference: e.target.value })
+                            }
+                            placeholder="Ingrese la referencia..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {formData.samplingFormulaId && (
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm font-medium text-blue-900 mb-1">
+                          Fórmula Seleccionada:
+                        </p>
+                        <p className="text-base font-mono text-blue-800">
+                          {samplingFormulas.find(f => f.id === formData.samplingFormulaId)?.name}
+                        </p>
+                        <p className="text-sm text-blue-700 mt-2">
+                          {samplingFormulas.find(f => f.id === formData.samplingFormulaId)?.description}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {!['basic', 'incoterm', 'payables', 'penalties', 'quality', 'refining', 'processing', 'processing-escalator', 'refining-escalator', 'weight-sampling'].includes(currentSection) && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">
                     Esta sección está en desarrollo
