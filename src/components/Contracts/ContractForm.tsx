@@ -37,6 +37,9 @@ interface FormData {
   samplingIncotermId: string;
   samplingReference: string;
   paymentTerms: PaymentTermData[];
+  wasteApplies: 'no_aplica' | 'aplica';
+  wasteValue: string;
+  wasteUnit: string;
 }
 
 interface PaymentTermData {
@@ -233,6 +236,9 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     samplingIncotermId: '',
     samplingReference: '',
     paymentTerms: [],
+    wasteApplies: 'no_aplica',
+    wasteValue: '',
+    wasteUnit: '%',
   });
 
   useEffect(() => {
@@ -702,6 +708,9 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
           rollback_applies: formData.rollbackApplies,
           rollback_value: formData.rollbackApplies && formData.rollbackValue ? parseFloat(formData.rollbackValue) : null,
           rollback_unit: formData.rollbackApplies ? formData.rollbackUnit : null,
+          waste_applies: formData.wasteApplies,
+          waste_value: formData.wasteApplies === 'aplica' && formData.wasteValue ? parseFloat(formData.wasteValue) : null,
+          waste_unit: formData.wasteApplies === 'aplica' ? formData.wasteUnit : null,
           status: 'draft',
         })
         .select()
@@ -2487,7 +2496,97 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                 </div>
               )}
 
-              {!['basic', 'incoterm', 'payables', 'penalties', 'quality', 'refining', 'processing', 'processing-escalator', 'refining-escalator', 'weight-sampling', 'payments'].includes(currentSection) && (
+              {currentSection === 'waste' && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-medium text-gray-900">Merma</h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Aplicación de Merma
+                      </label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            value="no_aplica"
+                            checked={formData.wasteApplies === 'no_aplica'}
+                            onChange={(e) => updateFormData('wasteApplies', e.target.value)}
+                            className="mr-2"
+                          />
+                          No Aplica
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            value="aplica"
+                            checked={formData.wasteApplies === 'aplica'}
+                            onChange={(e) => updateFormData('wasteApplies', e.target.value)}
+                            className="mr-2"
+                          />
+                          Aplicar
+                        </label>
+                      </div>
+                    </div>
+
+                    {formData.wasteApplies === 'aplica' && (
+                      <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Valor <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={formData.wasteValue}
+                              onChange={(e) => updateFormData('wasteValue', e.target.value)}
+                              placeholder="Ej: 0.5"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Unidad <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              value={formData.wasteUnit}
+                              onChange={(e) => updateFormData('wasteUnit', e.target.value)}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="%">%</option>
+                              <option value="gtm">gtm</option>
+                              <option value="tms">tms</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {formData.wasteApplies === 'aplica' && formData.wasteValue && (
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm font-medium text-blue-900 mb-1">
+                          Fórmula Seleccionada:
+                        </p>
+                        <p className="text-base font-mono text-blue-800">
+                          Merma: {formData.wasteValue} {formData.wasteUnit}
+                        </p>
+                      </div>
+                    )}
+
+                    {formData.wasteApplies === 'no_aplica' && (
+                      <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <p className="text-sm text-gray-600">
+                          No se aplicará merma en este contrato
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {!['basic', 'incoterm', 'payables', 'penalties', 'quality', 'refining', 'processing', 'processing-escalator', 'refining-escalator', 'weight-sampling', 'payments', 'waste'].includes(currentSection) && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">
                     Esta sección está en desarrollo
