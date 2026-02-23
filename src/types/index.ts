@@ -195,3 +195,15 @@ export interface DashboardMetrics {
   pendingShipments: number;
   overdueSettlements: number;
 }
+
+export interface PaymentTerm {
+  id: string;
+  contractId: string;
+  paymentType: 'provisional' | 'final';
+  advancePercentage?: number;
+  knownElements?: string;
+  daysFromIssuance: number;
+  displayOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+}

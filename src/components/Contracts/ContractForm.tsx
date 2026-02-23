@@ -36,6 +36,15 @@ interface FormData {
   samplingFormulaId: string;
   samplingIncotermId: string;
   samplingReference: string;
+  paymentTerms: PaymentTermData[];
+}
+
+interface PaymentTermData {
+  id: string;
+  paymentType: 'provisional' | 'final';
+  advancePercentage: string;
+  knownElements: string;
+  daysFromIssuance: string;
 }
 
 interface QuotaData {
@@ -223,6 +232,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     samplingFormulaId: '',
     samplingIncotermId: '',
     samplingReference: '',
+    paymentTerms: [],
   });
 
   useEffect(() => {
@@ -819,6 +829,23 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
             .insert(refiningExpensesToInsert);
 
           if (refiningExpensesError) throw refiningExpensesError;
+        }
+
+        if (formData.paymentTerms.length > 0) {
+          const paymentTermsToInsert = formData.paymentTerms.map((p, index) => ({
+            contract_id: contract.id,
+            payment_type: p.paymentType,
+            advance_percentage: p.paymentType === 'provisional' && p.advancePercentage ? parseFloat(p.advancePercentage) : null,
+            known_elements: p.paymentType === 'final' ? p.knownElements : null,
+            days_from_issuance: p.daysFromIssuance ? parseInt(p.daysFromIssuance) : 0,
+            display_order: index,
+          }));
+
+          const { error: paymentTermsError } = await supabase
+            .from('payment_terms')
+            .insert(paymentTermsToInsert);
+
+          if (paymentTermsError) throw paymentTermsError;
         }
       }
 
@@ -2270,7 +2297,160 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                 </div>
               )}
 
-              {!['basic', 'incoterm', 'payables', 'penalties', 'quality', 'refining', 'processing', 'processing-escalator', 'refining-escalator', 'weight-sampling'].includes(currentSection) && (
+              {currentSection === 'payments' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium text-gray-900">Términos de Pago</h3>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newPaymentTerm: PaymentTermData = {
+                          id: `temp-${Date.now()}`,
+                          paymentType: 'provisional',
+                          advancePercentage: '',
+                          knownElements: '',
+                          daysFromIssuance: '',
+                        };
+                        setFormData({
+                          ...formData,
+                          paymentTerms: [...formData.paymentTerms, newPaymentTerm],
+                        });
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Agregar Pago
+                    </button>
+                  </div>
+
+                  {formData.paymentTerms.length === 0 ? (
+                    <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
+                      <p className="text-gray-500">No hay términos de pago configurados</p>
+                      <p className="text-gray-400 text-sm mt-1">Haga clic en "Agregar Pago" para comenzar</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {formData.paymentTerms.map((payment, index) => (
+                        <div key={payment.id} className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-medium text-gray-900">Pago #{index + 1}</h4>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData({
+                                  ...formData,
+                                  paymentTerms: formData.paymentTerms.filter((_, i) => i !== index),
+                                });
+                              }}
+                              className="text-red-600 hover:text-red-700 transition-colors"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Tipo de Pago
+                              </label>
+                              <select
+                                value={payment.paymentType}
+                                onChange={(e) => {
+                                  const newPaymentTerms = [...formData.paymentTerms];
+                                  newPaymentTerms[index] = {
+                                    ...payment,
+                                    paymentType: e.target.value as 'provisional' | 'final',
+                                    advancePercentage: '',
+                                    knownElements: '',
+                                  };
+                                  setFormData({ ...formData, paymentTerms: newPaymentTerms });
+                                }}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="provisional">Pago Provisional</option>
+                                <option value="final">Pago Final</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Días desde Emisión
+                              </label>
+                              <input
+                                type="number"
+                                value={payment.daysFromIssuance}
+                                onChange={(e) => {
+                                  const newPaymentTerms = [...formData.paymentTerms];
+                                  newPaymentTerms[index] = {
+                                    ...payment,
+                                    daysFromIssuance: e.target.value,
+                                  };
+                                  setFormData({ ...formData, paymentTerms: newPaymentTerms });
+                                }}
+                                placeholder="Ej: 30"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+
+                            {payment.paymentType === 'provisional' && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Porcentaje de Adelanto (%)
+                                </label>
+                                <input
+                                  type="number"
+                                  value={payment.advancePercentage}
+                                  onChange={(e) => {
+                                    const newPaymentTerms = [...formData.paymentTerms];
+                                    newPaymentTerms[index] = {
+                                      ...payment,
+                                      advancePercentage: e.target.value,
+                                    };
+                                    setFormData({ ...formData, paymentTerms: newPaymentTerms });
+                                  }}
+                                  placeholder="Ej: 90"
+                                  min="0"
+                                  max="100"
+                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                              </div>
+                            )}
+
+                            {payment.paymentType === 'final' && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Elementos Conocidos
+                                </label>
+                                <select
+                                  value={payment.knownElements}
+                                  onChange={(e) => {
+                                    const newPaymentTerms = [...formData.paymentTerms];
+                                    newPaymentTerms[index] = {
+                                      ...payment,
+                                      knownElements: e.target.value,
+                                    };
+                                    setFormData({ ...formData, paymentTerms: newPaymentTerms });
+                                  }}
+                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  <option value="">Seleccionar...</option>
+                                  <option value="peso_humedo">Peso Húmedo</option>
+                                  <option value="peso_seco">Peso Seco</option>
+                                  <option value="ensayes">Ensayes</option>
+                                  <option value="cotizacion">Cotización</option>
+                                  <option value="todos">Todos los Elementos</option>
+                                </select>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!['basic', 'incoterm', 'payables', 'penalties', 'quality', 'refining', 'processing', 'processing-escalator', 'refining-escalator', 'weight-sampling', 'payments'].includes(currentSection) && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">
                     Esta sección está en desarrollo
