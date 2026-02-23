@@ -40,6 +40,9 @@ interface FormData {
   wasteApplies: 'no_aplica' | 'aplica';
   wasteValue: string;
   wasteUnit: string;
+  assayStructure: string;
+  assayFinalLab: string;
+  assayCostType: string;
 }
 
 interface PaymentTermData {
@@ -239,6 +242,9 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     wasteApplies: 'no_aplica',
     wasteValue: '',
     wasteUnit: '%',
+    assayStructure: '',
+    assayFinalLab: '',
+    assayCostType: '',
   });
 
   useEffect(() => {
@@ -711,6 +717,9 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
           waste_applies: formData.wasteApplies,
           waste_value: formData.wasteApplies === 'aplica' && formData.wasteValue ? parseFloat(formData.wasteValue) : null,
           waste_unit: formData.wasteApplies === 'aplica' ? formData.wasteUnit : null,
+          assay_structure: formData.assayStructure || null,
+          assay_final_lab: formData.assayFinalLab || null,
+          assay_cost_type: formData.assayCostType || null,
           status: 'draft',
         })
         .select()
@@ -2496,6 +2505,73 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                 </div>
               )}
 
+              {currentSection === 'assay-sampling' && (
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-gray-900">Muestreo de Ensayes</h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Est. Ensayes <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={formData.assayStructure}
+                        onChange={(e) => updateFormData('assayStructure', e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Seleccionar estructura...</option>
+                        <option value="3Party">3Party</option>
+                        <option value="3Lots">3Lots</option>
+                        <option value="Umpire">Umpire</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Lab Leyes Final <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={formData.assayFinalLab}
+                        onChange={(e) => updateFormData('assayFinalLab', e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Seleccionar laboratorio...</option>
+                        <option value="Alfred H. Knight del Perú S.A.">Alfred H. Knight del Perú S.A.</option>
+                        <option value="Alex Stewart (Assayers) del Perú S.R.L.">Alex Stewart (Assayers) del Perú S.R.L.</option>
+                        <option value="SGS del Perú S.A.C.">SGS del Perú S.A.C.</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Tipo de Costos <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={formData.assayCostType}
+                        onChange={(e) => updateFormData('assayCostType', e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Seleccionar tipo de costo...</option>
+                        <option value="Comprador">Comprador</option>
+                        <option value="Vendedor">Vendedor</option>
+                        <option value="Ambas Partes">Ambas Partes</option>
+                      </select>
+                    </div>
+
+                    {formData.assayStructure && formData.assayFinalLab && formData.assayCostType && (
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm font-medium text-blue-900 mb-1">
+                          Fórmula Seleccionada:
+                        </p>
+                        <p className="text-base font-mono text-blue-800">
+                          Est.Ensaye: {formData.assayStructure} - Lab: {formData.assayFinalLab} - Costos: {formData.assayCostType}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {currentSection === 'waste' && (
                 <div className="space-y-6">
                   <h3 className="text-lg font-medium text-gray-900">Merma</h3>
@@ -2586,7 +2662,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                 </div>
               )}
 
-              {!['basic', 'incoterm', 'payables', 'penalties', 'quality', 'refining', 'processing', 'processing-escalator', 'refining-escalator', 'weight-sampling', 'payments', 'waste'].includes(currentSection) && (
+              {!['basic', 'incoterm', 'payables', 'penalties', 'quality', 'refining', 'processing', 'processing-escalator', 'refining-escalator', 'weight-sampling', 'assay-sampling', 'payments', 'waste'].includes(currentSection) && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">
                     Esta sección está en desarrollo
