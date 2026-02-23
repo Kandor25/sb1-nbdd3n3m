@@ -1447,7 +1447,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
                                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Valor <span className="text-red-500">*</span>
+                                        {isFranchise ? 'Valor (USD)' : 'Valor'} <span className="text-red-500">*</span>
                                       </label>
                                       <input
                                         type="number"
@@ -1465,15 +1465,18 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                                       <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Unidad <span className="text-red-500">*</span>
                                       </label>
-                                      <input
-                                        type="text"
+                                      <select
                                         value={processing.unit}
                                         onChange={(e) =>
                                           updateProcessing(processing.id, 'unit', e.target.value)
                                         }
-                                        placeholder="Ej: %"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                      />
+                                      >
+                                        <option value="">Seleccionar unidad...</option>
+                                        <option value="gtm">gtm</option>
+                                        <option value="tms">tms</option>
+                                        <option value="%">%</option>
+                                      </select>
                                     </div>
                                   </div>
                                 </>
