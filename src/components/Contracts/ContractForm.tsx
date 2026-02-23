@@ -23,6 +23,7 @@ interface FormData {
   rollbackValue: string;
   rollbackUnit: string;
   payables: PayableData[];
+  processing: ProcessingData[];
   penalties: PenaltyData[];
   qualitySpecs: QualitySpecData[];
   refiningExpenses: RefiningExpenseData[];
@@ -128,6 +129,23 @@ interface RefiningExpenseFormula {
   description: string;
 }
 
+interface ProcessingFormula {
+  id: string;
+  name: string;
+  description: string;
+  requires_incoterm: boolean;
+  requires_value: boolean;
+  is_no_aplica: boolean;
+}
+
+interface ProcessingData {
+  id: string;
+  formulaId: string;
+  incotermId: string;
+  value: string;
+  unit: string;
+}
+
 const SECTIONS = [
   { id: 'basic', label: 'Información Básica/Cantidad/Plazo' },
   { id: 'incoterm', label: 'Incoterm Entrega' },
@@ -154,6 +172,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   const [countries, setCountries] = useState<Country[]>([]);
   const [incoterms, setIncoterms] = useState<Incoterm[]>([]);
   const [payableFormulas, setPayableFormulas] = useState<PayableFormula[]>([]);
+  const [processingFormulas, setProcessingFormulas] = useState<ProcessingFormula[]>([]);
   const [penaltyFormulas, setPenaltyFormulas] = useState<PenaltyFormula[]>([]);
   const [refiningExpenseFormulas, setRefiningExpenseFormulas] = useState<RefiningExpenseFormula[]>([]);
   const [marketIndices, setMarketIndices] = useState<MarketIndex[]>([]);
@@ -173,6 +192,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     rollbackValue: '',
     rollbackUnit: '$/tm',
     payables: [],
+    processing: [],
     penalties: [],
     qualitySpecs: [],
     refiningExpenses: [],
@@ -196,13 +216,14 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
 
   const loadFormData = async () => {
     try {
-      const [vendorsRes, buyersRes, productsRes, countriesRes, incotermsRes, formulasRes, penaltyFormulasRes, refiningExpenseFormulasRes, indicesRes] = await Promise.all([
+      const [vendorsRes, buyersRes, productsRes, countriesRes, incotermsRes, formulasRes, processingFormulasRes, penaltyFormulasRes, refiningExpenseFormulasRes, indicesRes] = await Promise.all([
         supabase.from('vendors').select('*').order('name'),
         supabase.from('buyers').select('*').order('name'),
         supabase.from('products').select('*').order('name'),
         supabase.from('countries').select('*').order('name'),
         supabase.from('incoterms').select('*').order('code'),
         supabase.from('payable_formulas').select('*').order('name'),
+        supabase.from('processing_formulas').select('*').order('name'),
         supabase.from('penalty_formulas').select('*').order('name'),
         supabase.from('refining_expense_formulas').select('*').order('name'),
         supabase.from('market_indices').select('*').order('name'),
@@ -216,6 +237,12 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         setPayableFormulas(formulasRes.data);
       } else {
         console.error('Error al cargar fórmulas:', formulasRes.error);
+      }
+      if (processingFormulasRes.data) {
+        console.log('Fórmulas de procesamiento cargadas:', processingFormulasRes.data);
+        setProcessingFormulas(processingFormulasRes.data);
+      } else {
+        console.error('Error al cargar fórmulas de procesamiento:', processingFormulasRes.error);
       }
       if (penaltyFormulasRes.data) {
         console.log('Fórmulas de penalidades cargadas:', penaltyFormulasRes.data);
@@ -372,6 +399,39 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
       p.id === id ? { ...p, [field]: value } : p
     );
     setFormData(prev => ({ ...prev, payables: newPayables }));
+  };
+
+  const addProcessing = () => {
+    const firstFormula = processingFormulas.find(f => !f.is_no_aplica);
+
+    if (!firstFormula) {
+      alert('No se encontraron fórmulas de procesamiento. Por favor, recargue la página.');
+      return;
+    }
+
+    const newProcessing: ProcessingData = {
+      id: `temp-${Date.now()}`,
+      formulaId: firstFormula.id,
+      incotermId: '',
+      value: '',
+      unit: '%',
+    };
+
+    setFormData(prev => ({ ...prev, processing: [...prev.processing, newProcessing] }));
+  };
+
+  const removeProcessing = (id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      processing: prev.processing.filter(p => p.id !== id)
+    }));
+  };
+
+  const updateProcessing = (id: string, field: keyof ProcessingData, value: any) => {
+    const newProcessing = formData.processing.map(p =>
+      p.id === id ? { ...p, [field]: value } : p
+    );
+    setFormData(prev => ({ ...prev, processing: newProcessing }));
   };
 
   const isPayableFormulaNoAplica = (formulaId: string): boolean => {
@@ -641,6 +701,27 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
             .insert(payablesToInsert);
 
           if (payablesError) throw payablesError;
+        }
+
+        if (formData.processing.length > 0) {
+          const processingToInsert = formData.processing.map(p => {
+            const formula = processingFormulas.find(f => f.id === p.formulaId);
+            const isNoAplica = formula?.is_no_aplica;
+
+            return {
+              contract_id: contract.id,
+              formula_id: p.formulaId,
+              incoterm_id: !isNoAplica && formula?.requires_incoterm ? p.incotermId : null,
+              value: !isNoAplica && p.value ? parseFloat(p.value) : null,
+              unit: !isNoAplica ? p.unit : null,
+            };
+          });
+
+          const { error: processingError } = await supabase
+            .from('contract_processing')
+            .insert(processingToInsert);
+
+          if (processingError) throw processingError;
         }
 
         if (formData.penalties.length > 0) {
@@ -1258,6 +1339,149 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                           </div>
                         </div>
                       ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {currentSection === 'processing' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-gray-900">Maquila</h3>
+                    <button
+                      onClick={addProcessing}
+                      disabled={processingFormulas.length === 0}
+                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Agregar Maquila
+                    </button>
+                  </div>
+
+                  {processingFormulas.length === 0 && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-yellow-800 text-sm">
+                        Cargando fórmulas... Si este mensaje persiste, intente recargar la página.
+                      </p>
+                    </div>
+                  )}
+
+                  {formData.processing.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                      <p className="text-gray-500">No hay maquilas agregadas</p>
+                      <p className="text-gray-400 text-sm mt-2">
+                        Haga clic en "Agregar Maquila" para comenzar
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {formData.processing.map((processing, index) => {
+                        const formula = processingFormulas.find(f => f.id === processing.formulaId);
+                        const isFranchise = formula?.name === 'FRANCHISE';
+                        const isNoAplica = formula?.is_no_aplica;
+
+                        return (
+                          <div
+                            key={processing.id}
+                            className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm"
+                          >
+                            <div className="flex items-center justify-between mb-4">
+                              <h4 className="text-lg font-semibold text-gray-900">
+                                Maquila #{index + 1}
+                              </h4>
+                              <button
+                                onClick={() => removeProcessing(processing.id)}
+                                className="text-red-600 hover:text-red-700 transition-colors"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            </div>
+
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Fórmula <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  value={processing.formulaId}
+                                  onChange={(e) =>
+                                    updateProcessing(processing.id, 'formulaId', e.target.value)
+                                  }
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  {processingFormulas.map((formula) => (
+                                    <option key={formula.id} value={formula.id}>
+                                      {formula.name}
+                                    </option>
+                                  ))}
+                                </select>
+                                {formula?.description && (
+                                  <p className="text-xs text-gray-500 mt-1">{formula.description}</p>
+                                )}
+                              </div>
+
+                              {!isNoAplica && (
+                                <>
+                                  {isFranchise && (
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Incoterm <span className="text-red-500">*</span>
+                                      </label>
+                                      <select
+                                        value={processing.incotermId}
+                                        onChange={(e) =>
+                                          updateProcessing(processing.id, 'incotermId', e.target.value)
+                                        }
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      >
+                                        <option value="">Seleccionar incoterm...</option>
+                                        {incoterms.map((incoterm) => (
+                                          <option key={incoterm.id} value={incoterm.id}>
+                                            {incoterm.code} - {incoterm.description}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  )}
+
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Valor <span className="text-red-500">*</span>
+                                      </label>
+                                      <input
+                                        type="number"
+                                        step="0.01"
+                                        value={processing.value}
+                                        onChange={(e) =>
+                                          updateProcessing(processing.id, 'value', e.target.value)
+                                        }
+                                        placeholder="Ej: 0.5"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Unidad <span className="text-red-500">*</span>
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={processing.unit}
+                                        onChange={(e) =>
+                                          updateProcessing(processing.id, 'unit', e.target.value)
+                                        }
+                                        placeholder="Ej: %"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      />
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
