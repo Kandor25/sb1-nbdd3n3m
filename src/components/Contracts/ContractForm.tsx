@@ -2255,6 +2255,11 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                         </p>
                         <p className="text-base font-mono text-blue-800">
                           {samplingFormulas.find(f => f.id === formData.samplingFormulaId)?.name}
+                          {formData.samplingIncotermId && formData.samplingReference && (
+                            <span>
+                              {' '}- {incoterms.find(i => i.id === formData.samplingIncotermId)?.code} + {formData.samplingReference}
+                            </span>
+                          )}
                         </p>
                         <p className="text-sm text-blue-700 mt-2">
                           {samplingFormulas.find(f => f.id === formData.samplingFormulaId)?.description}
