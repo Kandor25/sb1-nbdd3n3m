@@ -416,20 +416,28 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   };
 
   const generateQuotas = () => {
-    const start = new Date(formData.startMonth + '-01');
-    const end = new Date(formData.endMonth + '-01');
+    const [startYear, startMonthNum] = formData.startMonth.split('-').map(Number);
+    const [endYear, endMonthNum] = formData.endMonth.split('-').map(Number);
+
     const quotas: QuotaData[] = [];
 
-    let current = new Date(start);
-    while (current <= end) {
-      const monthStr = current.toISOString().slice(0, 7);
+    let currentYear = startYear;
+    let currentMonth = startMonthNum;
+
+    while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonthNum)) {
+      const monthStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
       quotas.push({
         month: monthStr,
         tmh: '',
         tms: '',
         h2oPercentage: '',
       });
-      current.setMonth(current.getMonth() + 1);
+
+      currentMonth++;
+      if (currentMonth > 12) {
+        currentMonth = 1;
+        currentYear++;
+      }
     }
 
     setFormData(prev => ({ ...prev, quotas }));
