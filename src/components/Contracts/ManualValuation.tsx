@@ -175,6 +175,23 @@ const ManualValuation: React.FC<ManualValuationProps> = ({ contractId, onClose, 
       return;
     }
 
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(contractId)) {
+      alert('Este es un contrato de demostración. Para crear valorizaciones, primero debe crear un contrato real en la base de datos usando el formulario de creación de contratos.');
+      return;
+    }
+
+    const { data: contractExists } = await supabase
+      .from('contracts')
+      .select('id')
+      .eq('id', contractId)
+      .maybeSingle();
+
+    if (!contractExists) {
+      alert('El contrato no existe en la base de datos. Por favor cree el contrato primero.');
+      return;
+    }
+
     setLoading(true);
     try {
       const { data: valuation, error: valuationError } = await supabase

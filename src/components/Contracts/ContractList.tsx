@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, TrendingDown, AlertCircle, Calculator } from 'lucide-react';
 import { mockContracts, mockCounterparties } from '../../data/mockData';
 import type { Contract } from '../../types';
 import ManualValuation from './ManualValuation';
+import { supabase } from '../../lib/supabase';
 
 interface ContractListProps {
   onCreateNew: () => void;
@@ -15,11 +16,59 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [showValuation, setShowValuation] = useState(false);
   const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
+  const [dbContracts, setDbContracts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Add counterparty data to contracts
-  const contractsWithCounterparties = mockContracts.map(contract => ({
+  useEffect(() => {
+    loadContracts();
+  }, []);
+
+  const loadContracts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('contracts')
+        .select(`
+          *,
+          vendor:counterparties!contracts_vendor_id_fkey(id, name),
+          buyer:counterparties!contracts_buyer_id_fkey(id, name),
+          product:products(id, name)
+        `);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const formattedContracts = data.map((contract: any) => ({
+          id: contract.id,
+          number: contract.contract_number,
+          type: contract.contract_type,
+          counterpartyId: contract.contract_type === 'purchase' ? contract.vendor_id : contract.buyer_id,
+          counterparty: contract.contract_type === 'purchase' ? contract.vendor : contract.buyer,
+          commodity: {
+            name: contract.product?.name || 'N/A',
+            grade: 'N/A'
+          },
+          quantity: 0,
+          tolerance: 0,
+          deliveryPeriod: {
+            start: new Date(contract.start_month + '-01'),
+            end: new Date(contract.end_month + '-01')
+          },
+          status: contract.status || 'active'
+        }));
+        setDbContracts(formattedContracts);
+      }
+    } catch (error) {
+      console.error('Error loading contracts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const allContracts = dbContracts.length > 0 ? dbContracts : mockContracts;
+
+  const contractsWithCounterparties = allContracts.map(contract => ({
     ...contract,
-    counterparty: mockCounterparties.find(cp => cp.id === contract.counterpartyId)
+    counterparty: contract.counterparty || mockCounterparties.find(cp => cp.id === contract.counterpartyId)
   }));
 
   // Separate pending confirmation contracts
