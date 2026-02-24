@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { FileText, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { FileText, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, TrendingDown, AlertCircle, Calculator } from 'lucide-react';
 import { mockContracts, mockCounterparties } from '../../data/mockData';
 import type { Contract } from '../../types';
+import ManualValuation from './ManualValuation';
 
 interface ContractListProps {
   onCreateNew: () => void;
@@ -12,6 +13,8 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [showValuation, setShowValuation] = useState(false);
+  const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
 
   // Add counterparty data to contracts
   const contractsWithCounterparties = mockContracts.map(contract => ({
@@ -46,12 +49,30 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
   };
 
   const getTypeColor = (type: string) => {
-    return type === 'purchase' 
-      ? 'text-emerald-600 bg-emerald-50' 
+    return type === 'purchase'
+      ? 'text-emerald-600 bg-emerald-50'
       : 'text-blue-600 bg-blue-50';
   };
 
+  const handleOpenValuation = (contractId: string) => {
+    setSelectedContractId(contractId);
+    setShowValuation(true);
+  };
+
+  const handleCloseValuation = () => {
+    setShowValuation(false);
+    setSelectedContractId(null);
+  };
+
   return (
+    <>
+      {showValuation && selectedContractId && (
+        <ManualValuation
+          contractId={selectedContractId}
+          onClose={handleCloseValuation}
+          onSuccess={handleCloseValuation}
+        />
+      )}
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -244,15 +265,25 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => onViewDetails(contract)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
-                      >
-                        Ver
-                      </button>
-                      <button className="text-gray-600 hover:text-gray-900">
-                        Editar
-                      </button>
+                      <div className="flex items-center justify-end space-x-3">
+                        <button
+                          onClick={() => onViewDetails(contract)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          Ver
+                        </button>
+                        <button className="text-gray-600 hover:text-gray-900">
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => handleOpenValuation(contract.id)}
+                          className="flex items-center text-green-600 hover:text-green-900"
+                          title="Valorización Manual"
+                        >
+                          <Calculator className="w-4 h-4 mr-1" />
+                          Valorización
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -270,6 +301,7 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
         </div>
       )}
     </div>
+    </>
   );
 };
 
