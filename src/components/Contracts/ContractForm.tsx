@@ -43,6 +43,14 @@ interface FormData {
   assayStructure: string;
   assayFinalLab: string;
   assayCostType: string;
+  quotationPeriods: QuotationPeriodData[];
+}
+
+interface QuotationPeriodData {
+  id: string;
+  formula: 'Mes de Entrega' | 'Mes después de Mes de llegada';
+  months: string;
+  metal: string;
 }
 
 interface PaymentTermData {
@@ -245,6 +253,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     assayStructure: '',
     assayFinalLab: '',
     assayCostType: '',
+    quotationPeriods: [],
   });
 
   useEffect(() => {
@@ -847,6 +856,22 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
             .insert(refiningExpensesToInsert);
 
           if (refiningExpensesError) throw refiningExpensesError;
+        }
+
+        if (formData.quotationPeriods.length > 0) {
+          const quotationPeriodsToInsert = formData.quotationPeriods.map((q, index) => ({
+            contract_id: contract.id,
+            formula: q.formula,
+            months: parseInt(q.months),
+            metal: q.metal,
+            display_order: index,
+          }));
+
+          const { error: quotationPeriodsError } = await supabase
+            .from('contract_quotation_periods')
+            .insert(quotationPeriodsToInsert);
+
+          if (quotationPeriodsError) throw quotationPeriodsError;
         }
 
         if (formData.paymentTerms.length > 0) {
@@ -2315,6 +2340,145 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                 </div>
               )}
 
+              {currentSection === 'quotation-period' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-gray-900">Periodo de Cotizaciones</h3>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newQuotationPeriod: QuotationPeriodData = {
+                          id: `temp-${Date.now()}`,
+                          formula: 'Mes de Entrega',
+                          months: '',
+                          metal: '',
+                        };
+                        setFormData({
+                          ...formData,
+                          quotationPeriods: [...formData.quotationPeriods, newQuotationPeriod],
+                        });
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Agregar Cotización
+                    </button>
+                  </div>
+
+                  {formData.quotationPeriods.length === 0 ? (
+                    <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
+                      <p className="text-gray-500">No hay cotizaciones configuradas</p>
+                      <p className="text-gray-400 text-sm mt-1">Haga clic en "Agregar Cotización" para comenzar</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {formData.quotationPeriods.map((quotation, index) => (
+                        <div key={quotation.id} className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-medium text-gray-900">Cotización #{index + 1}</h4>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData({
+                                  ...formData,
+                                  quotationPeriods: formData.quotationPeriods.filter((_, i) => i !== index),
+                                });
+                              }}
+                              className="text-red-600 hover:text-red-700 transition-colors"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Fórmula <span className="text-red-500">*</span>
+                              </label>
+                              <select
+                                value={quotation.formula}
+                                onChange={(e) => {
+                                  const newQuotationPeriods = [...formData.quotationPeriods];
+                                  newQuotationPeriods[index] = {
+                                    ...quotation,
+                                    formula: e.target.value as 'Mes de Entrega' | 'Mes después de Mes de llegada',
+                                  };
+                                  setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
+                                }}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="Mes de Entrega">Mes de Entrega</option>
+                                <option value="Mes después de Mes de llegada">Mes después de Mes de llegada</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Número de Meses <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="number"
+                                min="1"
+                                value={quotation.months}
+                                onChange={(e) => {
+                                  const newQuotationPeriods = [...formData.quotationPeriods];
+                                  newQuotationPeriods[index] = {
+                                    ...quotation,
+                                    months: e.target.value,
+                                  };
+                                  setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
+                                }}
+                                placeholder="Ej: 1"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Metal <span className="text-red-500">*</span>
+                              </label>
+                              <select
+                                value={quotation.metal}
+                                onChange={(e) => {
+                                  const newQuotationPeriods = [...formData.quotationPeriods];
+                                  newQuotationPeriods[index] = {
+                                    ...quotation,
+                                    metal: e.target.value,
+                                  };
+                                  setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
+                                }}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="">Seleccionar metal...</option>
+                                <option value="CU">Cobre (CU)</option>
+                                <option value="AG">Plata (AG)</option>
+                                <option value="AU">Oro (AU)</option>
+                                <option value="PB">Plomo (PB)</option>
+                                <option value="ZN">Zinc (ZN)</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          {quotation.formula && quotation.months && quotation.metal && (
+                            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                              <p className="text-sm font-medium text-blue-900 mb-1">
+                                Fórmula Seleccionada:
+                              </p>
+                              <p className="text-base font-mono text-blue-800">
+                                {quotation.formula === 'Mes de Entrega'
+                                  ? `M + ${quotation.months}`
+                                  : `MAD + ${quotation.months}`
+                                } ({quotation.metal})
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {currentSection === 'payments' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
@@ -2662,7 +2826,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                 </div>
               )}
 
-              {!['basic', 'incoterm', 'payables', 'penalties', 'quality', 'refining', 'processing', 'processing-escalator', 'refining-escalator', 'weight-sampling', 'assay-sampling', 'payments', 'waste'].includes(currentSection) && (
+              {!['basic', 'incoterm', 'payables', 'penalties', 'quality', 'refining', 'processing', 'processing-escalator', 'refining-escalator', 'quotation-period', 'weight-sampling', 'assay-sampling', 'payments', 'waste'].includes(currentSection) && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">
                     Esta sección está en desarrollo
