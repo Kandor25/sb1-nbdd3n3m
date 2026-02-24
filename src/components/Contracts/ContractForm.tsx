@@ -410,9 +410,9 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
       const monthStr = current.toISOString().slice(0, 7);
       quotas.push({
         month: monthStr,
-        tmh: '330',
-        tms: '300',
-        h2oPercentage: '10',
+        tmh: '',
+        tms: '',
+        h2oPercentage: '',
       });
       current.setMonth(current.getMonth() + 1);
     }
