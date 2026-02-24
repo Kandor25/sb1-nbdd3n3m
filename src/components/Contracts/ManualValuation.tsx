@@ -10,7 +10,6 @@ interface ManualValuationProps {
 }
 
 interface WeightData {
-  id: string;
   tmh: string;
   h2oPercentage: string;
   tms: string;
@@ -65,9 +64,9 @@ const ManualValuation: React.FC<ManualValuationProps> = ({ contractId, onClose, 
   const [showPDF, setShowPDF] = useState(false);
   const [valuationId, setValuationId] = useState<string | null>(null);
 
-  const [weights, setWeights] = useState<WeightData[]>([
-    { id: '1', tmh: '', h2oPercentage: '', tms: '' }
-  ]);
+  const [weights, setWeights] = useState<WeightData>({
+    tmh: '', h2oPercentage: '', tms: ''
+  });
 
   const [prices, setPrices] = useState<PriceData[]>([
     { id: '1', metal: '', price: '', unit: '' }
@@ -85,18 +84,8 @@ const ManualValuation: React.FC<ManualValuationProps> = ({ contractId, onClose, 
     { id: '1', metal: '', priceSensitivity: '', unit: '' }
   ]);
 
-  const addWeight = () => {
-    setWeights([...weights, { id: Date.now().toString(), tmh: '', h2oPercentage: '', tms: '' }]);
-  };
-
-  const removeWeight = (id: string) => {
-    if (weights.length > 1) {
-      setWeights(weights.filter(w => w.id !== id));
-    }
-  };
-
-  const updateWeight = (id: string, field: keyof WeightData, value: string) => {
-    setWeights(weights.map(w => w.id === id ? { ...w, [field]: value } : w));
+  const updateWeight = (field: keyof WeightData, value: string) => {
+    setWeights({ ...weights, [field]: value });
   };
 
   const addPrice = () => {
@@ -156,7 +145,7 @@ const ManualValuation: React.FC<ManualValuationProps> = ({ contractId, onClose, 
   };
 
   const isWeightsValid = () => {
-    return weights.every(w => w.tmh && w.h2oPercentage && w.tms);
+    return weights.tmh && weights.h2oPercentage && weights.tms;
   };
 
   const isPricesValid = () => {
@@ -199,16 +188,14 @@ const ManualValuation: React.FC<ManualValuationProps> = ({ contractId, onClose, 
 
       if (valuationError) throw valuationError;
 
-      const weightsData = weights.map(w => ({
-        valuation_id: valuation.id,
-        tmh: parseFloat(w.tmh),
-        h2o_percentage: parseFloat(w.h2oPercentage),
-        tms: parseFloat(w.tms)
-      }));
-
       const { error: weightsError } = await supabase
         .from('valuation_weights')
-        .insert(weightsData);
+        .insert({
+          valuation_id: valuation.id,
+          tmh: parseFloat(weights.tmh),
+          h2o_percentage: parseFloat(weights.h2oPercentage),
+          tms: parseFloat(weights.tms)
+        });
 
       if (weightsError) throw weightsError;
 
@@ -318,61 +305,45 @@ const ManualValuation: React.FC<ManualValuationProps> = ({ contractId, onClose, 
         <div className="flex-1 overflow-y-auto p-6">
           {currentSection === 'weights' && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Pesos</h3>
-                <button
-                  onClick={addWeight}
-                  className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Agregar Línea
-                </button>
+                <p className="text-sm text-gray-600 mt-1">Ingrese los datos de peso para esta valorización</p>
               </div>
 
-              {weights.map((weight) => (
-                <div key={weight.id} className="flex items-center space-x-3 bg-gray-50 p-4 rounded-lg">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">TMH</label>
-                    <input
-                      type="number"
-                      value={weight.tmh}
-                      onChange={(e) => updateWeight(weight.id, 'tmh', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="300"
-                    />
-                  </div>
-
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">H2O (%)</label>
-                    <input
-                      type="number"
-                      value={weight.h2oPercentage}
-                      onChange={(e) => updateWeight(weight.id, 'h2oPercentage', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="10"
-                    />
-                  </div>
-
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">TMS</label>
-                    <input
-                      type="number"
-                      value={weight.tms}
-                      onChange={(e) => updateWeight(weight.id, 'tms', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="270"
-                    />
-                  </div>
-
-                  <button
-                    onClick={() => removeWeight(weight.id)}
-                    disabled={weights.length === 1}
-                    className="mt-6 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+              <div className="flex items-center space-x-3 bg-gray-50 p-4 rounded-lg">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">TMH</label>
+                  <input
+                    type="number"
+                    value={weights.tmh}
+                    onChange={(e) => updateWeight('tmh', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="300"
+                  />
                 </div>
-              ))}
+
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">H2O (%)</label>
+                  <input
+                    type="number"
+                    value={weights.h2oPercentage}
+                    onChange={(e) => updateWeight('h2oPercentage', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="10"
+                  />
+                </div>
+
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">TMS</label>
+                  <input
+                    type="number"
+                    value={weights.tms}
+                    onChange={(e) => updateWeight('tms', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="270"
+                  />
+                </div>
+              </div>
             </div>
           )}
 

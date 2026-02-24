@@ -8,27 +8,8 @@ interface ContractPDFProps {
   onClose: () => void;
 }
 
-interface ContractData {
-  contract_number: string;
-  contract_type: string;
-  start_month: string;
-  end_month: string;
-  vendor?: { name: string };
-  buyer?: { name: string };
-  product?: { name: string };
-  country?: { name: string };
-  incoterm?: { code: string; description: string };
-  delivery_location: string;
-  rollback_applies: boolean;
-  rollback_value: number;
-  rollback_unit: string;
-  waste_applies: string;
-  waste_value: number;
-  waste_unit: string;
-}
-
 interface ValuationData {
-  weights: Array<{ tmh: number; h2o_percentage: number; tms: number }>;
+  weights: { tmh: number; h2o_percentage: number; tms: number } | null;
   prices: Array<{ metal: string; price: number; unit: string }>;
   assays: Array<{ metal: string; assay_value: number; unit: string }>;
   assay_sensitivity: Array<{ metal: string; sensitivity_value: number; unit: string }>;
@@ -37,16 +18,12 @@ interface ValuationData {
 
 const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onClose }) => {
   const [loading, setLoading] = useState(true);
-  const [contractData, setContractData] = useState<ContractData | null>(null);
+  const [contractData, setContractData] = useState<any>(null);
   const [valuationData, setValuationData] = useState<ValuationData | null>(null);
-  const [quotas, setQuotas] = useState<any[]>([]);
   const [payables, setPayables] = useState<any[]>([]);
   const [processing, setProcessing] = useState<any[]>([]);
   const [refiningExpenses, setRefiningExpenses] = useState<any[]>([]);
   const [penalties, setPenalties] = useState<any[]>([]);
-  const [qualitySpecs, setQualitySpecs] = useState<any[]>([]);
-  const [paymentTerms, setPaymentTerms] = useState<any[]>([]);
-  const [quotationPeriods, setQuotationPeriods] = useState<any[]>([]);
 
   useEffect(() => {
     loadData();
@@ -56,26 +33,12 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
     try {
       const { data: contract, error: contractError } = await supabase
         .from('contracts')
-        .select(`
-          *,
-          vendor:counterparties!contracts_vendor_id_fkey(name),
-          buyer:counterparties!contracts_buyer_id_fkey(name),
-          product:products(name),
-          country:countries(name),
-          incoterm:incoterms(code, description)
-        `)
+        .select('*')
         .eq('id', contractId)
         .single();
 
       if (contractError) throw contractError;
       setContractData(contract);
-
-      const { data: quotasData } = await supabase
-        .from('contract_quotas')
-        .select('*')
-        .eq('contract_id', contractId)
-        .order('month');
-      setQuotas(quotasData || []);
 
       const { data: payablesData } = await supabase
         .from('contract_payables')
@@ -101,28 +64,11 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
         .eq('contract_id', contractId);
       setPenalties(penaltiesData || []);
 
-      const { data: qualityData } = await supabase
-        .from('contract_quality_specs')
-        .select('*')
-        .eq('contract_id', contractId);
-      setQualitySpecs(qualityData || []);
-
-      const { data: paymentData } = await supabase
-        .from('contract_payment_terms')
-        .select('*')
-        .eq('contract_id', contractId);
-      setPaymentTerms(paymentData || []);
-
-      const { data: quotationData } = await supabase
-        .from('contract_quotation_periods')
-        .select('*')
-        .eq('contract_id', contractId);
-      setQuotationPeriods(quotationData || []);
-
       const { data: weights } = await supabase
         .from('valuation_weights')
         .select('*')
-        .eq('valuation_id', valuationId);
+        .eq('valuation_id', valuationId)
+        .maybeSingle();
 
       const { data: prices } = await supabase
         .from('valuation_prices')
@@ -145,7 +91,7 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
         .eq('valuation_id', valuationId);
 
       setValuationData({
-        weights: weights || [],
+        weights: weights,
         prices: prices || [],
         assays: assays || [],
         assay_sensitivity: assaySensitivity || [],
@@ -160,9 +106,171 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
     }
   };
 
-  const formatMonth = (month: string) => {
-    const date = new Date(month + '-01');
-    return date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+  const calculateTMNS = () => {
+    if (!valuationData?.weights) return 0;
+    const { tms } = valuationData.weights;
+    const merma = contractData?.waste_value || 0.5;
+    return tms * (1 - merma / 100);
+  };
+
+  const calculatePayable = (metal: string) => {
+    const payable = payables.find(p => p.metal.toLowerCase().includes(metal.toLowerCase()));
+    const assay = valuationData?.assays.find(a => a.metal.toLowerCase().includes(metal.toLowerCase()));
+
+    if (!payable || !assay || !valuationData?.weights) return { formula: '', payablePerMT: 0, totalUSD: 0 };
+
+    const assayValue = assay.assay_value;
+    const deduction = parseFloat(payable.deduction) || 0;
+    const recovery = parseFloat(payable.recovery_percentage) || 100;
+
+    const payablePerMT = ((assayValue - deduction) * recovery) / 100;
+
+    const price = valuationData.prices.find(p => p.metal.toLowerCase().includes(metal.toLowerCase()));
+    const priceValue = price?.price || 0;
+
+    let totalUSD = 0;
+    const tmns = calculateTMNS();
+
+    if (metal.toLowerCase().includes('cobre') || metal.toLowerCase().includes('cu')) {
+      totalUSD = (payablePerMT / 100) * 2204.62 * (priceValue / 2204.62) * tmns;
+    } else if (metal.toLowerCase().includes('plata') || metal.toLowerCase().includes('ag')) {
+      totalUSD = payablePerMT * 0.0321507 * priceValue * tmns;
+    } else if (metal.toLowerCase().includes('oro') || metal.toLowerCase().includes('au')) {
+      totalUSD = payablePerMT * 0.0321507 * priceValue * tmns;
+    }
+
+    return {
+      formula: `Ded ${deduction} Pagable ${recovery}%`,
+      payablePerMT: payablePerMT.toFixed(3),
+      totalUSD: totalUSD.toFixed(2)
+    };
+  };
+
+  const calculateProcessingCost = () => {
+    if (!processing.length || !valuationData?.weights) return 0;
+    const proc = processing[0];
+    const tmns = calculateTMNS();
+    return -(parseFloat(proc.amount_usd) || 0) * tmns;
+  };
+
+  const calculateRefiningCost = (metal: string) => {
+    const expense = refiningExpenses.find(e => e.metal.toLowerCase().includes(metal.toLowerCase()));
+    if (!expense || !valuationData?.weights) return 0;
+
+    const payableCalc = calculatePayable(metal);
+    const payablePerMT = parseFloat(payableCalc.payablePerMT);
+    const tmns = calculateTMNS();
+    const expenseValue = parseFloat(expense.amount_usd) || 0;
+
+    if (expense.unit === '$/lb') {
+      return -(payablePerMT / 100) * 2204.62 * expenseValue * tmns;
+    } else if (expense.unit === '$/oz') {
+      return -payablePerMT * 0.0321507 * expenseValue * tmns;
+    }
+
+    return 0;
+  };
+
+  const calculatePenalty = (element: string) => {
+    const penalty = penalties.find(p => p.element.toLowerCase().includes(element.toLowerCase()));
+    if (!penalty || !valuationData?.weights) return 0;
+
+    const assay = valuationData.assays.find(a => a.metal.toLowerCase().includes(element.toLowerCase()));
+    if (!assay) return 0;
+
+    const threshold = parseFloat(penalty.threshold) || 0;
+    const assayValue = assay.assay_value;
+    const increment = parseFloat(penalty.increment) || 1;
+    const amountUSD = parseFloat(penalty.amount_usd) || 0;
+    const tmns = calculateTMNS();
+
+    if (assayValue > threshold) {
+      const excess = assayValue - threshold;
+      const multiplier = excess / increment;
+      return -amountUSD * multiplier * tmns;
+    }
+
+    return 0;
+  };
+
+  const calculatePriceSensitivity = (metal: string) => {
+    const priceSens = valuationData?.price_sensitivity.find(p =>
+      p.metal.toLowerCase().includes(metal.toLowerCase())
+    );
+
+    if (!priceSens || !valuationData?.weights) return { perTMS: 0, total: 0 };
+
+    const payableCalc = calculatePayable(metal);
+    const payablePerMT = parseFloat(payableCalc.payablePerMT);
+    const tmns = calculateTMNS();
+    const sensitivityValue = priceSens.price_sensitivity;
+
+    let perTMS = 0;
+
+    if (metal.toLowerCase().includes('cobre') || metal.toLowerCase().includes('cu')) {
+      perTMS = (payablePerMT / 100) * 2204.62 * (sensitivityValue / 2204.62);
+    } else if (metal.toLowerCase().includes('plata') || metal.toLowerCase().includes('ag')) {
+      perTMS = payablePerMT * 0.0321507 * sensitivityValue;
+    } else if (metal.toLowerCase().includes('oro') || metal.toLowerCase().includes('au')) {
+      perTMS = payablePerMT * 0.0321507 * sensitivityValue;
+    }
+
+    return {
+      perTMS: perTMS.toFixed(2),
+      total: (perTMS * tmns).toFixed(0)
+    };
+  };
+
+  const calculateAssaySensitivity = (metal: string) => {
+    const assaySens = valuationData?.assay_sensitivity.find(a =>
+      a.metal.toLowerCase().includes(metal.toLowerCase())
+    );
+
+    const payable = payables.find(p => p.metal.toLowerCase().includes(metal.toLowerCase()));
+    const price = valuationData?.prices.find(p => p.metal.toLowerCase().includes(metal.toLowerCase()));
+
+    if (!assaySens || !payable || !price || !valuationData?.weights) return { perTMS: 0, total: 0 };
+
+    const recovery = parseFloat(payable.recovery_percentage) || 100;
+    const priceValue = price.price;
+    const tmns = calculateTMNS();
+    const sensitivityValue = assaySens.sensitivity_value;
+
+    let perTMS = 0;
+
+    if (metal.toLowerCase().includes('cobre') || metal.toLowerCase().includes('cu')) {
+      perTMS = (sensitivityValue * recovery / 100 / 100) * 2204.62 * (priceValue / 2204.62);
+    } else if (metal.toLowerCase().includes('plata') || metal.toLowerCase().includes('ag')) {
+      perTMS = (sensitivityValue * recovery / 100) * 0.0321507 * priceValue;
+    } else if (metal.toLowerCase().includes('oro') || metal.toLowerCase().includes('au')) {
+      perTMS = (sensitivityValue * recovery / 100) * 0.0321507 * priceValue;
+    }
+
+    return {
+      perTMS: perTMS.toFixed(2),
+      total: (perTMS * tmns).toFixed(0)
+    };
+  };
+
+  const calculateTotal = () => {
+    let total = 0;
+
+    payables.forEach(payable => {
+      const calc = calculatePayable(payable.metal);
+      total += parseFloat(calc.totalUSD);
+    });
+
+    total += calculateProcessingCost();
+
+    refiningExpenses.forEach(expense => {
+      total += calculateRefiningCost(expense.metal);
+    });
+
+    penalties.forEach(penalty => {
+      total += calculatePenalty(penalty.element);
+    });
+
+    return total;
   };
 
   const handleDownload = () => {
@@ -173,21 +281,29 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
         <div className="bg-white rounded-lg p-8">
-          <p className="text-lg">Cargando contrato...</p>
+          <p className="text-lg">Cargando valorización...</p>
         </div>
       </div>
     );
   }
 
-  if (!contractData || !valuationData) {
+  if (!contractData || !valuationData || !valuationData.weights) {
     return null;
   }
 
+  const formatMonth = (month: string) => {
+    const date = new Date(month + '-01');
+    return date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+  };
+
+  const tmns = calculateTMNS();
+  const total = calculateTotal();
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl h-[90vh] flex flex-col">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b print:hidden">
-          <h2 className="text-2xl font-bold text-gray-900">Contrato - Vista Previa</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Valorización - Vista Previa</h2>
           <div className="flex items-center space-x-3">
             <button
               onClick={handleDownload}
@@ -203,277 +319,279 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
         </div>
 
         <div className="flex-1 overflow-y-auto p-8">
-          <div className="max-w-4xl mx-auto bg-white" id="contract-content">
-            <div className="space-y-2 mb-8">
-              <p className="text-lg"><strong>Vendedor:</strong> {contractData.vendor?.name || 'N/A'}</p>
-              <p className="text-lg"><strong>Comprador:</strong> {contractData.buyer?.name || 'N/A'}</p>
-              <p className="text-lg"><strong>Producto:</strong> {contractData.product?.name || 'N/A'}</p>
-              <p className="text-lg"><strong>Region:</strong> {contractData.country?.name || 'N/A'}</p>
-              <p className="text-lg"><strong>Cuotas:</strong> {formatMonth(contractData.start_month)} - {formatMonth(contractData.end_month)}</p>
-              <p className="text-xl font-bold mt-4">Contrato {contractData.contract_number}</p>
+          <div className="max-w-5xl mx-auto bg-white">
+            <div className="border-2 border-black mb-4">
+              <div className="bg-gray-200 border-b border-black px-4 py-2">
+                <strong>Cuota</strong>
+              </div>
+              <div className="px-4 py-2">
+                {formatMonth(contractData.start_month)}
+              </div>
             </div>
 
-            <div className="mb-6">
-              <h3 className="text-lg font-bold mb-2">Detalle por termino</h3>
-            </div>
-
-            <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <h4 className="font-bold mb-2">1. Cantidad/Plazo</h4>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  {quotas.map((quota, index) => (
-                    <li key={index}>
-                      {formatMonth(quota.month)} {'==>'} {quota.tmh}tmh / {quota.tms} tms / {quota.h2o_percentage}% H2O
-                    </li>
-                  ))}
-                </ul>
+                <div className="border-2 border-black">
+                  <div className="bg-gray-200 border-b border-black px-4 py-2">
+                    <strong>Ensayes provisionales</strong>
+                  </div>
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-black">
+                        <th className="border-r border-black px-2 py-1 text-left">Elemento</th>
+                        <th className="border-r border-black px-2 py-1 text-left">Unidades</th>
+                        <th className="px-2 py-1 text-left">UdM</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {valuationData.assays.map((assay, index) => (
+                        <tr key={index} className="border-b border-gray-300">
+                          <td className="border-r border-black px-2 py-1">{assay.metal}</td>
+                          <td className="border-r border-black px-2 py-1 text-right">{assay.assay_value}</td>
+                          <td className="px-2 py-1">{assay.unit}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="border-2 border-black mt-4">
+                  <div className="bg-gray-200 border-b border-black px-4 py-2">
+                    <strong>Pesos Provisionales</strong>
+                  </div>
+                  <table className="w-full">
+                    <tbody>
+                      <tr className="border-b border-gray-300">
+                        <td className="border-r border-black px-2 py-1 font-semibold">TMH</td>
+                        <td className="px-2 py-1 text-right">{valuationData.weights.tmh}</td>
+                      </tr>
+                      <tr className="border-b border-gray-300">
+                        <td className="border-r border-black px-2 py-1 font-semibold">H2O</td>
+                        <td className="px-2 py-1 text-right">{valuationData.weights.h2o_percentage}%</td>
+                      </tr>
+                      <tr className="border-b border-gray-300">
+                        <td className="border-r border-black px-2 py-1 font-semibold">TMS</td>
+                        <td className="px-2 py-1 text-right">{valuationData.weights.tms}</td>
+                      </tr>
+                      <tr className="border-b border-gray-300">
+                        <td className="border-r border-black px-2 py-1 font-semibold">Merma</td>
+                        <td className="px-2 py-1 text-right">{contractData.waste_value || 0.5}%</td>
+                      </tr>
+                      <tr>
+                        <td className="border-r border-black px-2 py-1 font-semibold">TMNS</td>
+                        <td className="px-2 py-1 text-right">{tmns.toFixed(2)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               <div>
-                <h4 className="font-bold mb-2">2. Incoterm Entrega</h4>
-                <ul className="list-disc list-inside ml-4">
-                  <li>{contractData.incoterm?.code} {contractData.delivery_location}</li>
-                </ul>
-              </div>
+                <div className="border-2 border-black">
+                  <div className="bg-gray-200 border-b border-black px-4 py-2">
+                    <strong>Precios provisionales</strong>
+                  </div>
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-black">
+                        <th className="border-r border-black px-2 py-1 text-left">Elemento</th>
+                        <th className="border-r border-black px-2 py-1 text-left">Divisa</th>
+                        <th className="border-r border-black px-2 py-1 text-right">Precio</th>
+                        <th className="border-r border-black px-2 py-1 text-left">Index</th>
+                        <th className="px-2 py-1 text-left">QP</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {valuationData.prices.map((price, index) => (
+                        <tr key={index} className="border-b border-gray-300">
+                          <td className="border-r border-black px-2 py-1">{price.metal}</td>
+                          <td className="border-r border-black px-2 py-1">{price.unit.includes('$') ? 'USD' : price.unit}</td>
+                          <td className="border-r border-black px-2 py-1 text-right">${price.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                          <td className="border-r border-black px-2 py-1">-</td>
+                          <td className="px-2 py-1">-</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-              <div>
-                <h4 className="font-bold mb-2">3. Rollback</h4>
-                <ul className="list-disc list-inside ml-4">
-                  <li>{contractData.rollback_applies ? `${contractData.rollback_value} ${contractData.rollback_unit}` : 'N/A'}</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-bold mb-2">4. Calidad / Granulometria</h4>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  {qualitySpecs.map((spec, index) => (
-                    <li key={index}>
-                      {spec.element}: {spec.min_value !== null ? `${spec.min_value} - ${spec.max_value}` : `< ${spec.max_value}`} {spec.unit}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-bold mb-2">5. Pagables</h4>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  {payables.map((payable, index) => (
-                    <li key={index}>
-                      {payable.metal}: (Ensaye - {payable.deduction}) * {payable.recovery_percentage}% {'==>'} Indice {payable.price_index}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-bold mb-2">6. Maquila o Cargo de Tratamiento</h4>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  {processing.map((proc, index) => (
-                    <li key={index}>
-                      ${proc.amount_usd}/{proc.unit} {contractData.incoterm?.code} {contractData.delivery_location}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-bold mb-2">7. Escalador en Maquila</h4>
-                <ul className="list-disc list-inside ml-4">
-                  <li>N/A</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-bold mb-2">8. Gastos de Refinacion</h4>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  {refiningExpenses.map((expense, index) => (
-                    <li key={index}>
-                      {expense.metal}: ${expense.amount_usd}/{expense.unit}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-bold mb-2">9. Escalador en Gastos de Refinacion</h4>
-                <ul className="list-disc list-inside ml-4">
-                  <li>N/A</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-bold mb-2">10. Penalidades</h4>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  {penalties.map((penalty, index) => (
-                    <li key={index}>
-                      {penalty.element}: ${penalty.amount_usd}/{penalty.unit} por cada {penalty.increment} por encima {penalty.threshold}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-bold mb-2">11. Pagos</h4>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  {paymentTerms.map((term, index) => (
-                    <li key={index}>
-                      Pago {term.payment_type === 'provisional' ? 'Provisional' : 'Final'}.
-                      {term.payment_type === 'provisional'
-                        ? ` ${term.advance_percentage}% a los ${term.days_from_issuance} días calendario de recibida la factura provisional, una vez cerrado el lote.`
-                        : ` Cuando las leyes, pesos y precios de todos los elementos sean conocidos.`}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-bold mb-2">12. Periodo de Cotizaciones</h4>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  {quotationPeriods.map((period, index) => (
-                    <li key={index}>
-                      {period.formula === 'Mes de Entrega' ? 'M' : `M+${period.months}`} ({period.formula})
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-bold mb-2">13. Muestreo Pesos</h4>
-                <ul className="list-disc list-inside ml-4">
-                  <li>{contractData.delivery_location}</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-bold mb-2">14. Muestreo Ensayes</h4>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>Procedimiento de dirimencia.</li>
-                  <li>Costos asumidos por el Comprador y Vendedor en partes iguales.</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-bold mb-2">15. Merma</h4>
-                <ul className="list-disc list-inside ml-4">
-                  <li>{contractData.waste_applies === 'aplica' ? `${contractData.waste_value}%` : 'N/A'}</li>
-                </ul>
-              </div>
-
-              <div className="mt-8 pt-6 border-t-2 border-gray-300">
-                <h3 className="text-xl font-bold mb-4">Datos de Valorización Manual</h3>
-
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-bold mb-2">Pesos</h4>
-                    <table className="w-full border border-gray-300">
-                      <thead className="bg-gray-100">
+                <div className="border-2 border-black mt-4">
+                  <div className="bg-gray-200 border-b border-black px-4 py-2">
+                    <strong>Sensibilidad</strong>
+                  </div>
+                  <div className="px-2 py-2">
+                    <div className="font-semibold mb-2">Precios en Pagables</div>
+                    <table className="w-full text-sm">
+                      <thead>
                         <tr>
-                          <th className="border border-gray-300 px-4 py-2">TMH</th>
-                          <th className="border border-gray-300 px-4 py-2">H2O (%)</th>
-                          <th className="border border-gray-300 px-4 py-2">TMS</th>
+                          <th className="text-left"></th>
+                          <th className="text-right">$/TMS (+/-)</th>
+                          <th className="text-right">Total (+/-)</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {valuationData.weights.map((weight, index) => (
-                          <tr key={index}>
-                            <td className="border border-gray-300 px-4 py-2 text-center">{weight.tmh}</td>
-                            <td className="border border-gray-300 px-4 py-2 text-center">{weight.h2o_percentage}</td>
-                            <td className="border border-gray-300 px-4 py-2 text-center">{weight.tms}</td>
-                          </tr>
-                        ))}
+                        {payables.map((payable, index) => {
+                          const sens = calculatePriceSensitivity(payable.metal);
+                          return (
+                            <tr key={index}>
+                              <td className="text-left text-xs">{payable.metal} (por cada +/- sensibilidad)</td>
+                              <td className="text-right">${sens.perTMS}</td>
+                              <td className="text-right">${sens.total}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
-                  </div>
 
-                  <div>
-                    <h4 className="font-bold mb-2">Precios</h4>
-                    <table className="w-full border border-gray-300">
-                      <thead className="bg-gray-100">
+                    <div className="font-semibold mt-3 mb-2">Leyes en Pagables</div>
+                    <table className="w-full text-sm">
+                      <thead>
                         <tr>
-                          <th className="border border-gray-300 px-4 py-2">Metal</th>
-                          <th className="border border-gray-300 px-4 py-2">Precio</th>
-                          <th className="border border-gray-300 px-4 py-2">Unidad</th>
+                          <th className="text-left"></th>
+                          <th className="text-right">$/TMS (+/-)</th>
+                          <th className="text-right">Total (+/-)</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {valuationData.prices.map((price, index) => (
-                          <tr key={index}>
-                            <td className="border border-gray-300 px-4 py-2">{price.metal}</td>
-                            <td className="border border-gray-300 px-4 py-2 text-center">{price.price}</td>
-                            <td className="border border-gray-300 px-4 py-2 text-center">{price.unit}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div>
-                    <h4 className="font-bold mb-2">Ensayes</h4>
-                    <table className="w-full border border-gray-300">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th className="border border-gray-300 px-4 py-2">Metal</th>
-                          <th className="border border-gray-300 px-4 py-2">Valor Ensaye</th>
-                          <th className="border border-gray-300 px-4 py-2">Unidad</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {valuationData.assays.map((assay, index) => (
-                          <tr key={index}>
-                            <td className="border border-gray-300 px-4 py-2">{assay.metal}</td>
-                            <td className="border border-gray-300 px-4 py-2 text-center">{assay.assay_value}</td>
-                            <td className="border border-gray-300 px-4 py-2 text-center">{assay.unit}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div>
-                    <h4 className="font-bold mb-2">Sensibilidad Ensayes</h4>
-                    <table className="w-full border border-gray-300">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th className="border border-gray-300 px-4 py-2">Metal</th>
-                          <th className="border border-gray-300 px-4 py-2">Valor Sensibilidad</th>
-                          <th className="border border-gray-300 px-4 py-2">Unidad</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {valuationData.assay_sensitivity.map((item, index) => (
-                          <tr key={index}>
-                            <td className="border border-gray-300 px-4 py-2">{item.metal}</td>
-                            <td className="border border-gray-300 px-4 py-2 text-center">{item.sensitivity_value}</td>
-                            <td className="border border-gray-300 px-4 py-2 text-center">{item.unit}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div>
-                    <h4 className="font-bold mb-2">Sensibilidad Precios</h4>
-                    <table className="w-full border border-gray-300">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th className="border border-gray-300 px-4 py-2">Metal</th>
-                          <th className="border border-gray-300 px-4 py-2">Sensibilidad Precio</th>
-                          <th className="border border-gray-300 px-4 py-2">Unidad</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {valuationData.price_sensitivity.map((item, index) => (
-                          <tr key={index}>
-                            <td className="border border-gray-300 px-4 py-2">{item.metal}</td>
-                            <td className="border border-gray-300 px-4 py-2 text-center">{item.price_sensitivity}</td>
-                            <td className="border border-gray-300 px-4 py-2 text-center">{item.unit}</td>
-                          </tr>
-                        ))}
+                        {payables.map((payable, index) => {
+                          const sens = calculateAssaySensitivity(payable.metal);
+                          return (
+                            <tr key={index}>
+                              <td className="text-left text-xs">{payable.metal} (por cada +/- sensibilidad en ley)</td>
+                              <td className="text-right">${sens.perTMS}</td>
+                              <td className="text-right">${sens.total}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className="border-2 border-black mb-4">
+              <div className="bg-gray-200 border-b border-black px-4 py-2">
+                <strong>Metales Pagables</strong>
+              </div>
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-black">
+                    <th className="border-r border-black px-2 py-1 text-left">Metal</th>
+                    <th className="border-r border-black px-2 py-1 text-left">Formula</th>
+                    <th className="border-r border-black px-2 py-1 text-right">Pagable por MT</th>
+                    <th className="border-r border-black px-2 py-1 text-right">$/TMS</th>
+                    <th className="px-2 py-1 text-right">Total $</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payables.map((payable, index) => {
+                    const calc = calculatePayable(payable.metal);
+                    return (
+                      <tr key={index} className="border-b border-gray-300">
+                        <td className="border-r border-black px-2 py-1">{payable.metal}</td>
+                        <td className="border-r border-black px-2 py-1">{calc.formula}</td>
+                        <td className="border-r border-black px-2 py-1 text-right">{calc.payablePerMT}</td>
+                        <td className="border-r border-black px-2 py-1 text-right">$</td>
+                        <td className="px-2 py-1 text-right">${parseFloat(calc.totalUSD).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="border-2 border-black mb-4">
+              <div className="bg-gray-200 border-b border-black px-4 py-2">
+                <strong>Deducciones</strong>
+              </div>
+              <table className="w-full">
+                <tbody>
+                  <tr className="border-b border-gray-300">
+                    <td className="border-r border-black px-2 py-1 font-semibold" colSpan={2}>Cargo de Tratamiento o Maquila</td>
+                    <td className="border-r border-black px-2 py-1">Peso base</td>
+                    <td className="border-r border-black px-2 py-1 text-right">$/TMS</td>
+                    <td className="px-2 py-1 text-right font-semibold">Total $</td>
+                  </tr>
+                  {processing.map((proc, index) => (
+                    <tr key={index} className="border-b border-gray-300">
+                      <td className="border-r border-black px-2 py-1" colSpan={2}>{proc.amount_usd}</td>
+                      <td className="border-r border-black px-2 py-1">TMS</td>
+                      <td className="border-r border-black px-2 py-1 text-right">-{proc.amount_usd}</td>
+                      <td className="px-2 py-1 text-right text-red-600">${calculateProcessingCost().toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <table className="w-full mt-2">
+                <tbody>
+                  <tr className="border-b border-gray-300">
+                    <td className="border-r border-black px-2 py-1 font-semibold" colSpan={2}>Cargo de Refinacion</td>
+                    <td className="border-r border-black px-2 py-1"></td>
+                    <td className="border-r border-black px-2 py-1 text-right">$/TMS</td>
+                    <td className="px-2 py-1 text-right font-semibold">Total $</td>
+                  </tr>
+                  {refiningExpenses.map((expense, index) => {
+                    const cost = calculateRefiningCost(expense.metal);
+                    return (
+                      <tr key={index} className="border-b border-gray-300">
+                        <td className="border-r border-black px-2 py-1">{expense.metal}</td>
+                        <td className="border-r border-black px-2 py-1">{expense.amount_usd} {expense.unit}</td>
+                        <td className="border-r border-black px-2 py-1"></td>
+                        <td className="border-r border-black px-2 py-1 text-right">-{Math.abs(cost / tmns).toFixed(4)}</td>
+                        <td className="px-2 py-1 text-right text-red-600">${cost.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="border-2 border-black mb-4">
+              <div className="bg-gray-200 border-b border-black px-4 py-2">
+                <strong>Penalidades</strong>
+              </div>
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-black">
+                    <th className="border-r border-black px-2 py-1 text-left">Elemento</th>
+                    <th className="border-r border-black px-2 py-1 text-left">Formula</th>
+                    <th className="border-r border-black px-2 py-1 text-right">$/TMS</th>
+                    <th className="px-2 py-1 text-right">Total $</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {penalties.map((penalty, index) => {
+                    const cost = calculatePenalty(penalty.element);
+                    return (
+                      <tr key={index} className="border-b border-gray-300">
+                        <td className="border-r border-black px-2 py-1">{penalty.element}</td>
+                        <td className="border-r border-black px-2 py-1">${penalty.amount_usd} por cada {penalty.increment} por encima de {penalty.threshold}</td>
+                        <td className="border-r border-black px-2 py-1 text-right">{(cost / tmns).toFixed(4)}</td>
+                        <td className="px-2 py-1 text-right text-red-600">${cost.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="border-2 border-black bg-yellow-100">
+              <table className="w-full">
+                <tbody>
+                  <tr>
+                    <td className="border-r border-black px-4 py-2 font-bold">Total</td>
+                    <td className="border-r border-black px-4 py-2 text-right font-bold">$/TMS</td>
+                    <td className="px-4 py-2 text-right font-bold text-lg">Total $</td>
+                  </tr>
+                  <tr>
+                    <td className="border-r border-black px-4 py-2"></td>
+                    <td className="border-r border-black px-4 py-2 text-right font-bold">{(total / tmns).toFixed(2)}</td>
+                    <td className="px-4 py-2 text-right font-bold text-xl text-green-700">${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
