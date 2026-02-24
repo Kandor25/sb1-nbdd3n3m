@@ -923,9 +923,84 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' });
   };
 
+  const isPayablesSectionValid = () => {
+    return formData.payables.length > 0 && formData.payables.every(p =>
+      p.formulaId &&
+      p.metal &&
+      (isPayableFormulaNoAplica(p.formulaId) ||
+        (p.deductionValue && p.deductionUnit && p.balancePercentage && p.marketIndexId))
+    );
+  };
+
+  const isProcessingSectionValid = () => {
+    return formData.processing.length > 0 && formData.processing.every(p => p.formulaId);
+  };
+
+  const isPenaltiesSectionValid = () => {
+    return formData.penalties.length > 0 && formData.penalties.every(p =>
+      p.formulaId &&
+      (isPenaltyFormulaNoAplica(p.formulaId) ||
+        (p.metal && p.amountUsd && p.lowerLimit && p.upperLimit))
+    );
+  };
+
+  const isQualitySpecsSectionValid = () => {
+    return formData.qualitySpecs.length > 0 && formData.qualitySpecs.every(q =>
+      q.metal && q.specType && q.unit &&
+      ((q.specType === 'range' && q.minValue && q.maxValue) ||
+       (q.specType === 'minimum' && q.minValue) ||
+       (q.specType === 'maximum' && q.maxValue))
+    );
+  };
+
+  const isRefiningExpensesSectionValid = () => {
+    return formData.refiningExpenses.length > 0 && formData.refiningExpenses.every(e =>
+      e.formulaId &&
+      (isRefiningExpenseFormulaNoAplica(e.formulaId) ||
+        (e.metal && e.amountUsd && e.unit))
+    );
+  };
+
+  const isRollbackWasteSectionValid = () => {
+    const rollbackValid = !formData.rollbackApplies ||
+      (formData.rollbackValue && formData.rollbackUnit);
+    const wasteValid = formData.wasteApplies === 'no_aplica' ||
+      (formData.wasteApplies === 'aplica' && formData.wasteValue && formData.wasteUnit);
+    return rollbackValid && wasteValid;
+  };
+
+  const isAssaySamplingSectionValid = () => {
+    return formData.assayStructure &&
+           formData.assayFinalLab &&
+           formData.assayCostType;
+  };
+
+  const isQuotationPeriodsSectionValid = () => {
+    return formData.quotationPeriods.length > 0 && formData.quotationPeriods.every(q =>
+      q.formula && q.months && q.metal
+    );
+  };
+
+  const isPaymentTermsSectionValid = () => {
+    return formData.paymentTerms.length > 0 && formData.paymentTerms.every(p =>
+      p.paymentType &&
+      ((p.paymentType === 'provisional' && p.advancePercentage) ||
+       (p.paymentType === 'final' && p.knownElements))
+    );
+  };
+
   const getSectionStatus = (sectionId: string) => {
     if (sectionId === 'basic') return isBasicSectionValid() ? 'complete' : 'incomplete';
     if (sectionId === 'incoterm') return isIncotermSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'payables') return isPayablesSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'processing') return isProcessingSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'penalties') return isPenaltiesSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'quality') return isQualitySpecsSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'refining') return isRefiningExpensesSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'rollback-waste') return isRollbackWasteSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'assay-sampling') return isAssaySamplingSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'quotation-periods') return isQuotationPeriodsSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'payment-terms') return isPaymentTermsSectionValid() ? 'complete' : 'incomplete';
     return 'incomplete';
   };
 
