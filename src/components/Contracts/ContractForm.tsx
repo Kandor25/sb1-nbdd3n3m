@@ -713,8 +713,13 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   };
 
   const handleSave = async () => {
-    if (!isBasicSectionValid() || !isIncotermSectionValid()) {
-      alert('Por favor complete todos los campos obligatorios');
+    if (!isBasicSectionValid()) {
+      alert('Por favor complete la información básica del contrato');
+      return;
+    }
+
+    if (!isIncotermSectionValid()) {
+      alert('Por favor complete la información del Incoterm');
       return;
     }
 
@@ -961,12 +966,14 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     );
   };
 
-  const isRollbackWasteSectionValid = () => {
-    const rollbackValid = !formData.rollbackApplies ||
+  const isRollbackSectionValid = () => {
+    return !formData.rollbackApplies ||
       (formData.rollbackValue && formData.rollbackUnit);
-    const wasteValid = formData.wasteApplies === 'no_aplica' ||
+  };
+
+  const isWasteSectionValid = () => {
+    return formData.wasteApplies === 'no_aplica' ||
       (formData.wasteApplies === 'aplica' && formData.wasteValue && formData.wasteUnit);
-    return rollbackValid && wasteValid;
   };
 
   const isAssaySamplingSectionValid = () => {
@@ -975,32 +982,58 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
            formData.assayCostType;
   };
 
-  const isQuotationPeriodsSectionValid = () => {
+  const isWeightSamplingSectionValid = () => {
+    if (!formData.samplingFormulaId) return false;
+    const selectedFormula = samplingFormulas.find(f => f.id === formData.samplingFormulaId);
+    if (!selectedFormula) return false;
+
+    // Si la fórmula requiere incoterm, verificar que esté seleccionado
+    if (selectedFormula.requires_incoterm && !formData.samplingIncotermId) {
+      return false;
+    }
+    return true;
+  };
+
+  const isQuotationPeriodSectionValid = () => {
     return formData.quotationPeriods.length > 0 && formData.quotationPeriods.every(q =>
       q.formula && q.months && q.metal
     );
   };
 
-  const isPaymentTermsSectionValid = () => {
+  const isPaymentsSectionValid = () => {
     return formData.paymentTerms.length > 0 && formData.paymentTerms.every(p =>
-      p.paymentType &&
+      p.paymentType && p.daysFromIssuance &&
       ((p.paymentType === 'provisional' && p.advancePercentage) ||
        (p.paymentType === 'final' && p.knownElements))
     );
   };
 
+  const isProcessingEscalatorSectionValid = () => {
+    return !formData.processingEscalatorApplies ||
+      (formData.processingEscalatorValue && formData.processingEscalatorUnit);
+  };
+
+  const isRefiningEscalatorSectionValid = () => {
+    return !formData.refiningEscalatorApplies ||
+      (formData.refiningEscalatorValue && formData.refiningEscalatorUnit);
+  };
+
   const getSectionStatus = (sectionId: string) => {
     if (sectionId === 'basic') return isBasicSectionValid() ? 'complete' : 'incomplete';
     if (sectionId === 'incoterm') return isIncotermSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'rollback') return isRollbackSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'quality') return isQualitySpecsSectionValid() ? 'complete' : 'incomplete';
     if (sectionId === 'payables') return isPayablesSectionValid() ? 'complete' : 'incomplete';
     if (sectionId === 'processing') return isProcessingSectionValid() ? 'complete' : 'incomplete';
-    if (sectionId === 'penalties') return isPenaltiesSectionValid() ? 'complete' : 'incomplete';
-    if (sectionId === 'quality') return isQualitySpecsSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'processing-escalator') return isProcessingEscalatorSectionValid() ? 'complete' : 'incomplete';
     if (sectionId === 'refining') return isRefiningExpensesSectionValid() ? 'complete' : 'incomplete';
-    if (sectionId === 'rollback-waste') return isRollbackWasteSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'refining-escalator') return isRefiningEscalatorSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'penalties') return isPenaltiesSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'payments') return isPaymentsSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'quotation-period') return isQuotationPeriodSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'weight-sampling') return isWeightSamplingSectionValid() ? 'complete' : 'incomplete';
     if (sectionId === 'assay-sampling') return isAssaySamplingSectionValid() ? 'complete' : 'incomplete';
-    if (sectionId === 'quotation-periods') return isQuotationPeriodsSectionValid() ? 'complete' : 'incomplete';
-    if (sectionId === 'payment-terms') return isPaymentTermsSectionValid() ? 'complete' : 'incomplete';
+    if (sectionId === 'waste') return isWasteSectionValid() ? 'complete' : 'incomplete';
     return 'incomplete';
   };
 
@@ -2943,7 +2976,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
           <div className="flex items-center space-x-3">
             <button
               onClick={handleSave}
-              disabled={!isBasicSectionValid() || !isIncotermSectionValid() || loading}
+              disabled={loading}
               className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="w-4 h-4 mr-2" />
