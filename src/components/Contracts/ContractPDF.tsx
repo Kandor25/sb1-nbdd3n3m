@@ -31,13 +31,18 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
 
   const loadData = async () => {
     try {
+      console.log('Loading contract data for ID:', contractId);
       const { data: contract, error: contractError } = await supabase
         .from('contracts')
         .select('*')
         .eq('id', contractId)
         .single();
 
-      if (contractError) throw contractError;
+      if (contractError) {
+        console.error('Error loading contract:', contractError);
+        throw contractError;
+      }
+      console.log('Contract loaded:', contract);
       setContractData(contract);
 
       const { data: payablesData } = await supabase
@@ -64,6 +69,7 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
         .eq('contract_id', contractId);
       setPenalties(penaltiesData || []);
 
+      console.log('Loading valuation data for ID:', valuationId);
       const { data: weights } = await supabase
         .from('valuation_weights')
         .select('*')
@@ -90,6 +96,8 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
         .select('*')
         .eq('valuation_id', valuationId);
 
+      console.log('Valuation data loaded:', { weights, prices, assays, assaySensitivity, priceSensitivity });
+
       setValuationData({
         weights: weights,
         prices: prices || [],
@@ -100,7 +108,7 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
 
     } catch (error) {
       console.error('Error al cargar datos:', error);
-      alert('Error al cargar los datos del contrato');
+      alert('Error al cargar los datos del contrato: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -288,12 +296,28 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
   }
 
   if (!contractData || !valuationData || !valuationData.weights) {
-    return null;
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg p-8 max-w-md">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Error</h3>
+          <p className="text-gray-600 mb-4">
+            No se pudieron cargar los datos de la valorización. Por favor, verifica que todos los datos se hayan guardado correctamente.
+          </p>
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const formatMonth = (month: string) => {
-    const date = new Date(month + '-01');
-    return date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+    const [year, monthNum] = month.split('-').map(Number);
+    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return `${monthNames[monthNum - 1]} ${year}`;
   };
 
   const tmns = calculateTMNS();
