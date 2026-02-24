@@ -122,10 +122,14 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
   };
 
   const calculatePayable = (metal: string) => {
-    const payable = payables.find(p => p.metal.toLowerCase().includes(metal.toLowerCase()));
-    const assay = valuationData?.assays.find(a => a.metal.toLowerCase().includes(metal.toLowerCase()));
+    if (!metal || !payables || !valuationData?.assays || !valuationData?.weights) {
+      return { formula: '', payablePerMT: 0, totalUSD: 0 };
+    }
 
-    if (!payable || !assay || !valuationData?.weights) return { formula: '', payablePerMT: 0, totalUSD: 0 };
+    const payable = payables.find(p => p.metal?.toLowerCase().includes(metal.toLowerCase()));
+    const assay = valuationData.assays.find(a => a.metal?.toLowerCase().includes(metal.toLowerCase()));
+
+    if (!payable || !assay) return { formula: '', payablePerMT: 0, totalUSD: 0 };
 
     const assayValue = assay.assay_value;
     const deduction = parseFloat(payable.deduction) || 0;
@@ -133,7 +137,7 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
 
     const payablePerMT = ((assayValue - deduction) * recovery) / 100;
 
-    const price = valuationData.prices.find(p => p.metal.toLowerCase().includes(metal.toLowerCase()));
+    const price = valuationData.prices?.find(p => p.metal?.toLowerCase().includes(metal.toLowerCase()));
     const priceValue = price?.price || 0;
 
     let totalUSD = 0;
@@ -162,8 +166,10 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
   };
 
   const calculateRefiningCost = (metal: string) => {
-    const expense = refiningExpenses.find(e => e.metal.toLowerCase().includes(metal.toLowerCase()));
-    if (!expense || !valuationData?.weights) return 0;
+    if (!metal || !refiningExpenses || !valuationData?.weights) return 0;
+
+    const expense = refiningExpenses.find(e => e.metal?.toLowerCase().includes(metal.toLowerCase()));
+    if (!expense) return 0;
 
     const payableCalc = calculatePayable(metal);
     const payablePerMT = parseFloat(payableCalc.payablePerMT);
@@ -180,10 +186,12 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
   };
 
   const calculatePenalty = (element: string) => {
-    const penalty = penalties.find(p => p.element.toLowerCase().includes(element.toLowerCase()));
-    if (!penalty || !valuationData?.weights) return 0;
+    if (!element || !penalties || !valuationData?.weights || !valuationData?.assays) return 0;
 
-    const assay = valuationData.assays.find(a => a.metal.toLowerCase().includes(element.toLowerCase()));
+    const penalty = penalties.find(p => p.element?.toLowerCase().includes(element.toLowerCase()));
+    if (!penalty) return 0;
+
+    const assay = valuationData.assays.find(a => a.metal?.toLowerCase().includes(element.toLowerCase()));
     if (!assay) return 0;
 
     const threshold = parseFloat(penalty.threshold) || 0;
@@ -202,11 +210,15 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
   };
 
   const calculatePriceSensitivity = (metal: string) => {
-    const priceSens = valuationData?.price_sensitivity.find(p =>
-      p.metal.toLowerCase().includes(metal.toLowerCase())
+    if (!metal || !valuationData?.price_sensitivity || !valuationData?.weights) {
+      return { perTMS: 0, total: 0 };
+    }
+
+    const priceSens = valuationData.price_sensitivity.find(p =>
+      p.metal?.toLowerCase().includes(metal.toLowerCase())
     );
 
-    if (!priceSens || !valuationData?.weights) return { perTMS: 0, total: 0 };
+    if (!priceSens) return { perTMS: 0, total: 0 };
 
     const payableCalc = calculatePayable(metal);
     const payablePerMT = parseFloat(payableCalc.payablePerMT);
@@ -230,14 +242,18 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
   };
 
   const calculateAssaySensitivity = (metal: string) => {
-    const assaySens = valuationData?.assay_sensitivity.find(a =>
-      a.metal.toLowerCase().includes(metal.toLowerCase())
+    if (!metal || !valuationData?.assay_sensitivity || !payables || !valuationData?.prices || !valuationData?.weights) {
+      return { perTMS: 0, total: 0 };
+    }
+
+    const assaySens = valuationData.assay_sensitivity.find(a =>
+      a.metal?.toLowerCase().includes(metal.toLowerCase())
     );
 
-    const payable = payables.find(p => p.metal.toLowerCase().includes(metal.toLowerCase()));
-    const price = valuationData?.prices.find(p => p.metal.toLowerCase().includes(metal.toLowerCase()));
+    const payable = payables.find(p => p.metal?.toLowerCase().includes(metal.toLowerCase()));
+    const price = valuationData.prices.find(p => p.metal?.toLowerCase().includes(metal.toLowerCase()));
 
-    if (!assaySens || !payable || !price || !valuationData?.weights) return { perTMS: 0, total: 0 };
+    if (!assaySens || !payable || !price) return { perTMS: 0, total: 0 };
 
     const recovery = parseFloat(payable.recovery_percentage) || 100;
     const priceValue = price.price;
@@ -263,20 +279,32 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
   const calculateTotal = () => {
     let total = 0;
 
-    payables.forEach(payable => {
-      const calc = calculatePayable(payable.metal);
-      total += parseFloat(calc.totalUSD);
-    });
+    if (payables && Array.isArray(payables)) {
+      payables.forEach(payable => {
+        if (payable?.metal) {
+          const calc = calculatePayable(payable.metal);
+          total += parseFloat(calc.totalUSD) || 0;
+        }
+      });
+    }
 
     total += calculateProcessingCost();
 
-    refiningExpenses.forEach(expense => {
-      total += calculateRefiningCost(expense.metal);
-    });
+    if (refiningExpenses && Array.isArray(refiningExpenses)) {
+      refiningExpenses.forEach(expense => {
+        if (expense?.metal) {
+          total += calculateRefiningCost(expense.metal);
+        }
+      });
+    }
 
-    penalties.forEach(penalty => {
-      total += calculatePenalty(penalty.element);
-    });
+    if (penalties && Array.isArray(penalties)) {
+      penalties.forEach(penalty => {
+        if (penalty?.element) {
+          total += calculatePenalty(penalty.element);
+        }
+      });
+    }
 
     return total;
   };
@@ -315,9 +343,15 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
   }
 
   const formatMonth = (month: string) => {
-    const [year, monthNum] = month.split('-').map(Number);
-    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return `${monthNames[monthNum - 1]} ${year}`;
+    if (!month) return 'N/A';
+    try {
+      const [year, monthNum] = month.split('-').map(Number);
+      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      return `${monthNames[monthNum - 1]} ${year}`;
+    } catch (error) {
+      console.error('Error formatting month:', error);
+      return month;
+    }
   };
 
   const tmns = calculateTMNS();
@@ -368,13 +402,19 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
                       </tr>
                     </thead>
                     <tbody>
-                      {valuationData.assays.map((assay, index) => (
-                        <tr key={index} className="border-b border-gray-300">
-                          <td className="border-r border-black px-2 py-1">{assay.metal}</td>
-                          <td className="border-r border-black px-2 py-1 text-right">{assay.assay_value}</td>
-                          <td className="px-2 py-1">{assay.unit}</td>
+                      {valuationData.assays && valuationData.assays.length > 0 ? (
+                        valuationData.assays.map((assay, index) => (
+                          <tr key={index} className="border-b border-gray-300">
+                            <td className="border-r border-black px-2 py-1">{assay.metal || 'N/A'}</td>
+                            <td className="border-r border-black px-2 py-1 text-right">{assay.assay_value || 0}</td>
+                            <td className="px-2 py-1">{assay.unit || 'N/A'}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={3} className="px-2 py-1 text-center text-gray-500">No hay datos</td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -426,15 +466,21 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
                       </tr>
                     </thead>
                     <tbody>
-                      {valuationData.prices.map((price, index) => (
-                        <tr key={index} className="border-b border-gray-300">
-                          <td className="border-r border-black px-2 py-1">{price.metal}</td>
-                          <td className="border-r border-black px-2 py-1">{price.unit.includes('$') ? 'USD' : price.unit}</td>
-                          <td className="border-r border-black px-2 py-1 text-right">${price.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                          <td className="border-r border-black px-2 py-1">-</td>
-                          <td className="px-2 py-1">-</td>
+                      {valuationData.prices && valuationData.prices.length > 0 ? (
+                        valuationData.prices.map((price, index) => (
+                          <tr key={index} className="border-b border-gray-300">
+                            <td className="border-r border-black px-2 py-1">{price.metal || 'N/A'}</td>
+                            <td className="border-r border-black px-2 py-1">{price.unit?.includes('$') ? 'USD' : (price.unit || 'N/A')}</td>
+                            <td className="border-r border-black px-2 py-1 text-right">${(price.price || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                            <td className="border-r border-black px-2 py-1">-</td>
+                            <td className="px-2 py-1">-</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="px-2 py-1 text-center text-gray-500">No hay datos</td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -454,16 +500,22 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
                         </tr>
                       </thead>
                       <tbody>
-                        {payables.map((payable, index) => {
-                          const sens = calculatePriceSensitivity(payable.metal);
-                          return (
-                            <tr key={index}>
-                              <td className="text-left text-xs">{payable.metal} (por cada +/- sensibilidad)</td>
-                              <td className="text-right">${sens.perTMS}</td>
-                              <td className="text-right">${sens.total}</td>
-                            </tr>
-                          );
-                        })}
+                        {payables && payables.length > 0 ? (
+                          payables.map((payable, index) => {
+                            const sens = calculatePriceSensitivity(payable.metal);
+                            return (
+                              <tr key={index}>
+                                <td className="text-left text-xs">{payable.metal || 'N/A'} (por cada +/- sensibilidad)</td>
+                                <td className="text-right">${sens.perTMS}</td>
+                                <td className="text-right">${sens.total}</td>
+                              </tr>
+                            );
+                          })
+                        ) : (
+                          <tr>
+                            <td colSpan={3} className="text-center text-gray-500 text-xs">No hay datos</td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
 
@@ -477,16 +529,22 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
                         </tr>
                       </thead>
                       <tbody>
-                        {payables.map((payable, index) => {
-                          const sens = calculateAssaySensitivity(payable.metal);
-                          return (
-                            <tr key={index}>
-                              <td className="text-left text-xs">{payable.metal} (por cada +/- sensibilidad en ley)</td>
-                              <td className="text-right">${sens.perTMS}</td>
-                              <td className="text-right">${sens.total}</td>
-                            </tr>
-                          );
-                        })}
+                        {payables && payables.length > 0 ? (
+                          payables.map((payable, index) => {
+                            const sens = calculateAssaySensitivity(payable.metal);
+                            return (
+                              <tr key={index}>
+                                <td className="text-left text-xs">{payable.metal || 'N/A'} (por cada +/- sensibilidad en ley)</td>
+                                <td className="text-right">${sens.perTMS}</td>
+                                <td className="text-right">${sens.total}</td>
+                              </tr>
+                            );
+                          })
+                        ) : (
+                          <tr>
+                            <td colSpan={3} className="text-center text-gray-500 text-xs">No hay datos</td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -509,18 +567,24 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
                   </tr>
                 </thead>
                 <tbody>
-                  {payables.map((payable, index) => {
-                    const calc = calculatePayable(payable.metal);
-                    return (
-                      <tr key={index} className="border-b border-gray-300">
-                        <td className="border-r border-black px-2 py-1">{payable.metal}</td>
-                        <td className="border-r border-black px-2 py-1">{calc.formula}</td>
-                        <td className="border-r border-black px-2 py-1 text-right">{calc.payablePerMT}</td>
-                        <td className="border-r border-black px-2 py-1 text-right">$</td>
-                        <td className="px-2 py-1 text-right">${parseFloat(calc.totalUSD).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                      </tr>
-                    );
-                  })}
+                  {payables && payables.length > 0 ? (
+                    payables.map((payable, index) => {
+                      const calc = calculatePayable(payable.metal);
+                      return (
+                        <tr key={index} className="border-b border-gray-300">
+                          <td className="border-r border-black px-2 py-1">{payable.metal || 'N/A'}</td>
+                          <td className="border-r border-black px-2 py-1">{calc.formula}</td>
+                          <td className="border-r border-black px-2 py-1 text-right">{calc.payablePerMT}</td>
+                          <td className="border-r border-black px-2 py-1 text-right">$</td>
+                          <td className="px-2 py-1 text-right">${parseFloat(calc.totalUSD).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-2 py-1 text-center text-gray-500">No hay datos</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -537,14 +601,20 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
                     <td className="border-r border-black px-2 py-1 text-right">$/TMS</td>
                     <td className="px-2 py-1 text-right font-semibold">Total $</td>
                   </tr>
-                  {processing.map((proc, index) => (
-                    <tr key={index} className="border-b border-gray-300">
-                      <td className="border-r border-black px-2 py-1" colSpan={2}>{proc.amount_usd}</td>
-                      <td className="border-r border-black px-2 py-1">TMS</td>
-                      <td className="border-r border-black px-2 py-1 text-right">-{proc.amount_usd}</td>
-                      <td className="px-2 py-1 text-right text-red-600">${calculateProcessingCost().toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                  {processing && processing.length > 0 ? (
+                    processing.map((proc, index) => (
+                      <tr key={index} className="border-b border-gray-300">
+                        <td className="border-r border-black px-2 py-1" colSpan={2}>{proc.amount_usd || 0}</td>
+                        <td className="border-r border-black px-2 py-1">TMS</td>
+                        <td className="border-r border-black px-2 py-1 text-right">-{proc.amount_usd || 0}</td>
+                        <td className="px-2 py-1 text-right text-red-600">${calculateProcessingCost().toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-2 py-1 text-center text-gray-500">No hay datos</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
 
@@ -556,18 +626,24 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
                     <td className="border-r border-black px-2 py-1 text-right">$/TMS</td>
                     <td className="px-2 py-1 text-right font-semibold">Total $</td>
                   </tr>
-                  {refiningExpenses.map((expense, index) => {
-                    const cost = calculateRefiningCost(expense.metal);
-                    return (
-                      <tr key={index} className="border-b border-gray-300">
-                        <td className="border-r border-black px-2 py-1">{expense.metal}</td>
-                        <td className="border-r border-black px-2 py-1">{expense.amount_usd} {expense.unit}</td>
-                        <td className="border-r border-black px-2 py-1"></td>
-                        <td className="border-r border-black px-2 py-1 text-right">-{Math.abs(cost / tmns).toFixed(4)}</td>
-                        <td className="px-2 py-1 text-right text-red-600">${cost.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                      </tr>
-                    );
-                  })}
+                  {refiningExpenses && refiningExpenses.length > 0 ? (
+                    refiningExpenses.map((expense, index) => {
+                      const cost = calculateRefiningCost(expense.metal);
+                      return (
+                        <tr key={index} className="border-b border-gray-300">
+                          <td className="border-r border-black px-2 py-1">{expense.metal || 'N/A'}</td>
+                          <td className="border-r border-black px-2 py-1">{expense.amount_usd || 0} {expense.unit || 'N/A'}</td>
+                          <td className="border-r border-black px-2 py-1"></td>
+                          <td className="border-r border-black px-2 py-1 text-right">-{Math.abs(cost / tmns).toFixed(4)}</td>
+                          <td className="px-2 py-1 text-right text-red-600">${cost.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-2 py-1 text-center text-gray-500">No hay datos</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -586,17 +662,23 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ contractId, valuationId, onCl
                   </tr>
                 </thead>
                 <tbody>
-                  {penalties.map((penalty, index) => {
-                    const cost = calculatePenalty(penalty.element);
-                    return (
-                      <tr key={index} className="border-b border-gray-300">
-                        <td className="border-r border-black px-2 py-1">{penalty.element}</td>
-                        <td className="border-r border-black px-2 py-1">${penalty.amount_usd} por cada {penalty.increment} por encima de {penalty.threshold}</td>
-                        <td className="border-r border-black px-2 py-1 text-right">{(cost / tmns).toFixed(4)}</td>
-                        <td className="px-2 py-1 text-right text-red-600">${cost.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                      </tr>
-                    );
-                  })}
+                  {penalties && penalties.length > 0 ? (
+                    penalties.map((penalty, index) => {
+                      const cost = calculatePenalty(penalty.element);
+                      return (
+                        <tr key={index} className="border-b border-gray-300">
+                          <td className="border-r border-black px-2 py-1">{penalty.element || 'N/A'}</td>
+                          <td className="border-r border-black px-2 py-1">${penalty.amount_usd || 0} por cada {penalty.increment || 1} por encima de {penalty.threshold || 0}</td>
+                          <td className="border-r border-black px-2 py-1 text-right">{(cost / tmns).toFixed(4)}</td>
+                          <td className="px-2 py-1 text-right text-red-600">${cost.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="px-2 py-1 text-center text-gray-500">No hay datos</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
