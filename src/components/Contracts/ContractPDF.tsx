@@ -296,19 +296,21 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ onClose }) => {
               </table>
             </div>
 
-            {/* Deducciones */}
+            {/* Cargo de Tratamiento o Maquila */}
             <div className="border-2 border-black mb-4">
               <div className="bg-gray-200 border-b border-black px-4 py-2">
-                <strong>Deducciones</strong>
+                <strong>Cargo de Tratamiento o Maquila</strong>
               </div>
               <table className="w-full">
-                <tbody>
-                  <tr className="border-b border-gray-300">
-                    <td className="border-r border-black px-2 py-1 font-semibold" colSpan={2}>Cargo de Tratamiento o Maquila</td>
-                    <td className="border-r border-black px-2 py-1">Peso base</td>
-                    <td className="border-r border-black px-2 py-1 text-right">$/TMS</td>
-                    <td className="px-2 py-1 text-right font-semibold">Total $</td>
+                <thead>
+                  <tr className="border-b border-black">
+                    <th className="border-r border-black px-2 py-1 text-left" colSpan={2}>Descripción</th>
+                    <th className="border-r border-black px-2 py-1 text-left">Peso base</th>
+                    <th className="border-r border-black px-2 py-1 text-right">$/TMS</th>
+                    <th className="px-2 py-1 text-right">Total $</th>
                   </tr>
+                </thead>
+                <tbody>
                   <tr className="border-b border-gray-300">
                     <td className="border-r border-black px-2 py-1" colSpan={2}>{demoData.processing.description}</td>
                     <td className="border-r border-black px-2 py-1">{demoData.processing.base}</td>
@@ -317,15 +319,24 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ onClose }) => {
                   </tr>
                 </tbody>
               </table>
+            </div>
 
-              <table className="w-full mt-2">
-                <tbody>
-                  <tr className="border-b border-gray-300">
-                    <td className="border-r border-black px-2 py-1 font-semibold" colSpan={2}>Cargo de Refinacion</td>
-                    <td className="border-r border-black px-2 py-1"></td>
-                    <td className="border-r border-black px-2 py-1 text-right">$/TMS</td>
-                    <td className="px-2 py-1 text-right font-semibold">Total $</td>
+            {/* Cargo de Refinación */}
+            <div className="border-2 border-black mb-4">
+              <div className="bg-gray-200 border-b border-black px-4 py-2">
+                <strong>Cargo de Refinación</strong>
+              </div>
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-black">
+                    <th className="border-r border-black px-2 py-1 text-left">Metal</th>
+                    <th className="border-r border-black px-2 py-1 text-left">Monto</th>
+                    <th className="border-r border-black px-2 py-1 text-left"></th>
+                    <th className="border-r border-black px-2 py-1 text-right">$/TMS</th>
+                    <th className="px-2 py-1 text-right">Total $</th>
                   </tr>
+                </thead>
+                <tbody>
                   {demoData.refiningExpenses.map((expense, index) => (
                     <tr key={index} className="border-b border-gray-300">
                       <td className="border-r border-black px-2 py-1">{expense.metal}</td>
