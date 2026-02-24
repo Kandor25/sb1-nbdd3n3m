@@ -416,8 +416,14 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   };
 
   const generateQuotas = () => {
+    if (!formData.startMonth || !formData.endMonth) return;
+
     const [startYear, startMonthNum] = formData.startMonth.split('-').map(Number);
     const [endYear, endMonthNum] = formData.endMonth.split('-').map(Number);
+
+    if (isNaN(startYear) || isNaN(startMonthNum) || isNaN(endYear) || isNaN(endMonthNum)) {
+      return;
+    }
 
     const quotas: QuotaData[] = [];
 
@@ -439,6 +445,9 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         currentYear++;
       }
     }
+
+    console.log('Generated quotas from', formData.startMonth, 'to', formData.endMonth, ':', quotas.length, 'months');
+    console.log('Months:', quotas.map(q => q.month).join(', '));
 
     setFormData(prev => ({ ...prev, quotas }));
   };
@@ -932,8 +941,12 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   };
 
   const formatMonthLabel = (monthStr: string) => {
-    const date = new Date(monthStr + '-01');
-    return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' });
+    const [year, month] = monthStr.split('-').map(Number);
+    const monthNames = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    return `${monthNames[month - 1]} ${year}`;
   };
 
   const isPayablesSectionValid = () => {
