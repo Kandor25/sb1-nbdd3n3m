@@ -50,9 +50,10 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
           quantity: 0,
           tolerance: 0,
           deliveryPeriod: {
-            start: new Date(contract.start_month + '-01'),
-            end: new Date(contract.end_month + '-01')
+            start: new Date(contract.start_month),
+            end: new Date(contract.end_month)
           },
+          createdAt: contract.created_at ? new Date(contract.created_at) : new Date(),
           status: contract.status || 'active'
         }));
         setDbContracts(formattedContracts);
