@@ -29,8 +29,8 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
         .from('contracts')
         .select(`
           *,
-          vendor:counterparties!contracts_vendor_id_fkey(id, name),
-          buyer:counterparties!contracts_buyer_id_fkey(id, name),
+          vendor:vendors(id, name),
+          buyer:buyers(id, name),
           product:products(id, name)
         `);
 
