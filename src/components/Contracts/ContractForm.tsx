@@ -288,9 +288,24 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         supabase.from('market_indices').select('*').order('name'),
       ]);
 
-      if (vendorsRes.data) setVendors(vendorsRes.data);
-      if (buyersRes.data) setBuyers(buyersRes.data);
-      if (productsRes.data) setProducts(productsRes.data);
+      if (vendorsRes.data) {
+        console.log('Vendedores cargados:', vendorsRes.data);
+        setVendors(vendorsRes.data);
+      } else {
+        console.error('Error al cargar vendedores:', vendorsRes.error);
+      }
+      if (buyersRes.data) {
+        console.log('Compradores cargados:', buyersRes.data);
+        setBuyers(buyersRes.data);
+      } else {
+        console.error('Error al cargar compradores:', buyersRes.error);
+      }
+      if (productsRes.data) {
+        console.log('Productos cargados:', productsRes.data);
+        setProducts(productsRes.data);
+      } else {
+        console.error('Error al cargar productos:', productsRes.error);
+      }
       if (formulasRes.data) {
         console.log('Fórmulas cargadas:', formulasRes.data);
         setPayableFormulas(formulasRes.data);
