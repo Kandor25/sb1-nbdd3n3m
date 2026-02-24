@@ -3,6 +3,7 @@ import { FileText, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, Trend
 import { mockContracts, mockCounterparties } from '../../data/mockData';
 import type { Contract } from '../../types';
 import ManualValuation from './ManualValuation';
+import ContractDetailsView from './ContractDetailsView';
 import { supabase } from '../../lib/supabase';
 
 interface ContractListProps {
@@ -15,6 +16,7 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [showValuation, setShowValuation] = useState(false);
+  const [showContractDetails, setShowContractDetails] = useState(false);
   const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
   const [dbContracts, setDbContracts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,6 +116,14 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
     setSelectedContractId(null);
   };
 
+  const handleOpenContractDetails = () => {
+    setShowContractDetails(true);
+  };
+
+  const handleCloseContractDetails = () => {
+    setShowContractDetails(false);
+  };
+
   return (
     <>
       {showValuation && selectedContractId && (
@@ -121,6 +131,11 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
           contractId={selectedContractId}
           onClose={handleCloseValuation}
           onSuccess={handleCloseValuation}
+        />
+      )}
+      {showContractDetails && (
+        <ContractDetailsView
+          onClose={handleCloseContractDetails}
         />
       )}
     <div className="p-6 space-y-6">
@@ -317,7 +332,7 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-3">
                         <button
-                          onClick={() => onViewDetails(contract)}
+                          onClick={handleOpenContractDetails}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           Ver
