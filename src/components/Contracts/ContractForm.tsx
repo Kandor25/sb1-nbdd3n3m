@@ -1395,13 +1395,16 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               Unidad <span className="text-red-500">*</span>
                             </label>
-                            <input
-                              type="text"
+                            <select
                               value={formData.rollbackUnit}
                               onChange={(e) => updateFormData('rollbackUnit', e.target.value)}
-                              placeholder="$/tm"
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
+                            >
+                              <option value="">Seleccionar unidad...</option>
+                              <option value="$/tm">$/tm</option>
+                              <option value="$/tms">$/tms</option>
+                              <option value="%">%</option>
+                            </select>
                           </div>
                         </div>
 
@@ -1952,15 +1955,18 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                                     placeholder="Ej: 0.01"
                                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                   />
-                                  <input
-                                    type="text"
+                                  <select
                                     value={penalty.lowerLimitUnit}
                                     onChange={(e) =>
                                       updatePenalty(penalty.id, 'lowerLimitUnit', e.target.value)
                                     }
-                                    placeholder="%"
-                                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                  />
+                                    className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  >
+                                    <option value="">Unidad</option>
+                                    <option value="%">%</option>
+                                    <option value="g/tms">g/tms</option>
+                                    <option value="ppm">ppm</option>
+                                  </select>
                                 </div>
                               </div>
 
@@ -1979,15 +1985,18 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                                     placeholder="Ej: 0.05"
                                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                   />
-                                  <input
-                                    type="text"
+                                  <select
                                     value={penalty.upperLimitUnit}
                                     onChange={(e) =>
                                       updatePenalty(penalty.id, 'upperLimitUnit', e.target.value)
                                     }
-                                    placeholder="%"
-                                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                  />
+                                    className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  >
+                                    <option value="">Unidad</option>
+                                    <option value="%">%</option>
+                                    <option value="g/tms">g/tms</option>
+                                    <option value="ppm">ppm</option>
+                                  </select>
                                 </div>
                               </div>
                             </div>
