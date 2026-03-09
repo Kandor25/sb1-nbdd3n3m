@@ -1625,7 +1625,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                     <div className="space-y-4">
                       {formData.processing.map((processing, index) => {
                         const formula = processingFormulas.find(f => f.id === processing.formulaId);
-                        const isFranchise = formula?.name === 'FRANCHISE';
+                        const isFranchise = formula?.name === 'Fija';
                         const isNoAplica = formula?.is_no_aplica;
 
                         return (
