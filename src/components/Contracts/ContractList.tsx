@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { FileText, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, TrendingDown, AlertCircle, Calculator } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { FileText, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, TrendingDown, AlertCircle, Calculator, MoreVertical, Edit2, FileCheck, Copy } from 'lucide-react';
 import { mockContracts, mockCounterparties } from '../../data/mockData';
 import type { Contract } from '../../types';
 import ManualValuation from './ManualValuation';
@@ -20,9 +20,24 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
   const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
   const [dbContracts, setDbContracts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadContracts();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const loadContracts = async () => {
@@ -122,6 +137,27 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
 
   const handleCloseContractDetails = () => {
     setShowContractDetails(false);
+  };
+
+  const toggleMenu = (contractId: string) => {
+    setOpenMenuId(openMenuId === contractId ? null : contractId);
+  };
+
+  const handleMenuAction = (action: string, contractId: string) => {
+    setOpenMenuId(null);
+
+    switch (action) {
+      case 'edit':
+        break;
+      case 'summary':
+        handleOpenContractDetails();
+        break;
+      case 'valuation':
+        handleOpenValuation(contractId);
+        break;
+      case 'clone':
+        break;
+    }
   };
 
   const statusSummary = {
@@ -369,24 +405,49 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-3">
+                      <div className="relative inline-block text-left">
                         <button
-                          onClick={handleOpenContractDetails}
-                          className="text-blue-600 hover:text-blue-900"
+                          onClick={() => toggleMenu(contract.id)}
+                          className="flex items-center justify-center w-8 h-8 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                         >
-                          Ver
+                          <MoreVertical className="w-5 h-5" />
                         </button>
-                        <button className="text-gray-600 hover:text-gray-900">
-                          Editar
-                        </button>
-                        <button
-                          onClick={() => handleOpenValuation(contract.id)}
-                          className="flex items-center text-green-600 hover:text-green-900"
-                          title="Valorización Manual"
-                        >
-                          <Calculator className="w-4 h-4 mr-1" />
-                          Valorización
-                        </button>
+
+                        {openMenuId === contract.id && (
+                          <div
+                            ref={menuRef}
+                            className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10"
+                          >
+                            <button
+                              onClick={() => handleMenuAction('edit', contract.id)}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                            >
+                              <Edit2 className="w-4 h-4 mr-3 text-gray-500" />
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => handleMenuAction('summary', contract.id)}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                            >
+                              <FileCheck className="w-4 h-4 mr-3 text-blue-500" />
+                              Resumen
+                            </button>
+                            <button
+                              onClick={() => handleMenuAction('valuation', contract.id)}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                            >
+                              <Calculator className="w-4 h-4 mr-3 text-green-500" />
+                              Valorización
+                            </button>
+                            <button
+                              onClick={() => handleMenuAction('clone', contract.id)}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                            >
+                              <Copy className="w-4 h-4 mr-3 text-purple-500" />
+                              Clonar
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>
