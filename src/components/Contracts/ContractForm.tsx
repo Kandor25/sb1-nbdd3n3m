@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, Save, Check, Plus, Trash2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Save, Check, Plus, Trash2, HelpCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import StepByStepGuide from './StepByStepGuide';
+import { GUIDE_CONTENT } from './guideContent';
 
 interface ContractFormProps {
   onClose: () => void;
@@ -220,6 +222,8 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   const [samplingFormulas, setSamplingFormulas] = useState<SamplingFormula[]>([]);
   const [marketIndices, setMarketIndices] = useState<MarketIndex[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const [guideSection, setGuideSection] = useState<string>('');
   const [formData, setFormData] = useState<FormData>({
     contractType: 'purchase',
     vendorId: '',
@@ -720,6 +724,42 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     }
   };
 
+  const openGuide = (sectionId: string) => {
+    setGuideSection(sectionId);
+    setShowGuide(true);
+  };
+
+  const closeGuide = () => {
+    setShowGuide(false);
+    setGuideSection('');
+  };
+
+  const renderSectionHeader = (title: string, sectionId: string, withAddButton?: boolean, onAdd?: () => void) => {
+    return (
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+          <button
+            onClick={() => openGuide(sectionId)}
+            className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+            title="Guía Paso-a-Paso"
+          >
+            <HelpCircle className="w-5 h-5" />
+          </button>
+        </div>
+        {withAddButton && onAdd && (
+          <button
+            onClick={onAdd}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Agregar
+          </button>
+        )}
+      </div>
+    );
+  };
+
   const goToPreviousSection = () => {
     const currentIndex = SECTIONS.findIndex(s => s.id === currentSection);
     if (currentIndex > 0) {
@@ -1130,7 +1170,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
             <div className="p-6">
               {currentSection === 'basic' && (
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-gray-900">Información Básica / Cantidad / Plazo</h3>
+                  {renderSectionHeader('Información Básica / Cantidad / Plazo', 'basic')}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -1304,7 +1344,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
 
               {currentSection === 'incoterm' && (
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-gray-900">Incoterm de Entrega</h3>
+                  {renderSectionHeader('Incoterm de Entrega', 'delivery')}
 
                   <div className="grid grid-cols-1 gap-6">
                     <div>
@@ -1343,7 +1383,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
 
               {currentSection === 'rollback' && (
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-gray-900">Rollback</h3>
+                  {renderSectionHeader('Rollback', 'rollback')}
 
                   <div className="space-y-4">
                     <div>
@@ -1424,7 +1464,16 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
               {currentSection === 'payables' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-gray-900">Pagables</h3>
+                    <div className="flex items-center space-x-3">
+                      <h3 className="text-xl font-bold text-gray-900">Pagables</h3>
+                      <button
+                        onClick={() => openGuide('payables')}
+                        className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Guía Paso-a-Paso"
+                      >
+                        <HelpCircle className="w-5 h-5" />
+                      </button>
+                    </div>
                     <button
                       onClick={addPayable}
                       disabled={payableFormulas.length === 0}
@@ -1617,7 +1666,16 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
               {currentSection === 'processing' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-gray-900">Maquila</h3>
+                    <div className="flex items-center space-x-3">
+                      <h3 className="text-xl font-bold text-gray-900">Maquila</h3>
+                      <button
+                        onClick={() => openGuide('processing')}
+                        className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Guía Paso-a-Paso"
+                      >
+                        <HelpCircle className="w-5 h-5" />
+                      </button>
+                    </div>
                     <button
                       onClick={addProcessing}
                       disabled={processingFormulas.length === 0}
@@ -1762,7 +1820,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
 
               {currentSection === 'processing-escalator' && (
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-gray-900">Escalador en Maquila</h3>
+                  {renderSectionHeader('Escalador en Maquila', 'processing-escalator')}
 
                   <div className="space-y-4">
                     <div>
@@ -1841,7 +1899,16 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
               {currentSection === 'penalties' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-gray-900">Penalidades</h3>
+                    <div className="flex items-center space-x-3">
+                      <h3 className="text-xl font-bold text-gray-900">Penalidades</h3>
+                      <button
+                        onClick={() => openGuide('penalties')}
+                        className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Guía Paso-a-Paso"
+                      >
+                        <HelpCircle className="w-5 h-5" />
+                      </button>
+                    </div>
                     <button
                       onClick={addPenalty}
                       className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -2041,7 +2108,16 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
               {currentSection === 'quality' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-gray-900">Calidad / Granulometría</h3>
+                    <div className="flex items-center space-x-3">
+                      <h3 className="text-xl font-bold text-gray-900">Calidad / Granulometría</h3>
+                      <button
+                        onClick={() => openGuide('quality-specs')}
+                        className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Guía Paso-a-Paso"
+                      >
+                        <HelpCircle className="w-5 h-5" />
+                      </button>
+                    </div>
                     <button
                       onClick={addQualitySpec}
                       className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -2198,7 +2274,16 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
               {currentSection === 'refining' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-gray-900">Gastos de Refinación</h3>
+                    <div className="flex items-center space-x-3">
+                      <h3 className="text-xl font-bold text-gray-900">Gastos de Refinación</h3>
+                      <button
+                        onClick={() => openGuide('refining')}
+                        className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Guía Paso-a-Paso"
+                      >
+                        <HelpCircle className="w-5 h-5" />
+                      </button>
+                    </div>
                     <button
                       onClick={addRefiningExpense}
                       className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -2345,7 +2430,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
 
               {currentSection === 'refining-escalator' && (
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-gray-900">Escalador en Gastos de Refinación</h3>
+                  {renderSectionHeader('Escalador en Gastos de Refinación', 'refining-escalator')}
 
                   <div className="space-y-4">
                     <div>
@@ -2423,7 +2508,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
 
               {currentSection === 'weight-sampling' && (
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-gray-900">Muestreo de Pesos</h3>
+                  {renderSectionHeader('Muestreo de Pesos', 'weight-sampling')}
 
                   <div className="space-y-4">
                     <div>
@@ -2515,7 +2600,16 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
               {currentSection === 'quotation-period' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-gray-900">Periodo de Cotizaciones</h3>
+                    <div className="flex items-center space-x-3">
+                      <h3 className="text-xl font-bold text-gray-900">Periodo de Cotizaciones</h3>
+                      <button
+                        onClick={() => openGuide('quotation-period')}
+                        className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Guía Paso-a-Paso"
+                      >
+                        <HelpCircle className="w-5 h-5" />
+                      </button>
+                    </div>
                     <button
                       type="button"
                       onClick={() => {
@@ -2706,7 +2800,16 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
               {currentSection === 'payments' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium text-gray-900">Términos de Pago</h3>
+                    <div className="flex items-center space-x-3">
+                      <h3 className="text-lg font-medium text-gray-900">Términos de Pago</h3>
+                      <button
+                        onClick={() => openGuide('payments')}
+                        className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Guía Paso-a-Paso"
+                      >
+                        <HelpCircle className="w-5 h-5" />
+                      </button>
+                    </div>
                     <button
                       type="button"
                       onClick={() => {
@@ -2895,7 +2998,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
 
               {currentSection === 'assay-sampling' && (
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-gray-900">Muestreo de Ensayes</h3>
+                  {renderSectionHeader('Muestreo de Ensayes', 'assay-sampling')}
 
                   <div className="space-y-4">
                     <div>
@@ -2962,7 +3065,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
 
               {currentSection === 'waste' && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-medium text-gray-900">Merma</h3>
+                  {renderSectionHeader('Merma', 'waste')}
 
                   <div className="space-y-4">
                     <div>
@@ -3095,6 +3198,14 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
           </div>
         </div>
       </div>
+
+      <StepByStepGuide
+        isOpen={showGuide}
+        onClose={closeGuide}
+        sectionId={guideSection}
+        title={GUIDE_CONTENT[guideSection]?.title || ''}
+        content={GUIDE_CONTENT[guideSection]?.content || ''}
+      />
     </div>
   );
 };
