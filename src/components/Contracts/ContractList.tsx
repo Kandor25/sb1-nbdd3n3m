@@ -124,6 +124,13 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
     setShowContractDetails(false);
   };
 
+  const statusSummary = {
+    draft: contractsWithCounterparties.filter(c => c.status === 'draft').length,
+    active: contractsWithCounterparties.filter(c => c.status === 'active').length,
+    completed: contractsWithCounterparties.filter(c => c.status === 'completed').length,
+    cancelled: contractsWithCounterparties.filter(c => c.status === 'cancelled').length,
+  };
+
   return (
     <>
       {showValuation && selectedContractId && (
@@ -156,59 +163,80 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
         </button>
       </div>
 
-      {/* Pending Confirmation Section */}
-      {pendingContracts.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-          <div className="flex items-center mb-4">
-            <AlertCircle className="w-5 h-5 text-amber-600 mr-2" />
-            <h2 className="text-lg font-bold text-gray-800">Por Confirmar</h2>
-            <span className="ml-auto bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-xs font-semibold">
-              {pendingContracts.length}
-            </span>
+      {/* Status Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div
+          onClick={() => setFilterStatus('draft')}
+          className="bg-white rounded-lg shadow-sm border-2 border-gray-200 p-5 hover:shadow-md transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Borrador</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{statusSummary.draft}</p>
+            </div>
+            <div className="bg-gray-100 rounded-full p-3">
+              <FileText className="w-6 h-6 text-gray-600" />
+            </div>
           </div>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {pendingContracts.map((contract) => {
-              const daysDelayed = Math.floor((Date.now() - contract.createdAt.getTime()) / (1000 * 60 * 60 * 24));
-              const deliveryPeriodText = `${contract.deliveryPeriod.start.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })} - ${contract.deliveryPeriod.end.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}`;
-
-              return (
-                <div key={contract.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-40">
-                      <h3 className="text-base font-bold text-gray-900 mb-2">{contract.number}</h3>
-                      <div className="flex flex-wrap gap-1.5">
-                        <span className="bg-amber-500 text-white px-2 py-0.5 rounded text-xs font-medium">Por Confirmar</span>
-                        <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-medium">
-                          {contract.type === 'purchase' ? 'Compra' : 'Venta'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="text-sm space-y-1.5">
-                        <p>
-                          <span className="font-semibold text-gray-900">{contract.commodity.name}</span> / {deliveryPeriodText} / Total <span className="font-semibold">{contract.quantity.toLocaleString()} dmt</span> / Type: <span className="font-medium">Renovación</span> / Cliente: <span className="font-medium">{contract.counterparty?.name}</span>
-                        </p>
-                        {daysDelayed > 0 && (
-                          <p className="text-red-600">
-                            <span className="font-semibold">Delayed:</span> {daysDelayed} días atraso
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 pt-3 border-t border-gray-200">
-                    <div className="text-xs text-gray-700">
-                      <span className="font-semibold">Action:</span> Falta confirmar versión 2.0 <span className="mx-2">=⇒</span> <span className="font-medium">{contract.counterparty?.name}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <p className="text-xs text-gray-500">Contratos en borrador</p>
           </div>
         </div>
-      )}
+
+        <div
+          onClick={() => setFilterStatus('active')}
+          className="bg-white rounded-lg shadow-sm border-2 border-green-200 p-5 hover:shadow-md transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-green-600 uppercase tracking-wide">Activos</p>
+              <p className="text-3xl font-bold text-green-900 mt-2">{statusSummary.active}</p>
+            </div>
+            <div className="bg-green-100 rounded-full p-3">
+              <TrendingUp className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-green-100">
+            <p className="text-xs text-gray-500">Contratos activos</p>
+          </div>
+        </div>
+
+        <div
+          onClick={() => setFilterStatus('completed')}
+          className="bg-white rounded-lg shadow-sm border-2 border-blue-200 p-5 hover:shadow-md transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-blue-600 uppercase tracking-wide">Completados</p>
+              <p className="text-3xl font-bold text-blue-900 mt-2">{statusSummary.completed}</p>
+            </div>
+            <div className="bg-blue-100 rounded-full p-3">
+              <FileText className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-blue-100">
+            <p className="text-xs text-gray-500">Contratos completados</p>
+          </div>
+        </div>
+
+        <div
+          onClick={() => setFilterStatus('cancelled')}
+          className="bg-white rounded-lg shadow-sm border-2 border-red-200 p-5 hover:shadow-md transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-red-600 uppercase tracking-wide">Cancelados</p>
+              <p className="text-3xl font-bold text-red-900 mt-2">{statusSummary.cancelled}</p>
+            </div>
+            <div className="bg-red-100 rounded-full p-3">
+              <AlertCircle className="w-6 h-6 text-red-600" />
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-red-100">
+            <p className="text-xs text-gray-500">Contratos cancelados</p>
+          </div>
+        </div>
+      </div>
 
       {/* Search and Filter Bar */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
@@ -245,6 +273,17 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
               <option value="completed">Completado</option>
               <option value="cancelled">Cancelado</option>
             </select>
+            {(filterStatus !== 'all' || filterType !== 'all') && (
+              <button
+                onClick={() => {
+                  setFilterStatus('all');
+                  setFilterType('all');
+                }}
+                className="px-3 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Limpiar filtros
+              </button>
+            )}
           </div>
         </div>
       </div>
