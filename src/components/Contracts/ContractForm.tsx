@@ -51,6 +51,8 @@ interface QuotationPeriodData {
   formula: 'Mes de Entrega' | 'Mes después de Mes de llegada';
   months: string;
   metal: string;
+  buyerOptionality: boolean;
+  sellerOptionality: boolean;
 }
 
 interface PaymentTermData {
@@ -916,6 +918,8 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
             formula: q.formula,
             months: parseInt(q.months),
             metal: q.metal,
+            buyer_optionality: q.buyerOptionality,
+            seller_optionality: q.sellerOptionality,
             display_order: index,
           }));
 
@@ -2520,6 +2524,8 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                           formula: 'Mes de Entrega',
                           months: '',
                           metal: '',
+                          buyerOptionality: false,
+                          sellerOptionality: false,
                         };
                         setFormData({
                           ...formData,
@@ -2531,6 +2537,12 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                       <Plus className="w-4 h-4" />
                       Agregar Cotización
                     </button>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-800">
+                      <strong>Información:</strong> Declarable el último día de M = mes de entrega en depósito
+                    </p>
                   </div>
 
                   {formData.quotationPeriods.length === 0 ? (
@@ -2558,72 +2570,116 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                             </button>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Fórmula <span className="text-red-500">*</span>
-                              </label>
-                              <select
-                                value={quotation.formula}
-                                onChange={(e) => {
-                                  const newQuotationPeriods = [...formData.quotationPeriods];
-                                  newQuotationPeriods[index] = {
-                                    ...quotation,
-                                    formula: e.target.value as 'Mes de Entrega' | 'Mes después de Mes de llegada',
-                                  };
-                                  setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
-                                }}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              >
-                                <option value="Mes de Entrega">Mes de Entrega</option>
-                                <option value="Mes después de Mes de llegada">Mes después de Mes de llegada</option>
-                              </select>
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Fórmula <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  value={quotation.formula}
+                                  onChange={(e) => {
+                                    const newQuotationPeriods = [...formData.quotationPeriods];
+                                    newQuotationPeriods[index] = {
+                                      ...quotation,
+                                      formula: e.target.value as 'Mes de Entrega' | 'Mes después de Mes de llegada',
+                                    };
+                                    setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
+                                  }}
+                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  <option value="Mes de Entrega">Mes de Entrega</option>
+                                  <option value="Mes después de Mes de llegada">Mes después de Mes de llegada</option>
+                                </select>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Número de Meses <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={quotation.months}
+                                  onChange={(e) => {
+                                    const newQuotationPeriods = [...formData.quotationPeriods];
+                                    newQuotationPeriods[index] = {
+                                      ...quotation,
+                                      months: e.target.value,
+                                    };
+                                    setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
+                                  }}
+                                  placeholder="Ej: 1"
+                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Metal <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  value={quotation.metal}
+                                  onChange={(e) => {
+                                    const newQuotationPeriods = [...formData.quotationPeriods];
+                                    newQuotationPeriods[index] = {
+                                      ...quotation,
+                                      metal: e.target.value,
+                                    };
+                                    setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
+                                  }}
+                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  <option value="">Seleccionar metal...</option>
+                                  <option value="CU">Cobre (CU)</option>
+                                  <option value="AG">Plata (AG)</option>
+                                  <option value="AU">Oro (AU)</option>
+                                  <option value="PB">Plomo (PB)</option>
+                                  <option value="ZN">Zinc (ZN)</option>
+                                </select>
+                              </div>
                             </div>
 
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Número de Meses <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="number"
-                                min="1"
-                                value={quotation.months}
-                                onChange={(e) => {
-                                  const newQuotationPeriods = [...formData.quotationPeriods];
-                                  newQuotationPeriods[index] = {
-                                    ...quotation,
-                                    months: e.target.value,
-                                  };
-                                  setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
-                                }}
-                                placeholder="Ej: 1"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              />
-                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                              <div className="flex items-center">
+                                <input
+                                  type="checkbox"
+                                  id={`buyer-${quotation.id}`}
+                                  checked={quotation.buyerOptionality}
+                                  onChange={(e) => {
+                                    const newQuotationPeriods = [...formData.quotationPeriods];
+                                    newQuotationPeriods[index] = {
+                                      ...quotation,
+                                      buyerOptionality: e.target.checked,
+                                    };
+                                    setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
+                                  }}
+                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <label htmlFor={`buyer-${quotation.id}`} className="ml-2 text-sm font-medium text-gray-700">
+                                  Opcionalidad definida por el Comprador
+                                </label>
+                              </div>
 
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Metal <span className="text-red-500">*</span>
-                              </label>
-                              <select
-                                value={quotation.metal}
-                                onChange={(e) => {
-                                  const newQuotationPeriods = [...formData.quotationPeriods];
-                                  newQuotationPeriods[index] = {
-                                    ...quotation,
-                                    metal: e.target.value,
-                                  };
-                                  setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
-                                }}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              >
-                                <option value="">Seleccionar metal...</option>
-                                <option value="CU">Cobre (CU)</option>
-                                <option value="AG">Plata (AG)</option>
-                                <option value="AU">Oro (AU)</option>
-                                <option value="PB">Plomo (PB)</option>
-                                <option value="ZN">Zinc (ZN)</option>
-                              </select>
+                              <div className="flex items-center">
+                                <input
+                                  type="checkbox"
+                                  id={`seller-${quotation.id}`}
+                                  checked={quotation.sellerOptionality}
+                                  onChange={(e) => {
+                                    const newQuotationPeriods = [...formData.quotationPeriods];
+                                    newQuotationPeriods[index] = {
+                                      ...quotation,
+                                      sellerOptionality: e.target.checked,
+                                    };
+                                    setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
+                                  }}
+                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <label htmlFor={`seller-${quotation.id}`} className="ml-2 text-sm font-medium text-gray-700">
+                                  Opcionalidad de fijación para el Vendedor
+                                </label>
+                              </div>
                             </div>
                           </div>
 
