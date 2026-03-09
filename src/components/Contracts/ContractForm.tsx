@@ -730,13 +730,28 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   };
 
   const handleSave = async () => {
-    if (!isBasicSectionValid()) {
-      alert('Por favor complete la información básica del contrato');
-      return;
-    }
+    const incompleteSections: string[] = [];
 
-    if (!isIncotermSectionValid()) {
-      alert('Por favor complete la información del Incoterm');
+    if (!isBasicSectionValid()) incompleteSections.push('Información Básica/Cantidad/Plazo');
+    if (!isIncotermSectionValid()) incompleteSections.push('Incoterm Entrega');
+    if (!isRollbackSectionValid()) incompleteSections.push('Rollback');
+    if (!isQualitySpecsSectionValid()) incompleteSections.push('Calidad / Granulometría');
+    if (!isPayablesSectionValid()) incompleteSections.push('Pagables');
+    if (!isProcessingSectionValid()) incompleteSections.push('Maquila');
+    if (!isProcessingEscalatorSectionValid()) incompleteSections.push('Escalador en Maquila');
+    if (!isRefiningExpensesSectionValid()) incompleteSections.push('Gastos de Refinación');
+    if (!isRefiningEscalatorSectionValid()) incompleteSections.push('Escalador en Gastos de Refinación');
+    if (!isPenaltiesSectionValid()) incompleteSections.push('Penalidades');
+    if (!isPaymentsSectionValid()) incompleteSections.push('Pagos');
+    if (!isQuotationPeriodSectionValid()) incompleteSections.push('Periodo de Cotizaciones');
+    if (!isWeightSamplingSectionValid()) incompleteSections.push('Muestreo de Pesos');
+    if (!isAssaySamplingSectionValid()) incompleteSections.push('Muestreo de Ensayes');
+    if (!isWasteSectionValid()) incompleteSections.push('Merma');
+
+    if (incompleteSections.length > 0) {
+      const message = 'Las siguientes secciones requieren información o deben marcarse como "No Aplica":\n\n' +
+        incompleteSections.map((section, index) => `${index + 1}. ${section}`).join('\n');
+      alert(message);
       return;
     }
 
