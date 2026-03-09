@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FileText, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, TrendingDown, AlertCircle, Calculator, MoreVertical, Edit2, FileCheck, Copy } from 'lucide-react';
+import { FileText, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, TrendingDown, AlertCircle, Calculator, MoreVertical, CreditCard as Edit2, FileCheck, Copy } from 'lucide-react';
 import { mockContracts, mockCounterparties } from '../../data/mockData';
 import type { Contract } from '../../types';
 import ManualValuation from './ManualValuation';
