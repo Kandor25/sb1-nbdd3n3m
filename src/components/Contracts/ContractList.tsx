@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FileText, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, TrendingDown, AlertCircle, Calculator, MoreVertical, CreditCard as Edit2, FileCheck, Copy } from 'lucide-react';
+import { FileText, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, TrendingDown, AlertCircle, Calculator, MoreVertical, CreditCard as Edit2, FileCheck, Copy, RefreshCw } from 'lucide-react';
 import { mockContracts, mockCounterparties } from '../../data/mockData';
 import type { Contract } from '../../types';
 import ManualValuation from './ManualValuation';
@@ -143,7 +143,7 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
     setOpenMenuId(openMenuId === contractId ? null : contractId);
   };
 
-  const handleMenuAction = (action: string, contractId: string) => {
+  const handleMenuAction = async (action: string, contractId: string) => {
     setOpenMenuId(null);
 
     switch (action) {
@@ -157,6 +157,23 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
         break;
       case 'clone':
         break;
+      case 'change_status':
+        break;
+    }
+  };
+
+  const handleChangeStatus = async (contractId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('contracts')
+        .update({ status: newStatus })
+        .eq('id', contractId);
+
+      if (error) throw error;
+
+      await loadContracts();
+    } catch (error) {
+      console.error('Error updating contract status:', error);
     }
   };
 
@@ -446,6 +463,48 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
                               <Copy className="w-4 h-4 mr-3 text-purple-500" />
                               Clonar
                             </button>
+                            <div className="border-t border-gray-200 my-1"></div>
+                            <div className="px-4 py-2">
+                              <p className="text-xs text-gray-500 uppercase font-semibold mb-2">Cambiar Estado</p>
+                              <div className="space-y-1">
+                                {contract.status !== 'draft' && (
+                                  <button
+                                    onClick={() => handleChangeStatus(contract.id, 'draft')}
+                                    className="w-full px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-100 rounded flex items-center"
+                                  >
+                                    <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
+                                    Borrador
+                                  </button>
+                                )}
+                                {contract.status !== 'active' && (
+                                  <button
+                                    onClick={() => handleChangeStatus(contract.id, 'active')}
+                                    className="w-full px-3 py-1.5 text-left text-xs text-green-700 hover:bg-green-50 rounded flex items-center"
+                                  >
+                                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                    Activo
+                                  </button>
+                                )}
+                                {contract.status !== 'completed' && (
+                                  <button
+                                    onClick={() => handleChangeStatus(contract.id, 'completed')}
+                                    className="w-full px-3 py-1.5 text-left text-xs text-blue-700 hover:bg-blue-50 rounded flex items-center"
+                                  >
+                                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                                    Completado
+                                  </button>
+                                )}
+                                {contract.status !== 'cancelled' && (
+                                  <button
+                                    onClick={() => handleChangeStatus(contract.id, 'cancelled')}
+                                    className="w-full px-3 py-1.5 text-left text-xs text-red-700 hover:bg-red-50 rounded flex items-center"
+                                  >
+                                    <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                                    Cancelado
+                                  </button>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
