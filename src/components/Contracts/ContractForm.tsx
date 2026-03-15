@@ -771,7 +771,53 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     setCurrentSection(sectionId);
   };
 
+  const validateMetalsMatch = (): { valid: boolean; message?: string } => {
+    const payableMetals = formData.payables
+      .filter(p => !isPayableFormulaNoAplica(p.formulaId))
+      .map(p => p.metal)
+      .filter(m => m);
+
+    const quotationMetals = formData.quotationPeriods
+      .map(q => q.metal)
+      .filter(m => m);
+
+    if (payableMetals.length === 0 || quotationMetals.length === 0) {
+      return { valid: true };
+    }
+
+    const uniquePayableMetals = [...new Set(payableMetals)].sort();
+    const uniqueQuotationMetals = [...new Set(quotationMetals)].sort();
+
+    const payableSet = new Set(uniquePayableMetals);
+    const quotationSet = new Set(uniqueQuotationMetals);
+
+    const missingInQuotation = uniquePayableMetals.filter(m => !quotationSet.has(m));
+    const missingInPayables = uniqueQuotationMetals.filter(m => !payableSet.has(m));
+
+    if (missingInQuotation.length > 0 || missingInPayables.length > 0) {
+      let message = 'Los metales ingresados en "Pagables" y "Periodo de Cotizaciones" no coinciden:\n\n';
+
+      if (missingInQuotation.length > 0) {
+        message += `Metales en Pagables que faltan en Periodo de Cotizaciones: ${missingInQuotation.join(', ')}\n`;
+      }
+
+      if (missingInPayables.length > 0) {
+        message += `Metales en Periodo de Cotizaciones que faltan en Pagables: ${missingInPayables.join(', ')}`;
+      }
+
+      return { valid: false, message };
+    }
+
+    return { valid: true };
+  };
+
   const handleSave = async () => {
+    const metalsValidation = validateMetalsMatch();
+    if (!metalsValidation.valid) {
+      alert(metalsValidation.message);
+      return;
+    }
+
     const incompleteSections: string[] = [];
 
     if (!isBasicSectionValid()) incompleteSections.push('Información Básica/Cantidad/Plazo');
