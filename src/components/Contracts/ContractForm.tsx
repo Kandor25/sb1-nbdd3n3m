@@ -362,61 +362,132 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     }
   };
 
-  const loadTemplateData = async (templateId: string) => {
+  const loadTemplateData = async (contractId: string) => {
     try {
-      const { data: template, error: templateError } = await supabase
-        .from('contract_templates')
+      const { data: contract, error: contractError } = await supabase
+        .from('contracts')
         .select('*')
-        .eq('id', templateId)
+        .eq('id', contractId)
         .single();
 
-      if (templateError) throw templateError;
+      if (contractError) throw contractError;
 
-      if (template) {
-        const [payablesRes, penaltiesRes, incotermsRes] = await Promise.all([
-          supabase
-            .from('contract_template_payables')
-            .select('*')
-            .eq('template_id', templateId),
-          supabase
-            .from('contract_template_penalties')
-            .select('*')
-            .eq('template_id', templateId),
-          supabase
-            .from('incoterms')
-            .select('*')
-            .eq('code', template.incoterm_code)
-            .maybeSingle(),
-        ]);
+      if (!contract) return;
 
-        if (payablesRes.error) throw payablesRes.error;
-        if (penaltiesRes.error) throw penaltiesRes.error;
+      const [
+        quotasRes,
+        payablesRes,
+        penaltiesRes,
+        qualitySpecsRes,
+        refiningExpensesRes,
+        processingRes,
+        paymentTermsRes,
+        quotationPeriodsRes
+      ] = await Promise.all([
+        supabase.from('contract_quotas').select('*').eq('contract_id', contractId).order('month'),
+        supabase.from('contract_payables').select('*').eq('contract_id', contractId),
+        supabase.from('contract_penalties').select('*').eq('contract_id', contractId),
+        supabase.from('contract_quality_specs').select('*').eq('contract_id', contractId),
+        supabase.from('contract_refining_expenses').select('*').eq('contract_id', contractId),
+        supabase.from('contract_processing').select('*').eq('contract_id', contractId),
+        supabase.from('payment_terms').select('*').eq('contract_id', contractId).order('display_order'),
+        supabase.from('contract_quotation_periods').select('*').eq('contract_id', contractId).order('display_order'),
+      ]);
 
-        setFormData(prev => ({
-          ...prev,
-          contractType: template.contract_type as 'purchase' | 'sale',
-          incotermId: incotermsRes.data?.id || '',
-          payables: (payablesRes.data || []).map(tp => ({
-            id: `temp-${Date.now()}-${Math.random()}`,
-            formulaId: tp.formula_id,
-            metal: tp.metal as 'CU' | 'AG' | 'AU',
-            deductionValue: tp.deduction_value.toString(),
-            deductionUnit: tp.deduction_unit as '%' | 'g/tms',
-            balancePercentage: tp.balance_percentage.toString(),
-            marketIndexId: tp.market_index_id,
-          })),
-          penalties: (penaltiesRes.data || []).map(tp => ({
-            id: `temp-${Date.now()}-${Math.random()}`,
-            formulaId: tp.formula_id || '',
-            metal: tp.metal || '',
-            amountUsd: tp.amount_usd?.toString() || '',
-            lowerLimit: tp.lower_limit?.toString() || '',
-            lowerLimitUnit: tp.lower_limit_unit || '',
-            upperLimit: tp.upper_limit?.toString() || '',
-            upperLimitUnit: tp.upper_limit_unit || '',
-          })),
-        }));
-      }
+      const processingEscalatorApplies = contract.processing_escalator_value !== null;
+      const refiningEscalatorApplies = contract.refining_escalator_value !== null;
+
+      setFormData({
+        contractType: contract.contract_type as 'purchase' | 'sale',
+        vendorId: contract.vendor_id || '',
+        buyerId: contract.buyer_id || '',
+        productId: contract.product_id || '',
+        countryId: contract.country_id || '',
+        startMonth: contract.start_month ? new Date(contract.start_month).toISOString().slice(0, 7) : '',
+        endMonth: contract.end_month ? new Date(contract.end_month).toISOString().slice(0, 7) : '',
+        quotas: (quotasRes.data || []).map(q => ({
+          month: new Date(q.month).toISOString().slice(0, 7),
+          tmh: q.tmh?.toString() || '',
+          tms: q.tms?.toString() || '',
+          h2oPercentage: q.h2o_percentage?.toString() || '',
+        })),
+        incotermId: contract.incoterm_id || '',
+        deliveryLocation: contract.delivery_location || '',
+        rollbackApplies: contract.rollback_applies || false,
+        rollbackValue: contract.rollback_value?.toString() || '',
+        rollbackUnit: contract.rollback_unit || '$/tm',
+        payables: (payablesRes.data || []).map(p => ({
+          id: `temp-${Date.now()}-${Math.random()}`,
+          formulaId: p.formula_id || '',
+          metal: p.metal as 'CU' | 'AG' | 'AU',
+          deductionValue: p.deduction_value?.toString() || '',
+          deductionUnit: p.deduction_unit as '%' | 'g/tms',
+          balancePercentage: p.balance_percentage?.toString() || '',
+          marketIndexId: p.market_index_id || '',
+        })),
+        processing: (processingRes.data || []).map(p => ({
+          id: `temp-${Date.now()}-${Math.random()}`,
+          formulaId: p.formula_id || '',
+          incotermId: p.incoterm_id || '',
+          value: p.value?.toString() || '',
+          unit: p.unit || '%',
+        })),
+        processingEscalatorApplies,
+        processingEscalatorValue: contract.processing_escalator_value?.toString() || '',
+        processingEscalatorUnit: contract.processing_escalator_unit || '$/tm',
+        penalties: (penaltiesRes.data || []).map(p => ({
+          id: `temp-${Date.now()}-${Math.random()}`,
+          formulaId: p.formula_id || '',
+          metal: p.metal || '',
+          amountUsd: p.amount_usd?.toString() || '',
+          lowerLimit: p.lower_limit?.toString() || '',
+          lowerLimitUnit: p.lower_limit_unit || '',
+          upperLimit: p.upper_limit?.toString() || '',
+          upperLimitUnit: p.upper_limit_unit || '',
+        })),
+        qualitySpecs: (qualitySpecsRes.data || []).map(qs => ({
+          id: `temp-${Date.now()}-${Math.random()}`,
+          metal: qs.metal || '',
+          specType: qs.spec_type as 'range' | 'minimum' | 'maximum',
+          minValue: qs.min_value?.toString() || '',
+          maxValue: qs.max_value?.toString() || '',
+          unit: qs.unit || '',
+        })),
+        refiningExpenses: (refiningExpensesRes.data || []).map(re => ({
+          id: `temp-${Date.now()}-${Math.random()}`,
+          formulaId: re.formula_id || '',
+          metal: re.metal || '',
+          amountUsd: re.amount_usd?.toString() || '',
+          unit: re.unit || '',
+        })),
+        refiningEscalatorApplies,
+        refiningEscalatorValue: contract.refining_escalator_value?.toString() || '',
+        refiningEscalatorUnit: contract.refining_escalator_unit || '$/tm',
+        samplingFormulaId: contract.sampling_formula_id || '',
+        samplingIncotermId: contract.sampling_incoterm_id || '',
+        samplingReference: contract.sampling_reference || '',
+        paymentTerms: (paymentTermsRes.data || []).map(pt => ({
+          id: `temp-${Date.now()}-${Math.random()}`,
+          paymentType: pt.payment_type as 'provisional' | 'final',
+          advancePercentage: pt.advance_percentage?.toString() || '',
+          knownElements: pt.known_elements || '',
+          daysFromIssuance: pt.days_from_issuance?.toString() || '0',
+        })),
+        wasteApplies: (contract.waste_applies as 'no_aplica' | 'aplica') || 'no_aplica',
+        wasteValue: contract.waste_value?.toString() || '',
+        wasteUnit: contract.waste_unit || '%',
+        assayStructure: contract.assay_structure || '',
+        assayFinalLab: contract.assay_final_lab || '',
+        assayCostType: contract.assay_cost_type || '',
+        quotationPeriods: (quotationPeriodsRes.data || []).map(qp => ({
+          id: `temp-${Date.now()}-${Math.random()}`,
+          formula: qp.formula || '',
+          months: qp.months?.toString() || '',
+          metal: qp.metal || '',
+          buyerOptionality: qp.buyer_optionality || false,
+          sellerOptionality: qp.seller_optionality || false,
+        })),
+      });
     } catch (error) {
       console.error('Error loading template data:', error);
     }

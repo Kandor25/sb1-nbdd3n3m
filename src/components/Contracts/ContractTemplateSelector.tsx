@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, FileText, CheckCircle, Eye } from 'lucide-react';
+import { X, ChevronLeft, FileText, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import ContractTemplatePreview from './ContractTemplatePreview';
 
 interface ContractTemplate {
   id: string;
-  name: string;
-  description: string;
-  product_type: string;
+  contract_number: string;
   contract_type: 'purchase' | 'sale';
+  vendor_name: string;
+  buyer_name: string;
+  product_name: string;
   incoterm_code: string;
-  has_payables: boolean;
-  payables_count: number;
+  start_month: string;
+  end_month: string;
   created_at: string;
 }
 
@@ -29,7 +29,6 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
   const [templates, setTemplates] = useState<ContractTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string>('all');
-  const [previewTemplateId, setPreviewTemplateId] = useState<string | null>(null);
 
   useEffect(() => {
     loadTemplates();
@@ -39,13 +38,38 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('contract_templates')
-        .select('*')
-        .order('name');
+        .from('contracts')
+        .select(`
+          id,
+          contract_number,
+          contract_type,
+          start_month,
+          end_month,
+          created_at,
+          vendor:vendors(name),
+          buyer:buyers(name),
+          product:products(name),
+          incoterm:incoterms(code)
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      setTemplates(data || []);
+      const formattedTemplates = (data || []).map((contract: any) => ({
+        id: contract.id,
+        contract_number: contract.contract_number,
+        contract_type: contract.contract_type,
+        vendor_name: contract.vendor?.name || 'N/A',
+        buyer_name: contract.buyer?.name || 'N/A',
+        product_name: contract.product?.name || 'N/A',
+        incoterm_code: contract.incoterm?.code || 'N/A',
+        start_month: contract.start_month,
+        end_month: contract.end_month,
+        created_at: contract.created_at,
+      }));
+
+      setTemplates(formattedTemplates);
     } catch (error) {
       console.error('Error loading templates:', error);
     } finally {
@@ -68,20 +92,15 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
       : 'bg-blue-100 text-blue-700';
   };
 
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const month = date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+    return month.charAt(0).toUpperCase() + month.slice(1);
+  };
+
   return (
-    <>
-      {previewTemplateId && (
-        <ContractTemplatePreview
-          templateId={previewTemplateId}
-          onClose={() => setPreviewTemplateId(null)}
-          onSelect={() => {
-            onSelectTemplate(previewTemplateId);
-            setPreviewTemplateId(null);
-          }}
-        />
-      )}
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center">
             <button
@@ -90,7 +109,7 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
-            <h2 className="text-2xl font-bold text-gray-900">Seleccionar Plantilla</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Usar Contrato como Plantilla</h2>
           </div>
           <button
             onClick={onClose}
@@ -149,11 +168,11 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
           ) : filteredTemplates.length === 0 ? (
             <div className="text-center py-12">
               <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg mb-2">No hay plantillas disponibles</p>
+              <p className="text-gray-500 text-lg mb-2">No hay contratos disponibles</p>
               <p className="text-gray-400">
                 {selectedType !== 'all'
-                  ? 'Intenta cambiar el filtro o crear una nueva plantilla'
-                  : 'Crea plantillas para acelerar la creación de contratos'}
+                  ? 'Intenta cambiar el filtro'
+                  : 'Crea contratos primero para poder usarlos como plantilla'}
               </p>
             </div>
           ) : (
@@ -166,7 +185,7 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-                        {template.name}
+                        {template.contract_number}
                       </h3>
                       <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${getTypeColor(template.contract_type)}`}>
                         {getTypeLabel(template.contract_type)}
@@ -174,46 +193,34 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
                     </div>
                   </div>
 
-                  <p className="text-gray-600 text-sm mb-4">
-                    {template.description}
-                  </p>
-
                   <div className="space-y-2 text-sm mb-4">
                     <div className="flex items-center text-gray-700">
                       <span className="font-medium mr-2">Producto:</span>
-                      <span>{template.product_type}</span>
+                      <span>{template.product_name}</span>
+                    </div>
+                    <div className="flex items-center text-gray-700">
+                      <span className="font-medium mr-2">
+                        {template.contract_type === 'purchase' ? 'Vendedor:' : 'Comprador:'}
+                      </span>
+                      <span>{template.contract_type === 'purchase' ? template.vendor_name : template.buyer_name}</span>
                     </div>
                     <div className="flex items-center text-gray-700">
                       <span className="font-medium mr-2">Incoterm:</span>
                       <span>{template.incoterm_code}</span>
                     </div>
-                    {template.has_payables && (
-                      <div className="flex items-center text-gray-700">
-                        <span className="font-medium mr-2">Pagables:</span>
-                        <span>{template.payables_count} configurados</span>
-                      </div>
-                    )}
+                    <div className="flex items-center text-gray-700">
+                      <span className="font-medium mr-2">Periodo:</span>
+                      <span>{formatDate(template.start_month)} - {formatDate(template.end_month)}</span>
+                    </div>
                   </div>
 
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => {
-                        console.log('Preview button clicked for template:', template.id);
-                        setPreviewTemplateId(template.id);
-                      }}
-                      className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium flex items-center justify-center"
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Ver Preview
-                    </button>
-                    <button
-                      onClick={() => onSelectTemplate(template.id)}
-                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Seleccionar
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => onSelectTemplate(template.id)}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Usar como Plantilla
+                  </button>
                 </div>
               ))}
             </div>
@@ -239,7 +246,6 @@ const ContractTemplateSelector: React.FC<ContractTemplateSelectorProps> = ({
         </div>
       </div>
     </div>
-    </>
   );
 };
 
