@@ -55,6 +55,10 @@ interface QuotationPeriodData {
   metal: string;
   buyerOptionality: boolean;
   sellerOptionality: boolean;
+  dayType: 'Primer Dia' | 'Ultimo Dia' | 'Fecha fija';
+  fixedDate: string;
+  monthReference: 'M' | 'M+1' | 'M+2' | 'M+3';
+  eventType: 'Entrega en Deposito' | 'Cierre de Lote' | 'Fecha de zarpe de Buque' | 'Fecha de Salida de Mina';
 }
 
 interface PaymentTermData {
@@ -486,6 +490,10 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
           metal: qp.metal || '',
           buyerOptionality: qp.buyer_optionality || false,
           sellerOptionality: qp.seller_optionality || false,
+          dayType: (qp.day_type as 'Primer Dia' | 'Ultimo Dia' | 'Fecha fija') || 'Ultimo Dia',
+          fixedDate: qp.fixed_date || '',
+          monthReference: (qp.month_reference as 'M' | 'M+1' | 'M+2' | 'M+3') || 'M',
+          eventType: (qp.event_type as 'Entrega en Deposito' | 'Cierre de Lote' | 'Fecha de zarpe de Buque' | 'Fecha de Salida de Mina') || 'Entrega en Deposito',
         })),
       });
     } catch (error) {
@@ -1087,6 +1095,10 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
             metal: q.metal,
             buyer_optionality: q.buyerOptionality,
             seller_optionality: q.sellerOptionality,
+            day_type: q.dayType,
+            fixed_date: q.dayType === 'Fecha fija' && q.fixedDate ? q.fixedDate : null,
+            month_reference: q.monthReference,
+            event_type: q.eventType,
             display_order: index,
           }));
 
@@ -2771,6 +2783,10 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                           metal: '',
                           buyerOptionality: false,
                           sellerOptionality: false,
+                          dayType: 'Ultimo Dia',
+                          fixedDate: '',
+                          monthReference: 'M',
+                          eventType: 'Entrega en Deposito',
                         };
                         setFormData({
                           ...formData,
@@ -2782,12 +2798,6 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                       <Plus className="w-4 h-4" />
                       Agregar Cotización
                     </button>
-                  </div>
-
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-800">
-                      <strong>Información:</strong> Declarable el último día de M = mes de entrega en depósito
-                    </p>
                   </div>
 
                   {formData.quotationPeriods.length === 0 ? (
@@ -2885,6 +2895,98 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                               </div>
                             </div>
 
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Tipo de Día <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  value={quotation.dayType}
+                                  onChange={(e) => {
+                                    const newQuotationPeriods = [...formData.quotationPeriods];
+                                    newQuotationPeriods[index] = {
+                                      ...quotation,
+                                      dayType: e.target.value as 'Primer Dia' | 'Ultimo Dia' | 'Fecha fija',
+                                      fixedDate: e.target.value === 'Fecha fija' ? quotation.fixedDate : '',
+                                    };
+                                    setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
+                                  }}
+                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  <option value="Primer Dia">Primer Dia</option>
+                                  <option value="Ultimo Dia">Ultimo Dia</option>
+                                  <option value="Fecha fija">Fecha fija</option>
+                                </select>
+                              </div>
+
+                              {quotation.dayType === 'Fecha fija' && (
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Fecha <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    type="date"
+                                    value={quotation.fixedDate}
+                                    onChange={(e) => {
+                                      const newQuotationPeriods = [...formData.quotationPeriods];
+                                      newQuotationPeriods[index] = {
+                                        ...quotation,
+                                        fixedDate: e.target.value,
+                                      };
+                                      setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
+                                    }}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  />
+                                </div>
+                              )}
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Referencia de Mes <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  value={quotation.monthReference}
+                                  onChange={(e) => {
+                                    const newQuotationPeriods = [...formData.quotationPeriods];
+                                    newQuotationPeriods[index] = {
+                                      ...quotation,
+                                      monthReference: e.target.value as 'M' | 'M+1' | 'M+2' | 'M+3',
+                                    };
+                                    setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
+                                  }}
+                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  <option value="M">M</option>
+                                  <option value="M+1">M+1</option>
+                                  <option value="M+2">M+2</option>
+                                  <option value="M+3">M+3</option>
+                                </select>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Tipo de Evento <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  value={quotation.eventType}
+                                  onChange={(e) => {
+                                    const newQuotationPeriods = [...formData.quotationPeriods];
+                                    newQuotationPeriods[index] = {
+                                      ...quotation,
+                                      eventType: e.target.value as 'Entrega en Deposito' | 'Cierre de Lote' | 'Fecha de zarpe de Buque' | 'Fecha de Salida de Mina',
+                                    };
+                                    setFormData({ ...formData, quotationPeriods: newQuotationPeriods });
+                                  }}
+                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  <option value="Entrega en Deposito">Entrega en Deposito</option>
+                                  <option value="Cierre de Lote">Cierre de Lote</option>
+                                  <option value="Fecha de zarpe de Buque">Fecha de zarpe de Buque</option>
+                                  <option value="Fecha de Salida de Mina">Fecha de Salida de Mina</option>
+                                </select>
+                              </div>
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                               <div className="flex items-center">
                                 <input
@@ -2938,6 +3040,11 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                                   ? `M + ${quotation.months}`
                                   : `MAD + ${quotation.months}`
                                 } ({quotation.metal})
+                              </p>
+                              <p className="text-sm text-blue-700 mt-2">
+                                Declarable el {quotation.dayType === 'Fecha fija' && quotation.fixedDate
+                                  ? `"${new Date(quotation.fixedDate + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}"`
+                                  : `"${quotation.dayType}"`} de "{quotation.monthReference}" siendo "{quotation.monthReference}" el mes de "{quotation.eventType}"
                               </p>
                             </div>
                           )}
