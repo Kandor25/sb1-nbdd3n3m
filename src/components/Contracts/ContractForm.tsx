@@ -224,6 +224,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   const [loading, setLoading] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [guideSection, setGuideSection] = useState<string>('');
+  const [validationError, setValidationError] = useState<string>('');
   const [formData, setFormData] = useState<FormData>({
     contractType: 'purchase',
     vendorId: '',
@@ -812,9 +813,11 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   };
 
   const handleSave = async () => {
+    setValidationError('');
+
     const metalsValidation = validateMetalsMatch();
     if (!metalsValidation.valid) {
-      alert(metalsValidation.message);
+      setValidationError(metalsValidation.message || '');
       return;
     }
 
@@ -839,7 +842,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     if (incompleteSections.length > 0) {
       const message = 'Las siguientes secciones requieren información o deben marcarse como "No Aplica":\n\n' +
         incompleteSections.map((section, index) => `${index + 1}. ${section}`).join('\n');
-      alert(message);
+      setValidationError(message);
       return;
     }
 
@@ -1182,6 +1185,30 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
             <X className="w-6 h-6" />
           </button>
         </div>
+
+        {validationError && (
+          <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-red-800">Error de Validación</h3>
+                <div className="mt-2 text-sm text-red-700 whitespace-pre-line">
+                  {validationError}
+                </div>
+              </div>
+              <button
+                onClick={() => setValidationError('')}
+                className="ml-3 flex-shrink-0 text-red-400 hover:text-red-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 flex overflow-hidden">
           <div className="w-80 bg-gray-50 border-r border-gray-200 overflow-y-auto">
