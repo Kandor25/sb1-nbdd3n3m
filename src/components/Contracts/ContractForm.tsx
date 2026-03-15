@@ -943,6 +943,13 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
           assay_structure: formData.assayStructure || null,
           assay_final_lab: formData.assayFinalLab || null,
           assay_cost_type: formData.assayCostType || null,
+          sampling_formula_id: formData.samplingFormulaId || null,
+          sampling_incoterm_id: formData.samplingIncotermId || null,
+          sampling_reference: formData.samplingReference || null,
+          processing_escalator_value: formData.processingEscalatorApplies && formData.processingEscalatorValue ? parseFloat(formData.processingEscalatorValue) : null,
+          processing_escalator_unit: formData.processingEscalatorApplies ? formData.processingEscalatorUnit : null,
+          refining_escalator_value: formData.refiningEscalatorApplies && formData.refiningEscalatorValue ? parseFloat(formData.refiningEscalatorValue) : null,
+          refining_escalator_unit: formData.refiningEscalatorApplies ? formData.refiningEscalatorUnit : null,
           status: 'draft',
         })
         .select()
