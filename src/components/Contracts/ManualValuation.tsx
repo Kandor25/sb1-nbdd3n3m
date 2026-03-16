@@ -58,6 +58,35 @@ const METALS = [
   'F (Flúor)'
 ];
 
+const PRICE_UNITS = [
+  '$/mt',
+  '$/lb',
+  '$/oz',
+  '$/ton',
+  '€/mt',
+  '€/lb',
+  '€/oz'
+];
+
+const ASSAY_UNITS = [
+  '%',
+  'g/t',
+  'oz/t',
+  'ppm',
+  'mg/kg'
+];
+
+const SENSITIVITY_UNITS = [
+  '%',
+  'g/t',
+  'oz/t',
+  'ppm',
+  'mg/kg',
+  '$/mt',
+  '$/lb',
+  '$/oz'
+];
+
 const ManualValuation: React.FC<ManualValuationProps> = ({ contractId, onClose, onSuccess }) => {
   const [currentSection, setCurrentSection] = useState<'weights' | 'prices' | 'assays' | 'assay-sensitivity' | 'price-sensitivity'>('weights');
   const [loading, setLoading] = useState(false);
@@ -406,13 +435,16 @@ const ManualValuation: React.FC<ManualValuationProps> = ({ contractId, onClose, 
 
                   <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Unidad</label>
-                    <input
-                      type="text"
+                    <select
                       value={price.unit}
                       onChange={(e) => updatePrice(price.id, 'unit', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="$/mt"
-                    />
+                    >
+                      <option value="">Seleccionar...</option>
+                      {PRICE_UNITS.map(unit => (
+                        <option key={unit} value={unit}>{unit}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <button
@@ -469,13 +501,16 @@ const ManualValuation: React.FC<ManualValuationProps> = ({ contractId, onClose, 
 
                   <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Unidad</label>
-                    <input
-                      type="text"
+                    <select
                       value={assay.unit}
                       onChange={(e) => updateAssay(assay.id, 'unit', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="%"
-                    />
+                    >
+                      <option value="">Seleccionar...</option>
+                      {ASSAY_UNITS.map(unit => (
+                        <option key={unit} value={unit}>{unit}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <button
@@ -532,13 +567,16 @@ const ManualValuation: React.FC<ManualValuationProps> = ({ contractId, onClose, 
 
                   <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Unidad</label>
-                    <input
-                      type="text"
+                    <select
                       value={item.unit}
                       onChange={(e) => updateAssaySensitivity(item.id, 'unit', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="%"
-                    />
+                    >
+                      <option value="">Seleccionar...</option>
+                      {ASSAY_UNITS.map(unit => (
+                        <option key={unit} value={unit}>{unit}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <button
@@ -595,13 +633,16 @@ const ManualValuation: React.FC<ManualValuationProps> = ({ contractId, onClose, 
 
                   <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Unidad</label>
-                    <input
-                      type="text"
+                    <select
                       value={item.unit}
                       onChange={(e) => updatePriceSensitivity(item.id, 'unit', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="$/mt"
-                    />
+                    >
+                      <option value="">Seleccionar...</option>
+                      {PRICE_UNITS.map(unit => (
+                        <option key={unit} value={unit}>{unit}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <button
