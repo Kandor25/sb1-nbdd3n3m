@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Download } from 'lucide-react';
 
 interface ContractPDFProps {
@@ -8,6 +8,51 @@ interface ContractPDFProps {
 }
 
 const ContractPDF: React.FC<ContractPDFProps> = ({ onClose }) => {
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @media print {
+        @page {
+          size: letter;
+          margin: 0.5in;
+        }
+
+        body {
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
+        }
+
+        .pdf-content {
+          max-height: none !important;
+          overflow: visible !important;
+        }
+
+        .pdf-section {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+
+        .pdf-table-row {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+
+        table {
+          page-break-inside: auto;
+        }
+
+        tr {
+          page-break-inside: avoid;
+          page-break-after: auto;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
   // DATOS ESTÁTICOS PARA DEMO - Basados en el PDF de ejemplo
   const demoData = {
     // Cuota
@@ -113,10 +158,10 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-8 pdf-content">
           <div className="max-w-5xl mx-auto bg-white">
             {/* Cuota */}
-            <div className="border-2 border-black mb-4">
+            <div className="border-2 border-black mb-4 pdf-section">
               <div className="bg-gray-200 border-b border-black px-4 py-2">
                 <strong>Cuota</strong>
               </div>
@@ -126,11 +171,11 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ onClose }) => {
             </div>
 
             {/* Grid de Ensayes/Pesos y Precios/Sensibilidad */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-2 gap-4 mb-4 pdf-section">
               {/* Columna Izquierda */}
               <div>
                 {/* Ensayes provisionales */}
-                <div className="border-2 border-black">
+                <div className="border-2 border-black pdf-section">
                   <div className="bg-gray-200 border-b border-black px-4 py-2">
                     <strong>Ensayes provisionales</strong>
                   </div>
@@ -155,7 +200,7 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ onClose }) => {
                 </div>
 
                 {/* Pesos Provisionales */}
-                <div className="border-2 border-black mt-4">
+                <div className="border-2 border-black mt-4 pdf-section">
                   <div className="bg-gray-200 border-b border-black px-4 py-2">
                     <strong>Pesos Provisionales</strong>
                   </div>
@@ -189,7 +234,7 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ onClose }) => {
               {/* Columna Derecha */}
               <div>
                 {/* Precios provisionales */}
-                <div className="border-2 border-black">
+                <div className="border-2 border-black pdf-section">
                   <div className="bg-gray-200 border-b border-black px-4 py-2">
                     <strong>Precios provisionales</strong>
                   </div>
@@ -218,7 +263,7 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ onClose }) => {
                 </div>
 
                 {/* Sensibilidad */}
-                <div className="border-2 border-black mt-4">
+                <div className="border-2 border-black mt-4 pdf-section">
                   <div className="bg-gray-200 border-b border-black px-4 py-2">
                     <strong>Sensibilidad</strong>
                   </div>
@@ -268,7 +313,7 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ onClose }) => {
             </div>
 
             {/* Metales Pagables */}
-            <div className="border-2 border-black mb-4">
+            <div className="border-2 border-black mb-4 pdf-section">
               <div className="bg-gray-200 border-b border-black px-4 py-2">
                 <strong>Metales Pagables</strong>
               </div>
@@ -297,7 +342,7 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ onClose }) => {
             </div>
 
             {/* Cargo de Tratamiento o Maquila */}
-            <div className="border-2 border-black mb-4">
+            <div className="border-2 border-black mb-4 pdf-section">
               <div className="bg-gray-200 border-b border-black px-4 py-2">
                 <strong>Cargo de Tratamiento o Maquila</strong>
               </div>
@@ -322,7 +367,7 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ onClose }) => {
             </div>
 
             {/* Cargo de Refinación */}
-            <div className="border-2 border-black mb-4">
+            <div className="border-2 border-black mb-4 pdf-section">
               <div className="bg-gray-200 border-b border-black px-4 py-2">
                 <strong>Cargo de Refinación</strong>
               </div>
@@ -351,7 +396,7 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ onClose }) => {
             </div>
 
             {/* Penalidades */}
-            <div className="border-2 border-black mb-4">
+            <div className="border-2 border-black mb-4 pdf-section">
               <div className="bg-gray-200 border-b border-black px-4 py-2">
                 <strong>Penalidades</strong>
               </div>
@@ -378,7 +423,7 @@ const ContractPDF: React.FC<ContractPDFProps> = ({ onClose }) => {
             </div>
 
             {/* Total */}
-            <div className="border-2 border-black bg-yellow-100">
+            <div className="border-2 border-black bg-yellow-100 pdf-section">
               <table className="w-full">
                 <tbody>
                   <tr>
