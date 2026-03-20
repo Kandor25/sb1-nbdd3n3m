@@ -221,18 +221,46 @@ const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) =>
       {/* Print Styles */}
       <style>{`
         @media print {
+          @page {
+            size: letter;
+            margin: 0.75in;
+          }
+
+          body {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+
           body * {
             visibility: hidden;
           }
+
           #contract-details-content,
           #contract-details-content * {
             visibility: visible;
           }
+
           #contract-details-content {
             position: absolute;
             left: 0;
             top: 0;
             width: 100%;
+            max-height: none !important;
+            overflow: visible !important;
+          }
+
+          .border-l-4 {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+
+          h3, h4 {
+            page-break-after: avoid;
+          }
+
+          .space-y-6 > div {
+            page-break-inside: avoid;
+            break-inside: avoid;
           }
         }
       `}</style>
