@@ -21,6 +21,7 @@ function App() {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [contractCreationMode, setContractCreationMode] = useState<ContractCreationMode>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   
   const currentUser: User = {
     id: '1',
@@ -155,6 +156,8 @@ function App() {
       <Sidebar
         activeSection={activeSection}
         onSectionChange={setActiveSection}
+        isCollapsed={isSidebarCollapsed}
+        onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header currentUser={currentUser} />
