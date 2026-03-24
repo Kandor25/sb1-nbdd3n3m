@@ -1,5 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { X, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface ContractDetailsViewProps {
   onClose: () => void;
@@ -7,162 +9,45 @@ interface ContractDetailsViewProps {
 
 const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) => {
   const contentRef = useRef<HTMLDivElement>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (!contentRef.current) return;
 
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    setIsGenerating(true);
 
-    const content = contentRef.current.innerHTML;
+    try {
+      const element = contentRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
 
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <title>Detalle del Contrato</title>
-          <style>
-            @page {
-              size: letter;
-              margin: 0.75in;
-            }
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'letter'
+      });
 
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 10;
 
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-              font-size: 11pt;
-              line-height: 1.4;
-              color: #000;
-              background: white;
-              padding: 20px;
-            }
-
-            h3 {
-              font-size: 14pt;
-              font-weight: bold;
-              margin-top: 1em;
-              margin-bottom: 0.5em;
-              page-break-after: avoid;
-            }
-
-            h4 {
-              font-size: 12pt;
-              font-weight: bold;
-              margin-bottom: 0.5em;
-              page-break-after: avoid;
-            }
-
-            .text-sm {
-              font-size: 10pt;
-            }
-
-            .text-xl {
-              font-size: 13pt;
-            }
-
-            .mb-8 {
-              margin-bottom: 2em;
-            }
-
-            .mb-4 {
-              margin-bottom: 1em;
-            }
-
-            .mb-3 {
-              margin-bottom: 0.75em;
-            }
-
-            .mt-2 {
-              margin-top: 0.5em;
-            }
-
-            .mt-4 {
-              margin-top: 1em;
-            }
-
-            .grid {
-              display: grid;
-            }
-
-            .grid-cols-2 {
-              grid-template-columns: 1fr 1fr;
-            }
-
-            .gap-2 {
-              gap: 0.5em;
-            }
-
-            .gap-4 {
-              gap: 1em;
-            }
-
-            .col-span-2 {
-              grid-column: span 2;
-            }
-
-            .space-y-1 > * + * {
-              margin-top: 0.25em;
-            }
-
-            .space-y-6 > * + * {
-              margin-top: 1.5em;
-            }
-
-            .border-l-4 {
-              border-left: 4px solid #2563eb;
-            }
-
-            .pl-4 {
-              padding-left: 1em;
-            }
-
-            .ml-6 {
-              margin-left: 1.5em;
-            }
-
-            .font-bold {
-              font-weight: bold;
-            }
-
-            .font-semibold {
-              font-weight: 600;
-            }
-
-            .text-gray-600 {
-              color: #4b5563;
-            }
-
-            .text-gray-900 {
-              color: #111827;
-            }
-
-            @media print {
-              body {
-                padding: 0;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          ${content}
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.print();
-              }, 500);
-            };
-          </script>
-        </body>
-      </html>
-    `);
-
-    printWindow.document.close();
+      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      pdf.save('contrato-detalle.pdf');
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      alert('Error al generar el PDF. Por favor intente nuevamente.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -175,10 +60,11 @@ const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) =>
             <div className="flex items-center gap-3">
               <button
                 onClick={handlePrint}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={isGenerating}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Download className="w-4 h-4" />
-                Descargar PDF
+                {isGenerating ? 'Generando...' : 'Descargar PDF'}
               </button>
               <button
                 onClick={onClose}
