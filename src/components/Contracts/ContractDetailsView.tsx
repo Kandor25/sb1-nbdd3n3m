@@ -226,41 +226,57 @@ const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) =>
             margin: 0.75in;
           }
 
-          body {
+          html, body {
+            height: auto;
+            overflow: visible;
             print-color-adjust: exact;
             -webkit-print-color-adjust: exact;
           }
 
-          body * {
-            visibility: hidden;
+          /* Hide everything */
+          .fixed,
+          .print\\:hidden,
+          [class*="print:hidden"] {
+            display: none !important;
           }
 
-          #contract-details-content,
-          #contract-details-content * {
-            visibility: visible;
-          }
-
+          /* Show only content */
           #contract-details-content {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            max-height: none !important;
+            position: static !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
             overflow: visible !important;
+            max-height: none !important;
           }
 
+          /* Prevent page breaks inside sections */
           .border-l-4 {
             page-break-inside: avoid;
             break-inside: avoid;
+            margin-bottom: 1rem;
           }
 
+          /* Prevent orphaned headings */
           h3, h4 {
             page-break-after: avoid;
+            break-after: avoid;
           }
 
+          /* Keep sections together */
           .space-y-6 > div {
             page-break-inside: avoid;
             break-inside: avoid;
+          }
+
+          /* Remove unnecessary spacing */
+          .p-8 {
+            padding: 0 !important;
+          }
+
+          .flex-1 {
+            overflow: visible !important;
           }
         }
       `}</style>
