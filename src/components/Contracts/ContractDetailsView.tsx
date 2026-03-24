@@ -226,91 +226,77 @@ const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) =>
             margin: 0.75in;
           }
 
-          html, body {
-            height: auto;
-            overflow: visible;
+          * {
             print-color-adjust: exact;
             -webkit-print-color-adjust: exact;
           }
 
-          /* Hide everything except the contract content */
-          body > *:not(.fixed) {
+          body {
+            background: white !important;
+          }
+
+          /* Hide sidebar, header, and non-modal elements */
+          body > div:not(:has(#contract-details-content)) {
             display: none !important;
           }
 
-          body > .fixed {
+          /* Make modal full width and static */
+          .fixed {
             position: static !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            height: auto !important;
-            max-height: none !important;
-            overflow: visible !important;
-            background: white !important;
+            inset: 0 !important;
+            background: transparent !important;
+            z-index: auto !important;
             padding: 0 !important;
-            margin: 0 !important;
+            display: block !important;
           }
 
-          /* Hide modal wrapper elements */
           .fixed > div {
-            box-shadow: none !important;
-            border-radius: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
             max-height: none !important;
             overflow: visible !important;
-            width: 100% !important;
-            max-width: 100% !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            background: white !important;
+            display: block !important;
           }
 
           /* Hide header and buttons */
           .print\\:hidden,
-          button,
-          [class*="print:hidden"] {
+          button {
             display: none !important;
           }
 
-          /* Show only content */
-          #contract-details-content {
-            position: static !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
+          /* Make content area full width and visible */
+          .flex-1,
+          .overflow-y-auto {
             overflow: visible !important;
             max-height: none !important;
+            height: auto !important;
+            display: block !important;
+          }
+
+          .p-8 {
+            padding: 0 !important;
+          }
+
+          #contract-details-content {
+            padding: 0 !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
           }
 
           /* Prevent page breaks inside sections */
           .border-l-4 {
             page-break-inside: avoid;
             break-inside: avoid;
-            margin-bottom: 1rem;
           }
 
           /* Prevent orphaned headings */
           h3, h4 {
             page-break-after: avoid;
             break-after: avoid;
-          }
-
-          /* Keep sections together */
-          .space-y-6 > div {
-            page-break-inside: avoid;
-            break-inside: avoid;
-          }
-
-          /* Remove unnecessary spacing */
-          .p-8 {
-            padding: 0 !important;
-          }
-
-          .flex-1,
-          .overflow-y-auto {
-            overflow: visible !important;
-            max-height: none !important;
-          }
-
-          /* Remove border from modal */
-          .border-b {
-            border: none !important;
           }
         }
       `}</style>
