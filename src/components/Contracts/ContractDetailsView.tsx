@@ -233,9 +233,36 @@ const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) =>
             -webkit-print-color-adjust: exact;
           }
 
-          /* Hide everything */
-          .fixed,
+          /* Hide everything except the contract content */
+          body > *:not(.fixed) {
+            display: none !important;
+          }
+
+          body > .fixed {
+            position: static !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            max-height: none !important;
+            overflow: visible !important;
+            background: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+
+          /* Hide modal wrapper elements */
+          .fixed > div {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            max-height: none !important;
+            overflow: visible !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+
+          /* Hide header and buttons */
           .print\\:hidden,
+          button,
           [class*="print:hidden"] {
             display: none !important;
           }
@@ -275,8 +302,15 @@ const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) =>
             padding: 0 !important;
           }
 
-          .flex-1 {
+          .flex-1,
+          .overflow-y-auto {
             overflow: visible !important;
+            max-height: none !important;
+          }
+
+          /* Remove border from modal */
+          .border-b {
+            border: none !important;
           }
         }
       `}</style>
