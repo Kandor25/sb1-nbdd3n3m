@@ -6,15 +6,15 @@ interface ContractDetailsViewProps {
 }
 
 const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) => {
-  const printContentRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
-    if (!printContentRef.current) return;
+    if (!contentRef.current) return;
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    const content = printContentRef.current.innerHTML;
+    const content = contentRef.current.innerHTML;
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -58,60 +58,88 @@ const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) =>
               page-break-after: avoid;
             }
 
-            .header-info {
+            .text-sm {
+              font-size: 10pt;
+            }
+
+            .text-xl {
+              font-size: 13pt;
+            }
+
+            .mb-8 {
               margin-bottom: 2em;
             }
 
-            .header-grid {
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 0.5em;
+            .mb-4 {
               margin-bottom: 1em;
             }
 
-            .header-item {
-              margin-bottom: 0.5em;
+            .mb-3 {
+              margin-bottom: 0.75em;
             }
 
-            .header-label {
-              font-size: 9pt;
-              color: #666;
-              margin-bottom: 0.2em;
-            }
-
-            .header-value {
-              font-weight: 600;
-              color: #000;
-            }
-
-            .section {
-              border-left: 4px solid #2563eb;
-              padding-left: 1em;
-              margin-bottom: 1.5em;
-              page-break-inside: avoid;
-            }
-
-            .section-content {
+            .mt-2 {
               margin-top: 0.5em;
             }
 
-            .item-grid {
+            .mt-4 {
+              margin-top: 1em;
+            }
+
+            .grid {
               display: grid;
+            }
+
+            .grid-cols-2 {
               grid-template-columns: 1fr 1fr;
-              gap: 0.3em;
             }
 
-            .item {
-              margin-bottom: 0.3em;
+            .gap-2 {
+              gap: 0.5em;
             }
 
-            .nested-list {
-              margin-left: 2em;
-              margin-top: 0.3em;
+            .gap-4 {
+              gap: 1em;
             }
 
-            p {
-              margin-bottom: 0.3em;
+            .col-span-2 {
+              grid-column: span 2;
+            }
+
+            .space-y-1 > * + * {
+              margin-top: 0.25em;
+            }
+
+            .space-y-6 > * + * {
+              margin-top: 1.5em;
+            }
+
+            .border-l-4 {
+              border-left: 4px solid #2563eb;
+            }
+
+            .pl-4 {
+              padding-left: 1em;
+            }
+
+            .ml-6 {
+              margin-left: 1.5em;
+            }
+
+            .font-bold {
+              font-weight: bold;
+            }
+
+            .font-semibold {
+              font-weight: 600;
+            }
+
+            .text-gray-600 {
+              color: #4b5563;
+            }
+
+            .text-gray-900 {
+              color: #111827;
             }
 
             @media print {
@@ -163,7 +191,7 @@ const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) =>
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-8">
-            <div className="max-w-4xl mx-auto">
+            <div ref={contentRef} className="max-w-4xl mx-auto">
               {/* Header Information */}
               <div className="mb-8">
               <div className="grid grid-cols-2 gap-4 mb-4">
@@ -344,157 +372,6 @@ const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) =>
             </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Hidden content for printing */}
-      <div ref={printContentRef} style={{ display: 'none' }}>
-        <div className="header-info">
-          <div className="header-grid">
-            <div className="header-item">
-              <div className="header-label">Vendedor:</div>
-              <div className="header-value">Mineria Proton S.A.C.</div>
-            </div>
-            <div className="header-item">
-              <div className="header-label">Comprador:</div>
-              <div className="header-value">Trader A</div>
-            </div>
-            <div className="header-item">
-              <div className="header-label">Producto:</div>
-              <div className="header-value">Concentrado de Cobre</div>
-            </div>
-            <div className="header-item">
-              <div className="header-label">Región:</div>
-              <div className="header-value">Peru</div>
-            </div>
-          </div>
-          <div className="header-item">
-            <div className="header-label">Cuotas:</div>
-            <div className="header-value">Dic2025-Dic2026</div>
-          </div>
-          <h3>Contrato Entregas 2025</h3>
-        </div>
-
-        <div className="section">
-          <h4>1. Cantidad/Plazo</h4>
-          <div className="item-grid">
-            <div className="item">• Diciembre 2025 =&gt; 330tmh / 300 tms / 10% H2O</div>
-            <div className="item">• Enero 2026 =&gt; 330tmh / 300 tms / 10% H2O</div>
-            <div className="item">• Febrero 2026 =&gt; 330tmh / 300 tms / 10% H2O</div>
-            <div className="item">• Marzo 2026 =&gt; 330tmh / 300 tms / 10% H2O</div>
-            <div className="item">• Abril 2026 =&gt; 330tmh / 300 tms / 10% H2O</div>
-            <div className="item">• Mayo 2026 / 330tmh / 300 tms / 10% H2O</div>
-            <div className="item">• Junio 2026 / 330tmh / 300 tms / 10% H2O</div>
-            <div className="item">• Julio 2026 / 330tmh / 300 tms / 10% H2O</div>
-            <div className="item">• Agosto 2026 / 330tmh / 300 tms / 10% H2O</div>
-            <div className="item">• Septiembre 2026 / 330tmh / 300 tms / 10% H2O</div>
-            <div className="item">• Octubre 2026 / 330tmh / 300 tms / 10% H2O</div>
-            <div className="item">• Noviembre 2026 /330tmh / 300 tms / 10% H2O</div>
-            <div className="item">• Diciembre 2026 / 330tmh / 300 tms / 10% H2O</div>
-          </div>
-        </div>
-
-        <div className="section">
-          <h4>2. Incoterm Entrega</h4>
-          <p>• DAP Impala Terminals Callao.</p>
-        </div>
-
-        <div className="section">
-          <h4>3. Rollback</h4>
-          <p>• N/A</p>
-        </div>
-
-        <div className="section">
-          <h4>4. Calidad / Granulometria</h4>
-          <div className="item-grid">
-            <div className="item">• Cu: 22 – 35 %</div>
-            <div className="item">• Ag: 80 – 200 g/tms</div>
-            <div className="item">• Au: 5 – 10 g/tms</div>
-            <div className="item">• As &lt; 0.25 %</div>
-            <div className="item">• Sb &lt; 0.10 %</div>
-            <div className="item">• Pb &lt; 3 %</div>
-            <div className="item">• Zn &lt; 3 %</div>
-            <div className="item">• Fe: 20 – 28 %</div>
-            <div className="item">• Bi &lt; 0.10 %</div>
-            <div className="item">• F &lt; 300 ppm</div>
-            <div className="item">• Cd &lt; 300 ppm</div>
-            <div className="item">• Hg &lt; 10 ppm</div>
-          </div>
-          <p>• Granulometria =&gt; 100% &lt; 1/8", mín 90% &lt; 149μm (malla 100).</p>
-        </div>
-
-        <div className="section">
-          <h4>5. Pagables</h4>
-          <p>• Cobre (Cu): (Ensaye - 1.2%) * 100% =&gt; Indice LME Lowest of the Four.</p>
-          <p>• Plata (Ag): (Ensaye - 50g/tms) * 90% =&gt; Indice LBMA Silver.</p>
-          <p>• Oro (Au): (Ensaye-1.5g/tms) * 90% =&gt; Indice LBMA Final (o PM).</p>
-        </div>
-
-        <div className="section">
-          <h4>6. Maquila o Cargo de Tratamiento</h4>
-          <p>• $70/tms DAP Depósito Impala en el Callao</p>
-        </div>
-
-        <div className="section">
-          <h4>7. Escalador en Maquila</h4>
-          <p>• N/A</p>
-        </div>
-
-        <div className="section">
-          <h4>8. Gastos de Refinacion</h4>
-          <p>• Cobre (Cu): $0.070/lb</p>
-          <p>• Plata (Ag): $1.0/oz</p>
-          <p>• Oro (Au): $10/oz</p>
-        </div>
-
-        <div className="section">
-          <h4>9. Escalador en Gastos de Refinacion</h4>
-          <p>• N/A</p>
-        </div>
-
-        <div className="section">
-          <h4>10. Penalidades</h4>
-          <p>• Arsenico + Antimonio (As+Sb): $4/tms por cada c/0.1% encima 0.20%</p>
-          <p>• Plomo + Zinc (Pb+Zn): $2.5/tms por cada 1% por encima 5%</p>
-          <p>• Bismuto (Bi): $2.5/tms por cada 0.01% por encima 0.05%</p>
-          <p>• Mercurio (Hg): $2.50/tms por cada 10ppm por encima 30ppm</p>
-        </div>
-
-        <div className="section">
-          <h4>11. Pagos</h4>
-          <p>• Pago Provisional. 90% a los 4 días calendario de recibida la factura provisional, una vez cerrado el lote.</p>
-          <p>• Pago Final: Cuando las leyes, pesos y precios de todos los elementos sean conocidos.</p>
-        </div>
-
-        <div className="section">
-          <h4>12. Periodo de Cotizaciones</h4>
-          <p>• M+1 (promedio del siguiente mes de entrega)</p>
-          <p>• M+3 (promedio del tercer mes siguiente al mes de entrega)</p>
-          <p>• Opcionalidad definidad por =&gt; Comprador</p>
-          <p>• M = mes de entrega en depósito</p>
-          <p>• Opcion de fijacion para el vendedor =&gt; Si</p>
-        </div>
-
-        <div className="section">
-          <h4>13. Muestreo Pesos</h4>
-          <p>• Depósito de Impala Terminals Perú S.A.C. en el Callao.</p>
-        </div>
-
-        <div className="section">
-          <h4>14. Muestreo Ensayes</h4>
-          <p>• Procedimiento de dirimencia.</p>
-          <p>• Costos asumidos por el Comprador y Vendedor en partes iguales.</p>
-          <p>• Leyes finales =&gt; promedio de las leyes reportadas por:</p>
-          <div className="nested-list">
-            <p>1. Alfred H. Knight del Perú S.A.</p>
-            <p>2. Alex Stewart (Assayers) del Perú S.R.L.</p>
-            <p>3. SGS del Perú S.A.C.</p>
-          </div>
-        </div>
-
-        <div className="section">
-          <h4>15. Merma</h4>
-          <p>• 0.5%</p>
         </div>
       </div>
     </>
