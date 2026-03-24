@@ -20,6 +20,7 @@ const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) =>
       <!DOCTYPE html>
       <html>
         <head>
+          <meta charset="UTF-8">
           <title>Detalle del Contrato</title>
           <style>
             @page {
@@ -39,6 +40,7 @@ const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) =>
               line-height: 1.4;
               color: #000;
               background: white;
+              padding: 20px;
             }
 
             h3 {
@@ -111,20 +113,28 @@ const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) =>
             p {
               margin-bottom: 0.3em;
             }
+
+            @media print {
+              body {
+                padding: 0;
+              }
+            }
           </style>
         </head>
         <body>
           ${content}
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+              }, 500);
+            };
+          </script>
         </body>
       </html>
     `);
 
     printWindow.document.close();
-
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
   };
 
   return (
