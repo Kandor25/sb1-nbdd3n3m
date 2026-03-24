@@ -231,60 +231,25 @@ const ContractDetailsView: React.FC<ContractDetailsViewProps> = ({ onClose }) =>
             -webkit-print-color-adjust: exact;
           }
 
-          body {
-            background: white !important;
+          /* Hide everything by default */
+          body * {
+            visibility: hidden;
           }
 
-          /* Hide sidebar, header, and non-modal elements */
-          body > div:not(:has(#contract-details-content)) {
-            display: none !important;
+          /* Only show the content and its parents */
+          #contract-details-content,
+          #contract-details-content * {
+            visibility: visible;
           }
 
-          /* Make modal full width and static */
-          .fixed {
-            position: static !important;
-            inset: 0 !important;
-            background: transparent !important;
-            z-index: auto !important;
-            padding: 0 !important;
-            display: block !important;
-          }
-
-          .fixed > div {
-            max-width: 100% !important;
-            width: 100% !important;
-            max-height: none !important;
-            overflow: visible !important;
-            box-shadow: none !important;
-            border-radius: 0 !important;
-            background: white !important;
-            display: block !important;
-          }
-
-          /* Hide header and buttons */
-          .print\\:hidden,
-          button {
-            display: none !important;
-          }
-
-          /* Make content area full width and visible */
-          .flex-1,
-          .overflow-y-auto {
-            overflow: visible !important;
-            max-height: none !important;
-            height: auto !important;
-            display: block !important;
-          }
-
-          .p-8 {
-            padding: 0 !important;
-          }
-
+          /* Position content at top of page */
           #contract-details-content {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
             padding: 0 !important;
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
+            margin: 0 !important;
           }
 
           /* Prevent page breaks inside sections */
