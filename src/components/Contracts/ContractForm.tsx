@@ -287,36 +287,39 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     }
   }, [editContractId]);
 
+  const startMonth = formData.startMonth;
+  const endMonth = formData.endMonth;
+
   useEffect(() => {
-    if (formData.startMonth && formData.endMonth) {
-      if (skipQuotaGeneration.current) {
-        skipQuotaGeneration.current = false;
-        return;
-      }
+    if (!startMonth || !endMonth) return;
 
-      const [startYear, startMonthNum] = formData.startMonth.split('-').map(Number);
-      const [endYear, endMonthNum] = formData.endMonth.split('-').map(Number);
-
-      if (isNaN(startYear) || isNaN(startMonthNum) || isNaN(endYear) || isNaN(endMonthNum)) return;
-
-      const quotas: QuotaData[] = [];
-      let currentYear = startYear;
-      let currentMonth = startMonthNum;
-
-      while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonthNum)) {
-        quotas.push({
-          month: `${currentYear}-${String(currentMonth).padStart(2, '0')}`,
-          tmh: '',
-          tms: '',
-          h2oPercentage: '',
-        });
-        currentMonth++;
-        if (currentMonth > 12) { currentMonth = 1; currentYear++; }
-      }
-
-      setFormData(prev => ({ ...prev, quotas }));
+    if (skipQuotaGeneration.current) {
+      skipQuotaGeneration.current = false;
+      return;
     }
-  }, [formData.startMonth, formData.endMonth]);
+
+    const [startYear, startMonthNum] = startMonth.split('-').map(Number);
+    const [endYear, endMonthNum] = endMonth.split('-').map(Number);
+
+    if (isNaN(startYear) || isNaN(startMonthNum) || isNaN(endYear) || isNaN(endMonthNum)) return;
+
+    const quotas: QuotaData[] = [];
+    let currentYear = startYear;
+    let currentMonth = startMonthNum;
+
+    while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonthNum)) {
+      quotas.push({
+        month: `${currentYear}-${String(currentMonth).padStart(2, '0')}`,
+        tmh: '',
+        tms: '',
+        h2oPercentage: '',
+      });
+      currentMonth++;
+      if (currentMonth > 12) { currentMonth = 1; currentYear++; }
+    }
+
+    setFormData(prev => ({ ...prev, quotas }));
+  }, [startMonth, endMonth]);
 
   const loadFormData = async () => {
     try {
@@ -538,42 +541,6 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     }
   };
 
-  const generateQuotas = () => {
-    if (!formData.startMonth || !formData.endMonth) return;
-
-    const [startYear, startMonthNum] = formData.startMonth.split('-').map(Number);
-    const [endYear, endMonthNum] = formData.endMonth.split('-').map(Number);
-
-    if (isNaN(startYear) || isNaN(startMonthNum) || isNaN(endYear) || isNaN(endMonthNum)) {
-      return;
-    }
-
-    const quotas: QuotaData[] = [];
-
-    let currentYear = startYear;
-    let currentMonth = startMonthNum;
-
-    while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonthNum)) {
-      const monthStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-      quotas.push({
-        month: monthStr,
-        tmh: '',
-        tms: '',
-        h2oPercentage: '',
-      });
-
-      currentMonth++;
-      if (currentMonth > 12) {
-        currentMonth = 1;
-        currentYear++;
-      }
-    }
-
-    console.log('Generated quotas from', formData.startMonth, 'to', formData.endMonth, ':', quotas.length, 'months');
-    console.log('Months:', quotas.map(q => q.month).join(', '));
-
-    setFormData(prev => ({ ...prev, quotas }));
-  };
 
   const updateFormData = (field: keyof FormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
