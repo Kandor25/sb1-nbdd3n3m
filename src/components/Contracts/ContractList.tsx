@@ -198,8 +198,8 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
 
       const maxAdenda = (existingAdendas.data || []).reduce((max: number, row: any) => Math.max(max, row.adenda_number || 0), 0);
       const nextAdendaNumber = maxAdenda + 1;
-      const baseNumber = sourceContract.contract_number.split('-N')[0].replace(/-\d+$/, '');
-      const newContractNumber = `${sourceContract.contract_number}-N${nextAdendaNumber}`;
+      const baseNumber = sourceContract.contract_number.split('-N')[0];
+      const newContractNumber = `${baseNumber}-${nextAdendaNumber}`;
 
       const { data: newContract, error: insertError } = await supabase
         .from('contracts')
