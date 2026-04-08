@@ -121,50 +121,148 @@ const AdendaValidation: React.FC<AdendaValidationProps> = ({ adendaId, onClose }
   const fetchContractWithRelated = async (contractId: string): Promise<ContractData | null> => {
     const { data: base, error: baseErr } = await supabase
       .from('contracts')
-      .select(`
-        *,
-        vendor:vendors(id, name),
-        buyer:buyers(id, name),
-        product:products(id, name),
-        incoterm:incoterms(code, description),
-        sampling_formula:sampling_formulas(name)
-      `)
+      .select('*')
       .eq('id', contractId)
       .single();
-    if (baseErr || !base) return null;
+    if (baseErr || !base) {
+      console.error('[AdendaValidation] base query error for', contractId, baseErr);
+      return null;
+    }
 
-    const [quotas, payables, processing, penalties, quality, refining, payments, periods] = await Promise.all([
+    const [
+      vendorRes, buyerRes, productRes, incotermRes,
+      quotas, payables, processing, penalties, quality, refining, payments, periods,
+    ] = await Promise.all([
+      base.vendor_id ? supabase.from('vendors').select('name').eq('id', base.vendor_id).maybeSingle() : Promise.resolve({ data: null }),
+      base.buyer_id ? supabase.from('buyers').select('name').eq('id', base.buyer_id).maybeSingle() : Promise.resolve({ data: null }),
+      base.product_id ? supabase.from('products').select('name').eq('id', base.product_id).maybeSingle() : Promise.resolve({ data: null }),
+      base.incoterm_id ? supabase.from('incoterms').select('code, description').eq('id', base.incoterm_id).maybeSingle() : Promise.resolve({ data: null }),
       supabase.from('contract_quotas').select('month, tmh, tms, h2o_percentage').eq('contract_id', contractId),
-      supabase.from('contract_payables').select('metal, deduction_value, deduction_unit, balance_percentage, formula:payable_formulas(name)').eq('contract_id', contractId),
-      supabase.from('contract_processing').select('value, unit, formula:processing_formulas(name)').eq('contract_id', contractId),
-      supabase.from('contract_penalties').select('metal, amount_usd, lower_limit, lower_limit_unit, upper_limit, upper_limit_unit, formula:penalty_formulas(name)').eq('contract_id', contractId),
+      supabase.from('contract_payables').select('metal, deduction_value, deduction_unit, balance_percentage, payable_formulas(name)').eq('contract_id', contractId),
+      supabase.from('contract_processing').select('value, unit, processing_formulas(name)').eq('contract_id', contractId),
+      supabase.from('contract_penalties').select('metal, amount_usd, lower_limit, lower_limit_unit, upper_limit, upper_limit_unit, penalty_formulas(name)').eq('contract_id', contractId),
       supabase.from('contract_quality_specs').select('metal, spec_type, min_value, max_value, unit').eq('contract_id', contractId),
-      supabase.from('contract_refining_expenses').select('metal, amount_usd, unit, formula:refining_expense_formulas(name)').eq('contract_id', contractId),
+      supabase.from('contract_refining_expenses').select('metal, amount_usd, unit, refining_expense_formulas(name)').eq('contract_id', contractId),
       supabase.from('payment_terms').select('payment_type, advance_percentage, known_elements, days_from_issuance').eq('contract_id', contractId),
       supabase.from('contract_quotation_periods').select('formula, months, metal, day_type, buyer_optionality, seller_optionality').eq('contract_id', contractId).order('display_order'),
     ]);
 
+    const nd = (d: unknown) => (typeof d === 'string' ? d.slice(0, 10) : String(d ?? ''));
+    const n = (v: unknown) => (v != null && v !== '' ? Number(v) : null);
+    const s = (v: unknown) => (v == null || v === '' ? null : String(v));
+
+    const fmtFormula = (row: Record<string, unknown>, fkTable: string) => {
+      const fData = row[fkTable] as Record<string, unknown> | null;
+      return fData ? { name: String(fData.name ?? '') } : undefined;
+    };
+
     return {
-      ...base,
-      contract_quotas: quotas.data || [],
-      contract_payables: payables.data || [],
-      contract_processing: processing.data || [],
-      contract_penalties: penalties.data || [],
-      contract_quality_specs: quality.data || [],
-      contract_refining_expenses: refining.data || [],
-      payment_terms: payments.data || [],
-      contract_quotation_periods: periods.data || [],
-    } as ContractData;
+      id: base.id,
+      contract_number: base.contract_number,
+      contract_type: base.contract_type,
+      start_month: nd(base.start_month),
+      end_month: nd(base.end_month),
+      delivery_location: s(base.delivery_location) ?? '',
+      observations: s(base.observations),
+      rollback_applies: !!base.rollback_applies,
+      rollback_value: n(base.rollback_value),
+      rollback_unit: s(base.rollback_unit),
+      waste_applies: String(base.waste_applies ?? 'no_aplica'),
+      waste_value: n(base.waste_value),
+      waste_unit: s(base.waste_unit),
+      assay_structure: s(base.assay_structure),
+      assay_final_lab: s(base.assay_final_lab),
+      assay_cost_type: s(base.assay_cost_type),
+      sampling_reference: s(base.sampling_reference),
+      processing_escalator_value: n(base.processing_escalator_value),
+      processing_escalator_unit: s(base.processing_escalator_unit),
+      refining_escalator_value: n(base.refining_escalator_value),
+      refining_escalator_unit: s(base.refining_escalator_unit),
+      parent_contract_id: s(base.parent_contract_id),
+      vendor: vendorRes.data as { name: string } | null,
+      buyer: buyerRes.data as { name: string } | null,
+      product: productRes.data as { name: string } | null,
+      incoterm: incotermRes.data as { code: string; description: string } | null,
+      contract_quotas: (quotas.data || []).map(q => ({
+        month: nd(q.month),
+        tmh: Number(q.tmh),
+        tms: Number(q.tms),
+        h2o_percentage: Number(q.h2o_percentage),
+      })),
+      contract_payables: (payables.data || []).map(p => ({
+        formula: fmtFormula(p as unknown as Record<string, unknown>, 'payable_formulas'),
+        metal: String(p.metal),
+        deduction_value: Number(p.deduction_value),
+        deduction_unit: String(p.deduction_unit),
+        balance_percentage: Number(p.balance_percentage),
+      })),
+      contract_processing: (processing.data || []).map(p => ({
+        formula: fmtFormula(p as unknown as Record<string, unknown>, 'processing_formulas'),
+        value: n(p.value),
+        unit: s(p.unit),
+      })),
+      contract_penalties: (penalties.data || []).map(p => ({
+        formula: fmtFormula(p as unknown as Record<string, unknown>, 'penalty_formulas'),
+        metal: String(p.metal),
+        amount_usd: Number(p.amount_usd),
+        lower_limit: Number(p.lower_limit),
+        lower_limit_unit: String(p.lower_limit_unit),
+        upper_limit: Number(p.upper_limit),
+        upper_limit_unit: String(p.upper_limit_unit),
+      })),
+      contract_quality_specs: (quality.data || []).map(q => ({
+        metal: String(q.metal),
+        spec_type: String(q.spec_type),
+        min_value: n(q.min_value),
+        max_value: n(q.max_value),
+        unit: String(q.unit),
+      })),
+      contract_refining_expenses: (refining.data || []).map(r => ({
+        formula: fmtFormula(r as unknown as Record<string, unknown>, 'refining_expense_formulas'),
+        metal: String(r.metal),
+        amount_usd: Number(r.amount_usd),
+        unit: String(r.unit),
+      })),
+      payment_terms: (payments.data || []).map(p => ({
+        payment_type: String(p.payment_type),
+        advance_percentage: Number(p.advance_percentage),
+        known_elements: String(p.known_elements ?? ''),
+        days_from_issuance: Number(p.days_from_issuance),
+      })),
+      contract_quotation_periods: (periods.data || []).map(p => ({
+        formula: String(p.formula),
+        months: Number(p.months),
+        metal: String(p.metal),
+        day_type: String(p.day_type),
+        buyer_optionality: !!p.buyer_optionality,
+        seller_optionality: !!p.seller_optionality,
+      })),
+    };
   };
 
   const loadData = async () => {
     try {
       const adendaResult = await fetchContractWithRelated(adendaId);
+      console.debug('[AdendaValidation] adendaResult=', adendaResult);
       if (!adendaResult) throw new Error('No se pudo cargar la adenda');
 
       let parentData: ContractData | null = null;
       if (adendaResult.parent_contract_id) {
         parentData = await fetchContractWithRelated(adendaResult.parent_contract_id);
+        console.debug('[AdendaValidation] parentData via parent_contract_id=', parentData?.contract_number);
+      } else {
+        const baseNumber = adendaResult.contract_number.replace(/-\d+$/, '');
+        const { data: parentRow } = await supabase
+          .from('contracts')
+          .select('id')
+          .eq('contract_number', baseNumber)
+          .maybeSingle();
+        if (parentRow) {
+          parentData = await fetchContractWithRelated(parentRow.id);
+          console.debug('[AdendaValidation] parentData via contract_number=', parentData?.contract_number);
+        } else {
+          console.warn('[AdendaValidation] no parent found for', adendaResult.contract_number);
+        }
       }
 
       setAdenda(adendaResult);
@@ -172,7 +270,10 @@ const AdendaValidation: React.FC<AdendaValidationProps> = ({ adendaId, onClose }
 
       if (adendaResult && parentData) {
         const changed = computeChangedSections(parentData, adendaResult);
+        console.debug('[AdendaValidation] changed sections=', changed);
         setExpandedSections(new Set(changed.length > 0 ? changed : ['basic']));
+      } else {
+        setExpandedSections(new Set(['basic']));
       }
     } catch (error) {
       console.error('Error loading validation data:', error);
@@ -262,10 +363,19 @@ const AdendaValidation: React.FC<AdendaValidationProps> = ({ adendaId, onClose }
 
   const buildQuantityDiffs = (): DiffSection[] => {
     if (!parent || !adenda) return [];
-    const parentTmh = (parent.contract_quotas || []).reduce((s, q) => s + (q.tmh || 0), 0);
-    const adendaTmh = (adenda.contract_quotas || []).reduce((s, q) => s + (q.tmh || 0), 0);
-    const parentTms = (parent.contract_quotas || []).reduce((s, q) => s + (q.tms || 0), 0);
-    const adendaTms = (adenda.contract_quotas || []).reduce((s, q) => s + (q.tms || 0), 0);
+    const parentQuotas = parent.contract_quotas || [];
+    const adendaQuotas = adenda.contract_quotas || [];
+    const parentTmh = parentQuotas.reduce((s, q) => s + Number(q.tmh), 0);
+    const adendaTmh = adendaQuotas.reduce((s, q) => s + Number(q.tmh), 0);
+    const parentTms = parentQuotas.reduce((s, q) => s + Number(q.tms), 0);
+    const adendaTms = adendaQuotas.reduce((s, q) => s + Number(q.tms), 0);
+
+    const fmtQuotas = (quotas: ContractData['contract_quotas']) =>
+      (quotas || []).map(q => `${q.month} | TMH: ${Number(q.tmh).toFixed(2)} | TMS: ${Number(q.tms).toFixed(2)} | H2O: ${Number(q.h2o_percentage).toFixed(2)}%`).join('\n') || '-';
+
+    const pQuotaStr = JSON.stringify(parentQuotas.map(q => `${q.month}|${Number(q.tmh)}|${Number(q.tms)}|${Number(q.h2o_percentage)}`).sort());
+    const aQuotaStr = JSON.stringify(adendaQuotas.map(q => `${q.month}|${Number(q.tmh)}|${Number(q.tms)}|${Number(q.h2o_percentage)}`).sort());
+
     return [
       {
         label: 'Total TMH',
@@ -278,6 +388,12 @@ const AdendaValidation: React.FC<AdendaValidationProps> = ({ adendaId, onClose }
         original: parentTms.toFixed(2),
         adenda: adendaTms.toFixed(2),
         changed: Math.abs(parentTms - adendaTms) > 0.001,
+      },
+      {
+        label: 'Detalle por Mes',
+        original: fmtQuotas(parentQuotas),
+        adenda: fmtQuotas(adendaQuotas),
+        changed: pQuotaStr !== aQuotaStr,
       },
     ];
   };
