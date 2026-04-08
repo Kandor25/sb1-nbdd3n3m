@@ -228,6 +228,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   const [samplingFormulas, setSamplingFormulas] = useState<SamplingFormula[]>([]);
   const [marketIndices, setMarketIndices] = useState<MarketIndex[]>([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [guideSection, setGuideSection] = useState<string>('');
   const [validationError, setValidationError] = useState<string>('');
@@ -880,6 +881,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   };
 
   const handleSave = async () => {
+    if (saving) return;
     setValidationError('');
 
     const metalsValidation = validateMetalsMatch();
@@ -914,6 +916,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     }
 
     setLoading(true);
+    setSaving(true);
     try {
       const contractPayload = {
         contract_type: formData.contractType,
@@ -1157,6 +1160,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
       alert('Error al guardar el contrato');
     } finally {
       setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -3487,11 +3491,11 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
           <div className="flex items-center space-x-3">
             <button
               onClick={handleSave}
-              disabled={loading}
+              disabled={loading || saving}
               className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="w-4 h-4 mr-2" />
-              {loading ? 'Guardando...' : 'Guardar Contrato'}
+              {saving ? 'Guardando...' : 'Guardar Contrato'}
             </button>
 
             <button
