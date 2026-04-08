@@ -955,8 +955,8 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         if (updateError) throw updateError;
         contractId = editContractId;
 
+        await supabase.from('contract_quotas').delete().eq('contract_id', contractId);
         await Promise.all([
-          supabase.from('contract_quotas').delete().eq('contract_id', contractId),
           supabase.from('contract_payables').delete().eq('contract_id', contractId),
           supabase.from('contract_processing').delete().eq('contract_id', contractId),
           supabase.from('contract_penalties').delete().eq('contract_id', contractId),
