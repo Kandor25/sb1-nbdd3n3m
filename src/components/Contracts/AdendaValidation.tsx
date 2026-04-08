@@ -51,6 +51,58 @@ interface DiffSection {
   changed: boolean;
 }
 
+const computeChangedSections = (p: ContractData, a: ContractData): string[] => {
+  const changed: string[] = [];
+
+  const basicChanged =
+    p.contract_type !== a.contract_type ||
+    p.vendor?.name !== a.vendor?.name ||
+    p.buyer?.name !== a.buyer?.name ||
+    p.product?.name !== a.product?.name ||
+    p.start_month !== a.start_month ||
+    p.end_month !== a.end_month ||
+    JSON.stringify(p.incoterm) !== JSON.stringify(a.incoterm) ||
+    p.delivery_location !== a.delivery_location ||
+    p.observations !== a.observations;
+  if (basicChanged) changed.push('basic');
+
+  const pTmh = (p.contract_quotas || []).reduce((s, q) => s + (q.tmh || 0), 0);
+  const aTmh = (a.contract_quotas || []).reduce((s, q) => s + (q.tmh || 0), 0);
+  const pTms = (p.contract_quotas || []).reduce((s, q) => s + (q.tms || 0), 0);
+  const aTms = (a.contract_quotas || []).reduce((s, q) => s + (q.tms || 0), 0);
+  if (Math.abs(pTmh - aTmh) > 0.001 || Math.abs(pTms - aTms) > 0.001) changed.push('quantity');
+
+  if (p.rollback_applies !== a.rollback_applies || p.rollback_value !== a.rollback_value || p.rollback_unit !== a.rollback_unit) changed.push('rollback');
+
+  if (p.waste_applies !== a.waste_applies || p.waste_value !== a.waste_value || p.waste_unit !== a.waste_unit) changed.push('waste');
+
+  const pPay = JSON.stringify((p.contract_payables || []).map(x => `${x.formula?.name}|${x.metal}|${x.deduction_value}|${x.deduction_unit}|${x.balance_percentage}`).sort());
+  const aPay = JSON.stringify((a.contract_payables || []).map(x => `${x.formula?.name}|${x.metal}|${x.deduction_value}|${x.deduction_unit}|${x.balance_percentage}`).sort());
+  if (pPay !== aPay) changed.push('payables');
+
+  const pProc = JSON.stringify((p.contract_processing || []).map(x => `${x.formula?.name}|${x.value}|${x.unit}`).sort());
+  const aProc = JSON.stringify((a.contract_processing || []).map(x => `${x.formula?.name}|${x.value}|${x.unit}`).sort());
+  if (pProc !== aProc || p.processing_escalator_value !== a.processing_escalator_value) changed.push('processing');
+
+  const pRef = JSON.stringify((p.contract_refining_expenses || []).map(x => `${x.formula?.name}|${x.metal}|${x.amount_usd}|${x.unit}`).sort());
+  const aRef = JSON.stringify((a.contract_refining_expenses || []).map(x => `${x.formula?.name}|${x.metal}|${x.amount_usd}|${x.unit}`).sort());
+  if (pRef !== aRef || p.refining_escalator_value !== a.refining_escalator_value) changed.push('refining');
+
+  const pPen = JSON.stringify((p.contract_penalties || []).map(x => `${x.formula?.name}|${x.metal}|${x.amount_usd}|${x.lower_limit}|${x.upper_limit}`).sort());
+  const aPen = JSON.stringify((a.contract_penalties || []).map(x => `${x.formula?.name}|${x.metal}|${x.amount_usd}|${x.lower_limit}|${x.upper_limit}`).sort());
+  if (pPen !== aPen) changed.push('penalties');
+
+  const pQual = JSON.stringify((p.contract_quality_specs || []).map(x => `${x.metal}|${x.spec_type}|${x.min_value}|${x.max_value}|${x.unit}`).sort());
+  const aQual = JSON.stringify((a.contract_quality_specs || []).map(x => `${x.metal}|${x.spec_type}|${x.min_value}|${x.max_value}|${x.unit}`).sort());
+  if (pQual !== aQual) changed.push('quality');
+
+  const pPmt = JSON.stringify((p.payment_terms || []).map(x => `${x.payment_type}|${x.advance_percentage}|${x.days_from_issuance}`).sort());
+  const aPmt = JSON.stringify((a.payment_terms || []).map(x => `${x.payment_type}|${x.advance_percentage}|${x.days_from_issuance}`).sort());
+  if (pPmt !== aPmt) changed.push('payments');
+
+  return changed;
+};
+
 const AdendaValidation: React.FC<AdendaValidationProps> = ({ adendaId, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [parent, setParent] = useState<ContractData | null>(null);
@@ -60,26 +112,6 @@ const AdendaValidation: React.FC<AdendaValidationProps> = ({ adendaId, onClose }
   useEffect(() => {
     loadData();
   }, [adendaId]);
-
-  useEffect(() => {
-    if (!parent || !adenda) return;
-    const allSections = [
-      { id: 'basic', diffs: buildBasicDiffs() },
-      { id: 'quantity', diffs: buildQuantityDiffs() },
-      { id: 'rollback', diffs: buildRollbackDiffs() },
-      { id: 'waste', diffs: buildWasteDiffs() },
-      { id: 'payables', diffs: buildPayablesDiffs() },
-      { id: 'processing', diffs: buildProcessingDiffs() },
-      { id: 'refining', diffs: buildRefiningDiffs() },
-      { id: 'penalties', diffs: buildPenaltiesDiffs() },
-      { id: 'quality', diffs: buildQualityDiffs() },
-      { id: 'payments', diffs: buildPaymentDiffs() },
-    ];
-    const withChanges = allSections
-      .filter(s => s.diffs.some(d => d.changed))
-      .map(s => s.id);
-    setExpandedSections(new Set(withChanges.length > 0 ? withChanges : ['basic']));
-  }, [parent, adenda]);
 
   const loadData = async () => {
     try {
@@ -107,17 +139,25 @@ const AdendaValidation: React.FC<AdendaValidationProps> = ({ adendaId, onClose }
         .single();
 
       if (adendaError) throw adendaError;
-      setAdenda(adendaData);
 
+      let parentData: ContractData | null = null;
       if (adendaData?.parent_contract_id) {
-        const { data: parentData, error: parentError } = await supabase
+        const { data: pd, error: parentError } = await supabase
           .from('contracts')
           .select(selectQuery)
           .eq('id', adendaData.parent_contract_id)
           .single();
 
         if (parentError) throw parentError;
-        setParent(parentData);
+        parentData = pd;
+      }
+
+      setAdenda(adendaData);
+      setParent(parentData);
+
+      if (adendaData && parentData) {
+        const changed = computeChangedSections(parentData, adendaData);
+        setExpandedSections(new Set(changed.length > 0 ? changed : ['basic']));
       }
     } catch (error) {
       console.error('Error loading validation data:', error);
