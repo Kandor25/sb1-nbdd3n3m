@@ -47,6 +47,7 @@ interface FormData {
   assayFinalLab: string;
   assayCostType: string;
   quotationPeriods: QuotationPeriodData[];
+  observations: string;
 }
 
 interface QuotationPeriodData {
@@ -267,6 +268,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     assayFinalLab: '',
     assayCostType: '',
     quotationPeriods: [],
+    observations: '',
   });
 
   useEffect(() => {
@@ -496,6 +498,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         assayStructure: contract.assay_structure || '',
         assayFinalLab: contract.assay_final_lab || '',
         assayCostType: contract.assay_cost_type || '',
+        observations: contract.observations || '',
         quotationPeriods: (quotationPeriodsRes.data || []).map(qp => ({
           id: `temp-${Date.now()}-${Math.random()}`,
           formula: qp.formula || '',
@@ -966,6 +969,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         processing_escalator_unit: formData.processingEscalatorApplies ? formData.processingEscalatorUnit : null,
         refining_escalator_value: formData.refiningEscalatorApplies && formData.refiningEscalatorValue ? parseFloat(formData.refiningEscalatorValue) : null,
         refining_escalator_unit: formData.refiningEscalatorApplies ? formData.refiningEscalatorUnit : null,
+        observations: formData.observations || null,
       };
 
       let contractId: string;
@@ -1485,6 +1489,19 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Observaciones
+                    </label>
+                    <textarea
+                      value={formData.observations}
+                      onChange={(e) => updateFormData('observations', e.target.value)}
+                      placeholder="Ingrese observaciones adicionales del contrato (opcional)..."
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    />
                   </div>
 
                   {formData.quotas.length > 0 && (
