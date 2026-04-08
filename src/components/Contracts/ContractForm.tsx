@@ -293,7 +293,28 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         skipQuotaGeneration.current = false;
         return;
       }
-      generateQuotas();
+
+      const [startYear, startMonthNum] = formData.startMonth.split('-').map(Number);
+      const [endYear, endMonthNum] = formData.endMonth.split('-').map(Number);
+
+      if (isNaN(startYear) || isNaN(startMonthNum) || isNaN(endYear) || isNaN(endMonthNum)) return;
+
+      const quotas: QuotaData[] = [];
+      let currentYear = startYear;
+      let currentMonth = startMonthNum;
+
+      while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonthNum)) {
+        quotas.push({
+          month: `${currentYear}-${String(currentMonth).padStart(2, '0')}`,
+          tmh: '',
+          tms: '',
+          h2oPercentage: '',
+        });
+        currentMonth++;
+        if (currentMonth > 12) { currentMonth = 1; currentYear++; }
+      }
+
+      setFormData(prev => ({ ...prev, quotas }));
     }
   }, [formData.startMonth, formData.endMonth]);
 
@@ -422,10 +443,10 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         buyerId: contract.buyer_id || '',
         productId: contract.product_id || '',
         countryId: contract.country_id || '',
-        startMonth: contract.start_month ? new Date(contract.start_month).toISOString().slice(0, 7) : '',
-        endMonth: contract.end_month ? new Date(contract.end_month).toISOString().slice(0, 7) : '',
+        startMonth: contract.start_month ? contract.start_month.slice(0, 7) : '',
+        endMonth: contract.end_month ? contract.end_month.slice(0, 7) : '',
         quotas: (quotasRes.data || []).map(q => ({
-          month: new Date(q.month).toISOString().slice(0, 7),
+          month: q.month ? q.month.slice(0, 7) : '',
           tmh: q.tmh?.toString() || '',
           tms: q.tms?.toString() || '',
           h2oPercentage: q.h2o_percentage?.toString() || '',
