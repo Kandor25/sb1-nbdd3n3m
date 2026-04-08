@@ -980,17 +980,25 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
       const contract = { id: contractId };
 
       if (contract) {
-        const quotasToInsert = formData.quotas.map(q => ({
-          contract_id: contract.id,
-          month: q.month + '-01',
-          tmh: parseFloat(q.tmh),
-          tms: parseFloat(q.tms),
-          h2o_percentage: parseFloat(q.h2oPercentage),
-        }));
+        const seen = new Set<string>();
+        const quotasToInsert = formData.quotas
+          .filter(q => {
+            const key = q.month + '-01';
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          })
+          .map(q => ({
+            contract_id: contract.id,
+            month: q.month + '-01',
+            tmh: parseFloat(q.tmh),
+            tms: parseFloat(q.tms),
+            h2o_percentage: parseFloat(q.h2oPercentage),
+          }));
 
         const { error: quotasError } = await supabase
           .from('contract_quotas')
-          .insert(quotasToInsert);
+          .upsert(quotasToInsert, { onConflict: 'contract_id,month' });
 
         if (quotasError) throw quotasError;
 
