@@ -46,7 +46,7 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
   const [loading, setLoading] = useState(true);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
-  const menuRef = useRef<HTMLDivElement>(null);
+  const openMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     loadContracts();
@@ -54,7 +54,7 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (openMenuRef.current && !openMenuRef.current.contains(event.target as Node)) {
         setOpenMenuId(null);
       }
     };
@@ -141,11 +141,13 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
     return matchesSearch && matchesType && matchesStatus;
   };
 
-  const filteredParents = parentContracts.filter(c => {
-    const selfMatches = matchesFilters(c);
-    const childMatches = (adendaMap[c.id] || []).some(a => matchesFilters(a));
-    return selfMatches || childMatches;
-  });
+  const filteredParents = parentContracts
+    .filter(c => {
+      const selfMatches = matchesFilters(c);
+      const childMatches = (adendaMap[c.id] || []).some(a => matchesFilters(a));
+      return selfMatches || childMatches;
+    })
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -446,7 +448,7 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
 
               {openMenuId === contract.id && (
                 <div
-                  ref={menuRef}
+                  ref={openMenuRef}
                   className="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10"
                 >
                   <button
