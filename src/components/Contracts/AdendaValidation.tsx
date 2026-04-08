@@ -29,6 +29,7 @@ interface ContractData {
   processing_escalator_unit: string | null;
   refining_escalator_value: number | null;
   refining_escalator_unit: string | null;
+  parent_contract_id?: string | null;
   vendor?: { name: string } | null;
   buyer?: { name: string } | null;
   product?: { name: string } | null;
@@ -41,7 +42,7 @@ interface ContractData {
   contract_quality_specs?: { metal: string; spec_type: string; min_value: number | null; max_value: number | null; unit: string }[];
   contract_refining_expenses?: { formula?: { name: string }; metal: string; amount_usd: number; unit: string }[];
   payment_terms?: { payment_type: string; advance_percentage: number; known_elements: string; days_from_issuance: number }[];
-  contract_quotation_periods?: { formula: string; months: number; metal: string; day_type: string }[];
+  contract_quotation_periods?: { formula: string; months: number; metal: string; day_type: string; buyer_optionality: boolean; seller_optionality: boolean }[];
 }
 
 interface DiffSection {
@@ -100,6 +101,10 @@ const computeChangedSections = (p: ContractData, a: ContractData): string[] => {
   const aPmt = JSON.stringify((a.payment_terms || []).map(x => `${x.payment_type}|${x.advance_percentage}|${x.days_from_issuance}`).sort());
   if (pPmt !== aPmt) changed.push('payments');
 
+  const pPer = JSON.stringify((p.contract_quotation_periods || []).map(x => `${x.formula}|${x.months}|${x.metal}|${x.day_type}|${x.buyer_optionality}|${x.seller_optionality}`).sort());
+  const aPer = JSON.stringify((a.contract_quotation_periods || []).map(x => `${x.formula}|${x.months}|${x.metal}|${x.day_type}|${x.buyer_optionality}|${x.seller_optionality}`).sort());
+  if (pPer !== aPer) changed.push('periods');
+
   return changed;
 };
 
@@ -113,50 +118,60 @@ const AdendaValidation: React.FC<AdendaValidationProps> = ({ adendaId, onClose }
     loadData();
   }, [adendaId]);
 
-  const loadData = async () => {
-    try {
-      const selectQuery = `
+  const fetchContractWithRelated = async (contractId: string): Promise<ContractData | null> => {
+    const { data: base, error: baseErr } = await supabase
+      .from('contracts')
+      .select(`
         *,
         vendor:vendors(id, name),
         buyer:buyers(id, name),
         product:products(id, name),
         incoterm:incoterms(code, description),
-        sampling_formula:sampling_formulas(name),
-        contract_quotas(month, tmh, tms, h2o_percentage),
-        contract_payables(formula:payable_formulas(name), metal, deduction_value, deduction_unit, balance_percentage),
-        contract_processing(formula:processing_formulas(name), value, unit),
-        contract_penalties(formula:penalty_formulas(name), metal, amount_usd, lower_limit, lower_limit_unit, upper_limit, upper_limit_unit),
-        contract_quality_specs(metal, spec_type, min_value, max_value, unit),
-        contract_refining_expenses(formula:refining_expense_formulas(name), metal, amount_usd, unit),
-        payment_terms(payment_type, advance_percentage, known_elements, days_from_issuance),
-        contract_quotation_periods(formula, months, metal, day_type)
-      `;
+        sampling_formula:sampling_formulas(name)
+      `)
+      .eq('id', contractId)
+      .single();
+    if (baseErr || !base) return null;
 
-      const { data: adendaData, error: adendaError } = await supabase
-        .from('contracts')
-        .select(selectQuery)
-        .eq('id', adendaId)
-        .single();
+    const [quotas, payables, processing, penalties, quality, refining, payments, periods] = await Promise.all([
+      supabase.from('contract_quotas').select('month, tmh, tms, h2o_percentage').eq('contract_id', contractId),
+      supabase.from('contract_payables').select('metal, deduction_value, deduction_unit, balance_percentage, formula:payable_formulas(name)').eq('contract_id', contractId),
+      supabase.from('contract_processing').select('value, unit, formula:processing_formulas(name)').eq('contract_id', contractId),
+      supabase.from('contract_penalties').select('metal, amount_usd, lower_limit, lower_limit_unit, upper_limit, upper_limit_unit, formula:penalty_formulas(name)').eq('contract_id', contractId),
+      supabase.from('contract_quality_specs').select('metal, spec_type, min_value, max_value, unit').eq('contract_id', contractId),
+      supabase.from('contract_refining_expenses').select('metal, amount_usd, unit, formula:refining_expense_formulas(name)').eq('contract_id', contractId),
+      supabase.from('payment_terms').select('payment_type, advance_percentage, known_elements, days_from_issuance').eq('contract_id', contractId),
+      supabase.from('contract_quotation_periods').select('formula, months, metal, day_type, buyer_optionality, seller_optionality').eq('contract_id', contractId).order('display_order'),
+    ]);
 
-      if (adendaError) throw adendaError;
+    return {
+      ...base,
+      contract_quotas: quotas.data || [],
+      contract_payables: payables.data || [],
+      contract_processing: processing.data || [],
+      contract_penalties: penalties.data || [],
+      contract_quality_specs: quality.data || [],
+      contract_refining_expenses: refining.data || [],
+      payment_terms: payments.data || [],
+      contract_quotation_periods: periods.data || [],
+    } as ContractData;
+  };
+
+  const loadData = async () => {
+    try {
+      const adendaResult = await fetchContractWithRelated(adendaId);
+      if (!adendaResult) throw new Error('No se pudo cargar la adenda');
 
       let parentData: ContractData | null = null;
-      if (adendaData?.parent_contract_id) {
-        const { data: pd, error: parentError } = await supabase
-          .from('contracts')
-          .select(selectQuery)
-          .eq('id', adendaData.parent_contract_id)
-          .single();
-
-        if (parentError) throw parentError;
-        parentData = pd;
+      if (adendaResult.parent_contract_id) {
+        parentData = await fetchContractWithRelated(adendaResult.parent_contract_id);
       }
 
-      setAdenda(adendaData);
+      setAdenda(adendaResult);
       setParent(parentData);
 
-      if (adendaData && parentData) {
-        const changed = computeChangedSections(parentData, adendaData);
+      if (adendaResult && parentData) {
+        const changed = computeChangedSections(parentData, adendaResult);
         setExpandedSections(new Set(changed.length > 0 ? changed : ['basic']));
       }
     } catch (error) {
@@ -385,6 +400,23 @@ const AdendaValidation: React.FC<AdendaValidationProps> = ({ adendaId, onClose }
     }];
   };
 
+  const buildQuotationPeriodsDiffs = (): DiffSection[] => {
+    if (!parent || !adenda) return [];
+    const fmt = (periods: ContractData['contract_quotation_periods']) =>
+      (periods || []).map(p => {
+        const opts = [p.buyer_optionality ? 'Opción Comprador' : '', p.seller_optionality ? 'Opción Vendedor' : ''].filter(Boolean).join(', ');
+        return `${p.formula} | ${p.metal} | ${p.months} mes(es) | ${p.day_type}${opts ? ` | ${opts}` : ''}`;
+      }).join('\n') || '-';
+    const pStr = JSON.stringify((parent.contract_quotation_periods || []).map(x => `${x.formula}|${x.months}|${x.metal}|${x.day_type}|${x.buyer_optionality}|${x.seller_optionality}`).sort());
+    const aStr = JSON.stringify((adenda.contract_quotation_periods || []).map(x => `${x.formula}|${x.months}|${x.metal}|${x.day_type}|${x.buyer_optionality}|${x.seller_optionality}`).sort());
+    return [{
+      label: 'Períodos de Cotización',
+      original: fmt(parent.contract_quotation_periods),
+      adenda: fmt(adenda.contract_quotation_periods),
+      changed: pStr !== aStr,
+    }];
+  };
+
   const sections = [
     { id: 'basic', label: 'Información Básica', diffs: buildBasicDiffs() },
     { id: 'quantity', label: 'Cantidades', diffs: buildQuantityDiffs() },
@@ -396,6 +428,7 @@ const AdendaValidation: React.FC<AdendaValidationProps> = ({ adendaId, onClose }
     { id: 'penalties', label: 'Penalidades', diffs: buildPenaltiesDiffs() },
     { id: 'quality', label: 'Calidad', diffs: buildQualityDiffs() },
     { id: 'payments', label: 'Pagos', diffs: buildPaymentDiffs() },
+    { id: 'periods', label: 'Períodos de Cotización', diffs: buildQuotationPeriodsDiffs() },
   ];
 
   const totalChanges = sections.reduce((acc, s) => acc + s.diffs.filter(d => d.changed).length, 0);
