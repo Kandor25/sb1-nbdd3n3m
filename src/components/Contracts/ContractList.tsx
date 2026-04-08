@@ -9,9 +9,10 @@ import { supabase } from '../../lib/supabase';
 interface ContractListProps {
   onCreateNew: () => void;
   onViewDetails: (contract: Contract) => void;
+  onEditContract: (contractId: string) => void;
 }
 
-const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails }) => {
+const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails, onEditContract }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -48,31 +49,39 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
           *,
           vendor:vendors(id, name),
           buyer:buyers(id, name),
-          product:products(id, name)
+          product:products(id, name),
+          contract_quotas(tmh, tms)
         `);
 
       if (error) throw error;
 
       if (data && data.length > 0) {
-        const formattedContracts = data.map((contract: any) => ({
-          id: contract.id,
-          number: contract.contract_number,
-          type: contract.contract_type,
-          counterpartyId: contract.contract_type === 'purchase' ? contract.vendor_id : contract.buyer_id,
-          counterparty: contract.contract_type === 'purchase' ? contract.vendor : contract.buyer,
-          commodity: {
-            name: contract.product?.name || 'N/A',
-            grade: 'N/A'
-          },
-          quantity: 0,
-          tolerance: 0,
-          deliveryPeriod: {
-            start: new Date(contract.start_month),
-            end: new Date(contract.end_month)
-          },
-          createdAt: contract.created_at ? new Date(contract.created_at) : new Date(),
-          status: contract.status || 'active'
-        }));
+        const formattedContracts = data.map((contract: any) => {
+          const quotas: { tmh: number; tms: number }[] = contract.contract_quotas || [];
+          const totalTmh = quotas.reduce((sum: number, q: { tmh: number }) => sum + (q.tmh || 0), 0);
+          const totalTms = quotas.reduce((sum: number, q: { tms: number }) => sum + (q.tms || 0), 0);
+
+          return {
+            id: contract.id,
+            number: contract.contract_number,
+            type: contract.contract_type,
+            counterpartyId: contract.contract_type === 'purchase' ? contract.vendor_id : contract.buyer_id,
+            counterparty: contract.contract_type === 'purchase' ? contract.vendor : contract.buyer,
+            commodity: {
+              name: contract.product?.name || 'N/A',
+              grade: 'N/A'
+            },
+            quantity: totalTmh,
+            quantityTms: totalTms,
+            tolerance: 0,
+            deliveryPeriod: {
+              start: new Date(contract.start_month),
+              end: new Date(contract.end_month)
+            },
+            createdAt: contract.created_at ? new Date(contract.created_at) : new Date(),
+            status: contract.status || 'active'
+          };
+        });
         setDbContracts(formattedContracts);
       }
     } catch (error) {
@@ -148,6 +157,7 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
 
     switch (action) {
       case 'edit':
+        onEditContract(contractId);
         break;
       case 'summary':
         handleOpenContractDetails();
@@ -402,8 +412,16 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails 
                       <div className="text-sm text-gray-500">{contract.commodity.grade}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{contract.quantity.toLocaleString()} TM</div>
-                      <div className="text-sm text-gray-500">±{contract.tolerance}%</div>
+                      {contract.quantity > 0 ? (
+                        <>
+                          <div className="text-sm text-gray-900">{contract.quantity.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TMH</div>
+                          {(contract as any).quantityTms > 0 && (
+                            <div className="text-sm text-gray-500">{(contract as any).quantityTms.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TMS</div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="text-sm text-gray-400">Sin datos</div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center text-sm text-gray-900">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight, Save, Check, Plus, Trash2, HelpCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import StepByStepGuide from './StepByStepGuide';
@@ -8,6 +8,7 @@ interface ContractFormProps {
   onClose: () => void;
   onSuccess: () => void;
   templateId?: string | null;
+  editContractId?: string | null;
 }
 
 interface FormData {
@@ -212,7 +213,8 @@ const SECTIONS = [
   { id: 'waste', label: 'Merma' },
 ];
 
-const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templateId }) => {
+const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templateId, editContractId }) => {
+  const skipQuotaGeneration = useRef(false);
   const [currentSection, setCurrentSection] = useState('basic');
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [buyers, setBuyers] = useState<Buyer[]>([]);
@@ -278,7 +280,17 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
   }, [templateId]);
 
   useEffect(() => {
+    if (editContractId) {
+      loadTemplateData(editContractId);
+    }
+  }, [editContractId]);
+
+  useEffect(() => {
     if (formData.startMonth && formData.endMonth) {
+      if (skipQuotaGeneration.current) {
+        skipQuotaGeneration.current = false;
+        return;
+      }
       generateQuotas();
     }
   }, [formData.startMonth, formData.endMonth]);
@@ -401,6 +413,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
       const processingEscalatorApplies = contract.processing_escalator_value !== null;
       const refiningEscalatorApplies = contract.refining_escalator_value !== null;
 
+      skipQuotaGeneration.current = true;
       setFormData({
         contractType: contract.contract_type as 'purchase' | 'sale',
         vendorId: contract.vendor_id || '',
@@ -927,43 +940,68 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
 
     setLoading(true);
     try {
-      const contractNumber = `CTR-${Date.now()}`;
+      const contractPayload = {
+        contract_type: formData.contractType,
+        vendor_id: formData.vendorId,
+        buyer_id: formData.buyerId,
+        product_id: formData.productId,
+        country_id: formData.countryId,
+        start_month: formData.startMonth + '-01',
+        end_month: formData.endMonth + '-01',
+        incoterm_id: formData.incotermId,
+        delivery_location: formData.deliveryLocation,
+        rollback_applies: formData.rollbackApplies,
+        rollback_value: formData.rollbackApplies && formData.rollbackValue ? parseFloat(formData.rollbackValue) : null,
+        rollback_unit: formData.rollbackApplies ? formData.rollbackUnit : null,
+        waste_applies: formData.wasteApplies,
+        waste_value: formData.wasteApplies === 'aplica' && formData.wasteValue ? parseFloat(formData.wasteValue) : null,
+        waste_unit: formData.wasteApplies === 'aplica' ? formData.wasteUnit : null,
+        assay_structure: formData.assayStructure || null,
+        assay_final_lab: formData.assayFinalLab || null,
+        assay_cost_type: formData.assayCostType || null,
+        sampling_formula_id: formData.samplingFormulaId || null,
+        sampling_incoterm_id: formData.samplingIncotermId || null,
+        sampling_reference: formData.samplingReference || null,
+        processing_escalator_value: formData.processingEscalatorApplies && formData.processingEscalatorValue ? parseFloat(formData.processingEscalatorValue) : null,
+        processing_escalator_unit: formData.processingEscalatorApplies ? formData.processingEscalatorUnit : null,
+        refining_escalator_value: formData.refiningEscalatorApplies && formData.refiningEscalatorValue ? parseFloat(formData.refiningEscalatorValue) : null,
+        refining_escalator_unit: formData.refiningEscalatorApplies ? formData.refiningEscalatorUnit : null,
+      };
 
-      const { data: contract, error: contractError } = await supabase
-        .from('contracts')
-        .insert({
-          contract_number: contractNumber,
-          contract_type: formData.contractType,
-          vendor_id: formData.vendorId,
-          buyer_id: formData.buyerId,
-          product_id: formData.productId,
-          country_id: formData.countryId,
-          start_month: formData.startMonth + '-01',
-          end_month: formData.endMonth + '-01',
-          incoterm_id: formData.incotermId,
-          delivery_location: formData.deliveryLocation,
-          rollback_applies: formData.rollbackApplies,
-          rollback_value: formData.rollbackApplies && formData.rollbackValue ? parseFloat(formData.rollbackValue) : null,
-          rollback_unit: formData.rollbackApplies ? formData.rollbackUnit : null,
-          waste_applies: formData.wasteApplies,
-          waste_value: formData.wasteApplies === 'aplica' && formData.wasteValue ? parseFloat(formData.wasteValue) : null,
-          waste_unit: formData.wasteApplies === 'aplica' ? formData.wasteUnit : null,
-          assay_structure: formData.assayStructure || null,
-          assay_final_lab: formData.assayFinalLab || null,
-          assay_cost_type: formData.assayCostType || null,
-          sampling_formula_id: formData.samplingFormulaId || null,
-          sampling_incoterm_id: formData.samplingIncotermId || null,
-          sampling_reference: formData.samplingReference || null,
-          processing_escalator_value: formData.processingEscalatorApplies && formData.processingEscalatorValue ? parseFloat(formData.processingEscalatorValue) : null,
-          processing_escalator_unit: formData.processingEscalatorApplies ? formData.processingEscalatorUnit : null,
-          refining_escalator_value: formData.refiningEscalatorApplies && formData.refiningEscalatorValue ? parseFloat(formData.refiningEscalatorValue) : null,
-          refining_escalator_unit: formData.refiningEscalatorApplies ? formData.refiningEscalatorUnit : null,
-          status: 'draft',
-        })
-        .select()
-        .single();
+      let contractId: string;
 
-      if (contractError) throw contractError;
+      if (editContractId) {
+        const { error: updateError } = await supabase
+          .from('contracts')
+          .update(contractPayload)
+          .eq('id', editContractId);
+
+        if (updateError) throw updateError;
+        contractId = editContractId;
+
+        await Promise.all([
+          supabase.from('contract_quotas').delete().eq('contract_id', contractId),
+          supabase.from('contract_payables').delete().eq('contract_id', contractId),
+          supabase.from('contract_processing').delete().eq('contract_id', contractId),
+          supabase.from('contract_penalties').delete().eq('contract_id', contractId),
+          supabase.from('contract_quality_specs').delete().eq('contract_id', contractId),
+          supabase.from('contract_refining_expenses').delete().eq('contract_id', contractId),
+          supabase.from('contract_quotation_periods').delete().eq('contract_id', contractId),
+          supabase.from('payment_terms').delete().eq('contract_id', contractId),
+        ]);
+      } else {
+        const contractNumber = `CTR-${Date.now()}`;
+        const { data: contract, error: contractError } = await supabase
+          .from('contracts')
+          .insert({ ...contractPayload, contract_number: contractNumber, status: 'draft' })
+          .select()
+          .single();
+
+        if (contractError) throw contractError;
+        contractId = contract.id;
+      }
+
+      const contract = { id: contractId };
 
       if (contract) {
         const quotasToInsert = formData.quotas.map(q => ({
@@ -1127,7 +1165,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
         }
       }
 
-      alert('Contrato guardado exitosamente');
+      alert(editContractId ? 'Contrato actualizado exitosamente' : 'Contrato guardado exitosamente');
       onSuccess();
       onClose();
     } catch (error) {

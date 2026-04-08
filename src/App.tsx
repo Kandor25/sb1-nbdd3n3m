@@ -21,6 +21,7 @@ function App() {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [contractCreationMode, setContractCreationMode] = useState<ContractCreationMode>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [editContractId, setEditContractId] = useState<string | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   
   const currentUser: User = {
@@ -47,11 +48,19 @@ function App() {
   const handleContractFormClose = () => {
     setContractCreationMode(null);
     setSelectedTemplateId(null);
+    setEditContractId(null);
   };
 
   const handleContractFormSuccess = () => {
     setContractCreationMode(null);
     setSelectedTemplateId(null);
+    setEditContractId(null);
+  };
+
+  const handleEditContract = (contractId: string) => {
+    setEditContractId(contractId);
+    setSelectedTemplateId(null);
+    setContractCreationMode('form');
   };
 
   const handleSelectNewContract = () => {
@@ -114,9 +123,10 @@ function App() {
         );
       case 'contracts':
         return (
-          <ContractList 
+          <ContractList
             onCreateNew={handleCreateContract}
             onViewDetails={handleViewContract}
+            onEditContract={handleEditContract}
           />
         );
       case 'inventory':
@@ -187,6 +197,7 @@ function App() {
           onClose={handleContractFormClose}
           onSuccess={handleContractFormSuccess}
           templateId={selectedTemplateId}
+          editContractId={editContractId}
         />
       )}
     </div>
