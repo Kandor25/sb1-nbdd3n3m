@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Save, Check, Plus, Trash2, HelpCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import StepByStepGuide from './StepByStepGuide';
@@ -215,7 +215,6 @@ const SECTIONS = [
 ];
 
 const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templateId, editContractId }) => {
-  const skipQuotaGeneration = useRef(false);
   const [currentSection, setCurrentSection] = useState('basic');
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [buyers, setBuyers] = useState<Buyer[]>([]);
@@ -287,26 +286,13 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     }
   }, [editContractId]);
 
-  const startMonth = formData.startMonth;
-  const endMonth = formData.endMonth;
-
-  useEffect(() => {
-    if (!startMonth || !endMonth) return;
-
-    if (skipQuotaGeneration.current) {
-      skipQuotaGeneration.current = false;
-      return;
-    }
-
-    const [startYear, startMonthNum] = startMonth.split('-').map(Number);
-    const [endYear, endMonthNum] = endMonth.split('-').map(Number);
-
-    if (isNaN(startYear) || isNaN(startMonthNum) || isNaN(endYear) || isNaN(endMonthNum)) return;
-
+  const buildQuotas = (start: string, end: string): QuotaData[] => {
+    const [startYear, startMonthNum] = start.split('-').map(Number);
+    const [endYear, endMonthNum] = end.split('-').map(Number);
+    if (isNaN(startYear) || isNaN(startMonthNum) || isNaN(endYear) || isNaN(endMonthNum)) return [];
     const quotas: QuotaData[] = [];
     let currentYear = startYear;
     let currentMonth = startMonthNum;
-
     while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonthNum)) {
       quotas.push({
         month: `${currentYear}-${String(currentMonth).padStart(2, '0')}`,
@@ -317,9 +303,8 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
       currentMonth++;
       if (currentMonth > 12) { currentMonth = 1; currentYear++; }
     }
-
-    setFormData(prev => ({ ...prev, quotas }));
-  }, [startMonth, endMonth]);
+    return quotas;
+  };
 
   const loadFormData = async () => {
     try {
@@ -439,7 +424,6 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
       const processingEscalatorApplies = contract.processing_escalator_value !== null;
       const refiningEscalatorApplies = contract.refining_escalator_value !== null;
 
-      skipQuotaGeneration.current = true;
       setFormData({
         contractType: contract.contract_type as 'purchase' | 'sale',
         vendorId: contract.vendor_id || '',
@@ -1461,7 +1445,14 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                       <input
                         type="month"
                         value={formData.startMonth}
-                        onChange={(e) => updateFormData('startMonth', e.target.value)}
+                        onChange={(e) => {
+                          const newStart = e.target.value;
+                          if (newStart && formData.endMonth) {
+                            setFormData(prev => ({ ...prev, startMonth: newStart, quotas: buildQuotas(newStart, prev.endMonth) }));
+                          } else {
+                            updateFormData('startMonth', newStart);
+                          }
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
@@ -1473,7 +1464,14 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                       <input
                         type="month"
                         value={formData.endMonth}
-                        onChange={(e) => updateFormData('endMonth', e.target.value)}
+                        onChange={(e) => {
+                          const newEnd = e.target.value;
+                          if (formData.startMonth && newEnd) {
+                            setFormData(prev => ({ ...prev, endMonth: newEnd, quotas: buildQuotas(prev.startMonth, newEnd) }));
+                          } else {
+                            updateFormData('endMonth', newEnd);
+                          }
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
