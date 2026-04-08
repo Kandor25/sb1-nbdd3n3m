@@ -55,11 +55,31 @@ const AdendaValidation: React.FC<AdendaValidationProps> = ({ adendaId, onClose }
   const [loading, setLoading] = useState(true);
   const [parent, setParent] = useState<ContractData | null>(null);
   const [adenda, setAdenda] = useState<ContractData | null>(null);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['basic']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadData();
   }, [adendaId]);
+
+  useEffect(() => {
+    if (!parent || !adenda) return;
+    const allSections = [
+      { id: 'basic', diffs: buildBasicDiffs() },
+      { id: 'quantity', diffs: buildQuantityDiffs() },
+      { id: 'rollback', diffs: buildRollbackDiffs() },
+      { id: 'waste', diffs: buildWasteDiffs() },
+      { id: 'payables', diffs: buildPayablesDiffs() },
+      { id: 'processing', diffs: buildProcessingDiffs() },
+      { id: 'refining', diffs: buildRefiningDiffs() },
+      { id: 'penalties', diffs: buildPenaltiesDiffs() },
+      { id: 'quality', diffs: buildQualityDiffs() },
+      { id: 'payments', diffs: buildPaymentDiffs() },
+    ];
+    const withChanges = allSections
+      .filter(s => s.diffs.some(d => d.changed))
+      .map(s => s.id);
+    setExpandedSections(new Set(withChanges.length > 0 ? withChanges : ['basic']));
+  }, [parent, adenda]);
 
   const loadData = async () => {
     try {
@@ -120,7 +140,8 @@ const AdendaValidation: React.FC<AdendaValidationProps> = ({ adendaId, onClose }
 
   const formatMonth = (dateStr: string) => {
     if (!dateStr) return '-';
-    const d = new Date(dateStr);
+    const [year, month] = dateStr.split('-').map(Number);
+    const d = new Date(year, month - 1, 1);
     return d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
   };
 
