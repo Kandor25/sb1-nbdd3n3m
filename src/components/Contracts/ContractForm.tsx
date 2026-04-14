@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, Save, Check, Plus, Trash2, HelpCircle } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Save, Check, Plus, Trash2, HelpCircle, FileText, Package, TrendingUp, Truck, BarChart2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import StepByStepGuide from './StepByStepGuide';
 import { GUIDE_CONTENT } from './guideContent';
@@ -212,6 +212,37 @@ const SECTIONS = [
   { id: 'weight-sampling', label: 'Muestreo Pesos' },
   { id: 'assay-sampling', label: 'Muestreo Ensayes' },
   { id: 'waste', label: 'Merma' },
+];
+
+const STEPS = [
+  {
+    id: 'contrato',
+    label: 'Contrato',
+    shortLabel: 'Contrato',
+    icon: FileText,
+    sections: ['basic', 'incoterm', 'rollback'],
+  },
+  {
+    id: 'calidad',
+    label: 'Calidad',
+    shortLabel: 'Calidad',
+    icon: Package,
+    sections: ['quality'],
+  },
+  {
+    id: 'terminos',
+    label: 'Términos Económicos',
+    shortLabel: 'Términos',
+    icon: TrendingUp,
+    sections: ['payables', 'processing', 'processing-escalator', 'refining', 'refining-escalator', 'penalties'],
+  },
+  {
+    id: 'logistica',
+    label: 'Logística y Pagos',
+    shortLabel: 'Logística',
+    icon: Truck,
+    sections: ['payments', 'quotation-period', 'weight-sampling', 'assay-sampling', 'waste'],
+  },
 ];
 
 const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templateId, editContractId }) => {
@@ -1282,28 +1313,135 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
     return 'incomplete';
   };
 
+  const getCurrentStep = () => STEPS.find(step => step.sections.includes(currentSection));
+  const getCurrentStepIndex = () => STEPS.findIndex(step => step.sections.includes(currentSection));
+
+  const isStepComplete = (step: typeof STEPS[number]) =>
+    step.sections.every(sId => getSectionStatus(sId) === 'complete');
+
+  const isStepPartial = (step: typeof STEPS[number]) =>
+    step.sections.some(sId => getSectionStatus(sId) === 'complete') && !isStepComplete(step);
+
+  const getSubSectionsForCurrentStep = () => {
+    const step = getCurrentStep();
+    if (!step) return [];
+    return step.sections.map(sId => SECTIONS.find(s => s.id === sId)!).filter(Boolean);
+  };
+
+  const totalSections = SECTIONS.length;
+  const completedSections = SECTIONS.filter(s => getSectionStatus(s.id) === 'complete').length;
+  const progressPercent = Math.round((completedSections / totalSections) * 100);
+
+  const goToStep = (stepId: string) => {
+    const step = STEPS.find(s => s.id === stepId);
+    if (step) setCurrentSection(step.sections[0]);
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl h-[90vh] flex flex-col">
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <h2 className="text-2xl font-bold text-gray-900">Nuevo Contrato</h2>
-            {templateId && (
-              <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-full">
-                Desde Plantilla
-              </span>
-            )}
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-7xl h-[92vh] flex flex-col overflow-hidden">
+
+        {/* Header */}
+        <div className="px-8 pt-6 pb-0 flex-shrink-0">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {editContractId ? 'Editar Contrato' : 'Nuevo Contrato'}
+                </h2>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-sm text-gray-500">{completedSections} de {totalSections} secciones completadas</span>
+                  {templateId && (
+                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
+                      Desde Plantilla
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
+
+          {/* Stepper */}
+          <div className="flex items-center gap-0 mb-0">
+            {STEPS.map((step, index) => {
+              const StepIcon = step.icon;
+              const isActive = getCurrentStepIndex() === index;
+              const isComplete = isStepComplete(step);
+              const isPartial = isStepPartial(step);
+              const isPast = getCurrentStepIndex() > index;
+
+              return (
+                <React.Fragment key={step.id}>
+                  <button
+                    onClick={() => goToStep(step.id)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-t-xl transition-all group relative"
+                    style={{
+                      background: isActive ? 'white' : 'transparent',
+                      borderBottom: isActive ? '2px solid #2563eb' : '2px solid transparent',
+                    }}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all ${
+                      isComplete
+                        ? 'bg-emerald-500 text-white'
+                        : isActive
+                          ? 'bg-blue-600 text-white'
+                          : isPast || isPartial
+                            ? 'bg-amber-100 text-amber-600'
+                            : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'
+                    }`}>
+                      {isComplete ? (
+                        <Check className="w-4 h-4" />
+                      ) : (
+                        <StepIcon className="w-4 h-4" />
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <div className={`text-xs font-medium transition-colors ${
+                        isActive ? 'text-blue-600' : isComplete ? 'text-emerald-600' : 'text-gray-500 group-hover:text-gray-700'
+                      }`}>
+                        Paso {index + 1}
+                      </div>
+                      <div className={`text-sm font-semibold leading-tight transition-colors ${
+                        isActive ? 'text-gray-900' : isComplete ? 'text-gray-700' : 'text-gray-500 group-hover:text-gray-700'
+                      }`}>
+                        {step.shortLabel}
+                      </div>
+                    </div>
+                    {isPartial && !isActive && (
+                      <div className="absolute top-2 right-2 w-2 h-2 bg-amber-400 rounded-full" />
+                    )}
+                  </button>
+                  {index < STEPS.length - 1 && (
+                    <div className={`flex-1 h-px mx-1 ${
+                      getCurrentStepIndex() > index ? 'bg-emerald-300' : 'bg-gray-200'
+                    }`} />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          {/* Progress bar */}
+          <div className="h-1 bg-gray-100 -mx-8 mt-0">
+            <div
+              className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
         </div>
 
+        {/* Validation error */}
         {validationError && (
-          <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="mx-8 mt-4 p-4 bg-red-50 border border-red-200 rounded-xl flex-shrink-0">
             <div className="flex items-start">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -1312,51 +1450,51 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
               </div>
               <div className="ml-3 flex-1">
                 <h3 className="text-sm font-medium text-red-800">Error de Validación</h3>
-                <div className="mt-2 text-sm text-red-700 whitespace-pre-line">
-                  {validationError}
-                </div>
+                <div className="mt-2 text-sm text-red-700 whitespace-pre-line">{validationError}</div>
               </div>
-              <button
-                onClick={() => setValidationError('')}
-                className="ml-3 flex-shrink-0 text-red-400 hover:text-red-600"
-              >
+              <button onClick={() => setValidationError('')} className="ml-3 flex-shrink-0 text-red-400 hover:text-red-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
           </div>
         )}
 
+        {/* Body: sub-section tabs + content */}
         <div className="flex-1 flex overflow-hidden">
-          <div className="w-80 bg-gray-50 border-r border-gray-200 overflow-y-auto">
-            <div className="p-4">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Secciones</h3>
-              <nav className="space-y-1">
-                {SECTIONS.map((section) => {
-                  const isActive = currentSection === section.id;
-                  const status = getSectionStatus(section.id);
-                  return (
-                    <button
-                      key={section.id}
-                      onClick={() => goToSection(section.id)}
-                      className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-between ${
-                        isActive
-                          ? 'bg-blue-600 text-white font-medium'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      <span className="flex-1">{section.label}</span>
-                      {status === 'complete' && !isActive && (
-                        <Check className="w-4 h-4 text-green-600" />
-                      )}
-                    </button>
-                  );
-                })}
-              </nav>
-            </div>
+          {/* Sub-section sidebar */}
+          <div className="w-56 bg-gray-50 border-r border-gray-100 overflow-y-auto flex-shrink-0 py-4 px-3">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-3">
+              {getCurrentStep()?.label}
+            </p>
+            <nav className="space-y-0.5">
+              {getSubSectionsForCurrentStep().map((section) => {
+                const isActive = currentSection === section.id;
+                const status = getSectionStatus(section.id);
+                return (
+                  <button
+                    key={section.id}
+                    onClick={() => goToSection(section.id)}
+                    className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all flex items-center justify-between group ${
+                      isActive
+                        ? 'bg-blue-600 text-white font-medium shadow-sm'
+                        : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'
+                    }`}
+                  >
+                    <span className="flex-1 leading-snug">{section.label}</span>
+                    {status === 'complete' && !isActive && (
+                      <Check className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 ml-1" />
+                    )}
+                    {status === 'incomplete' && !isActive && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-gray-400 flex-shrink-0 ml-1" />
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-6">
+          <div className="flex-1 overflow-y-auto bg-white">
+            <div className="p-8">
               {currentSection === 'basic' && (
                 <div className="space-y-6">
                   {renderSectionHeader('Información Básica / Cantidad / Plazo', 'basic')}
@@ -3478,33 +3616,52 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+        {/* Footer */}
+        <div className="px-8 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50/80 flex-shrink-0">
           <button
             onClick={goToPreviousSection}
             disabled={SECTIONS.findIndex(s => s.id === currentSection) === 0}
-            className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium shadow-sm"
           >
-            <ChevronLeft className="w-4 h-4 mr-2" />
+            <ChevronLeft className="w-4 h-4" />
             Anterior
           </button>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-2">
+            {/* Section dots indicator */}
+            <div className="flex items-center gap-1 mr-4">
+              {getSubSectionsForCurrentStep().map((section) => (
+                <button
+                  key={section.id}
+                  onClick={() => goToSection(section.id)}
+                  className={`transition-all rounded-full ${
+                    currentSection === section.id
+                      ? 'w-6 h-2 bg-blue-600'
+                      : getSectionStatus(section.id) === 'complete'
+                        ? 'w-2 h-2 bg-emerald-400'
+                        : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
+                  }`}
+                  title={section.label}
+                />
+              ))}
+            </div>
+
             <button
               onClick={handleSave}
               disabled={loading || saving}
-              className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-5 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold shadow-sm"
             >
-              <Save className="w-4 h-4 mr-2" />
+              <Save className="w-4 h-4" />
               {saving ? 'Guardando...' : 'Guardar Contrato'}
             </button>
 
             <button
               onClick={goToNextSection}
               disabled={SECTIONS.findIndex(s => s.id === currentSection) === SECTIONS.length - 1 || !canProceed()}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-sm font-semibold shadow-sm"
             >
               Siguiente
-              <ChevronRight className="w-4 h-4 ml-2" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
