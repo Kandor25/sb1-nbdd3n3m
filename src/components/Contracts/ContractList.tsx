@@ -143,6 +143,9 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
 
   const filteredParents = parentContracts
     .filter(c => {
+      if (filterStatus !== 'all') {
+        return matchesFilters(c);
+      }
       const selfMatches = matchesFilters(c);
       const childMatches = (adendaMap[c.id] || []).some(a => matchesFilters(a));
       return selfMatches || childMatches;
@@ -562,26 +565,34 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
             { key: 'active', label: 'Activos', color: 'green', Icon: TrendingUp },
             { key: 'completed', label: 'Completados', color: 'blue', Icon: FileText },
             { key: 'cancelled', label: 'Cancelados', color: 'red', Icon: AlertCircle },
-          ].map(({ key, label, color, Icon }) => (
-            <div
-              key={key}
-              onClick={() => setFilterStatus(key)}
-              className={`bg-white rounded-lg shadow-sm border-2 border-${color}-200 p-5 hover:shadow-md transition-all cursor-pointer`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={`text-sm font-medium text-${color}-600 uppercase tracking-wide`}>{label}</p>
-                  <p className={`text-3xl font-bold text-${color}-900 mt-2`}>{statusSummary[key as keyof typeof statusSummary]}</p>
+          ].map(({ key, label, color, Icon }) => {
+            const isActive = filterStatus === key;
+            return (
+              <div
+                key={key}
+                onClick={() => setFilterStatus(isActive ? 'all' : key)}
+                className={`rounded-lg shadow-sm border-2 p-5 hover:shadow-md transition-all cursor-pointer ${
+                  isActive
+                    ? `bg-${color}-50 border-${color}-500 ring-2 ring-${color}-300`
+                    : `bg-white border-${color}-200`
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm font-medium text-${color}-600 uppercase tracking-wide`}>{label}</p>
+                    <p className={`text-3xl font-bold text-${color}-900 mt-2`}>{statusSummary[key as keyof typeof statusSummary]}</p>
+                  </div>
+                  <div className={`${isActive ? `bg-${color}-200` : `bg-${color}-100`} rounded-full p-3 transition-colors`}>
+                    <Icon className={`w-6 h-6 text-${color}-600`} />
+                  </div>
                 </div>
-                <div className={`bg-${color}-100 rounded-full p-3`}>
-                  <Icon className={`w-6 h-6 text-${color}-600`} />
+                <div className={`mt-3 pt-3 border-t border-${color}-100 flex items-center justify-between`}>
+                  <p className="text-xs text-gray-500">Contratos {label.toLowerCase()}</p>
+                  {isActive && <p className={`text-xs font-semibold text-${color}-600`}>Filtro activo</p>}
                 </div>
               </div>
-              <div className={`mt-3 pt-3 border-t border-${color}-100`}>
-                <p className="text-xs text-gray-500">Contratos {label.toLowerCase()}</p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
