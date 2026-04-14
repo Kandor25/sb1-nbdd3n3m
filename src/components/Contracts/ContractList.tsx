@@ -349,10 +349,10 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
   };
 
   const statusSummary = {
-    draft: allContracts.filter(c => c.status === 'draft').length,
-    active: allContracts.filter(c => c.status === 'active').length,
-    completed: allContracts.filter(c => c.status === 'completed').length,
-    cancelled: allContracts.filter(c => c.status === 'cancelled').length,
+    draft: parentContracts.filter(c => c.status === 'draft').length,
+    active: parentContracts.filter(c => c.status === 'active').length,
+    completed: parentContracts.filter(c => c.status === 'completed').length,
+    cancelled: parentContracts.filter(c => c.status === 'cancelled').length,
   };
 
   const renderContractRow = (contract: DbContract, isAdenda = false) => {
