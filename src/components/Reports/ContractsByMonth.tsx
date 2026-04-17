@@ -138,33 +138,39 @@ const ContractsByMonth: React.FC<ContractsByMonthProps> = ({ contracts, onExport
                   {group.contracts.length === 0 ? (
                     <div className="px-8 py-4 text-sm text-gray-400 italic">No hay registros</div>
                   ) : (
-                    <div className="divide-y divide-gray-50">
-                      {group.contracts.map(c => (
-                        <div key={c.id} className="flex items-center justify-between px-8 py-3 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-center space-x-3 min-w-0">
-                            <FileText className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                            <div className="min-w-0">
-                              <span className="font-mono text-sm font-medium text-gray-800">{c.number}</span>
-                              {c.parentContractId && (
-                                <span className="ml-2 text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">Adenda</span>
-                              )}
+                    <div>
+                      <div className="grid grid-cols-12 gap-2 px-5 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        <div className="col-span-3">Contrato</div>
+                        <div className="col-span-3">Contraparte</div>
+                        <div className="col-span-3 hidden md:block">Commodity</div>
+                        <div className="col-span-2 hidden md:block text-right">Peso Total</div>
+                        <div className="col-span-1 hidden lg:block text-right">Estado</div>
+                      </div>
+                      <div className="divide-y divide-gray-50">
+                        {group.contracts.map(c => (
+                          <div key={c.id} className="grid grid-cols-12 gap-2 px-5 py-3 hover:bg-gray-50 transition-colors items-center">
+                            <div className="col-span-3 flex items-center space-x-2 min-w-0">
+                              <FileText className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                              <div className="min-w-0">
+                                <div className="font-mono text-sm font-medium text-gray-800 truncate">{c.number}</div>
+                                {c.parentContractId && (
+                                  <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">Adenda</span>
+                                )}
+                              </div>
                             </div>
-                            <span className="text-gray-400 text-sm hidden sm:inline">—</span>
-                            <span className="text-sm text-gray-600 truncate hidden sm:inline">{c.counterpartyName}</span>
-                            <span className="text-gray-400 text-sm hidden md:inline">—</span>
-                            <span className="text-sm text-gray-500 truncate hidden md:inline">{c.commodityName}</span>
-                            {c.quantity > 0 && (
-                              <>
-                                <span className="text-gray-400 text-sm hidden lg:inline">—</span>
-                                <span className="text-sm text-gray-500 hidden lg:inline">{c.quantity.toLocaleString()} TMS</span>
-                              </>
-                            )}
+                            <div className="col-span-3 text-sm text-gray-700 truncate">{c.counterpartyName}</div>
+                            <div className="col-span-3 hidden md:block text-sm text-gray-600 truncate">{c.commodityName}</div>
+                            <div className="col-span-2 hidden md:block text-sm text-gray-600 text-right">
+                              {c.quantity > 0 ? `${c.quantity.toLocaleString()} TMs` : '—'}
+                            </div>
+                            <div className="col-span-1 hidden lg:block text-right">
+                              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[c.status] || 'bg-gray-100 text-gray-700'}`}>
+                                {STATUS_LABELS[c.status] || c.status}
+                              </span>
+                            </div>
                           </div>
-                          <span className={`flex-shrink-0 ml-4 text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_COLORS[c.status] || 'bg-gray-100 text-gray-700'}`}>
-                            {STATUS_LABELS[c.status] || c.status}
-                          </span>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
