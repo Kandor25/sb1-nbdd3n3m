@@ -33,7 +33,7 @@ const REPORT_TABS = [
   },
   {
     id: 'days_confirmation' as ReportTab,
-    label: 'Dias hasta Confirmacion',
+    label: 'Dias de Confirmacion',
     shortLabel: 'Dias',
     icon: Clock,
     description: 'Tiempo transcurrido desde creacion de cada contrato',

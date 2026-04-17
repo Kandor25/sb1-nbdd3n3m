@@ -92,9 +92,10 @@ const DaysToConfirmation: React.FC<DaysToConfirmationProps> = ({ contracts, onEx
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
         <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 grid grid-cols-12 gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          <div className="col-span-4">Contrato</div>
-          <div className="col-span-3 hidden md:block">Commodity</div>
-          <div className="col-span-2 hidden lg:block">Estado</div>
+          <div className="col-span-3">Contrato</div>
+          <div className="col-span-3 hidden sm:block">Contraparte</div>
+          <div className="col-span-2 hidden md:block">Commodity</div>
+          <div className="col-span-1 hidden lg:block">Estado</div>
           <div className="col-span-3 text-right">Dias transcurridos</div>
         </div>
         <div className="divide-y divide-gray-100">
@@ -103,15 +104,18 @@ const DaysToConfirmation: React.FC<DaysToConfirmationProps> = ({ contracts, onEx
           )}
           {sorted.map(c => (
             <div key={c.id} className={`px-5 py-3.5 hover:bg-gray-50 transition-colors grid grid-cols-12 gap-2 items-center`}>
-              <div className="col-span-4 flex items-center space-x-2 min-w-0">
+              <div className="col-span-3 flex items-center space-x-2 min-w-0">
                 <FileText className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
                 <div className="min-w-0">
                   <div className="font-mono text-sm font-medium text-gray-800 truncate">{c.number}</div>
-                  <div className="text-xs text-gray-500 truncate">{c.counterpartyName}</div>
+                  {c.parentContractId && (
+                    <span className="text-xs text-blue-600">Adenda</span>
+                  )}
                 </div>
               </div>
-              <div className="col-span-3 hidden md:block text-sm text-gray-600 truncate">{c.commodityName}</div>
-              <div className="col-span-2 hidden lg:block">
+              <div className="col-span-3 hidden sm:block text-sm text-gray-700 truncate">{c.counterpartyName}</div>
+              <div className="col-span-2 hidden md:block text-sm text-gray-600 truncate">{c.commodityName}</div>
+              <div className="col-span-1 hidden lg:block">
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                   c.status === 'completed' ? 'bg-blue-100 text-blue-700' :
                   c.status === 'active' ? 'bg-green-100 text-green-700' :
