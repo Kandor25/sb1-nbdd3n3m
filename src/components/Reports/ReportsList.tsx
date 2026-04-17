@@ -1,39 +1,152 @@
-import React, { useState } from 'react';
-import { BarChart3, TrendingUp, FileText, Download, Calendar, DollarSign, Package, Truck } from 'lucide-react';
-import { mockDashboardMetrics, mockContracts, mockInventoryLots, mockSettlements } from '../../data/mockData';
+import React, { useState, useEffect } from 'react';
+import {
+  BarChart3, Calendar, CalendarDays, Clock, Search, X, SlidersHorizontal,
+  ChevronDown, TrendingUp, TrendingDown
+} from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import type { ReportContract } from './types';
+import ContractsByMonth from './ContractsByMonth';
+import ContractsByYear from './ContractsByYear';
+import DaysToConfirmation from './DaysToConfirmation';
+import {
+  exportContractsByMonth,
+  exportContractsByYear,
+  exportDaysToConfirmation,
+} from './exportExcel';
+
+type ReportTab = 'by_month' | 'by_year' | 'days_confirmation';
+
+const REPORT_TABS = [
+  {
+    id: 'by_month' as ReportTab,
+    label: 'Contratos por Mes',
+    shortLabel: 'Por Mes',
+    icon: Calendar,
+    description: 'Detalle de contratos generados mes a mes',
+  },
+  {
+    id: 'by_year' as ReportTab,
+    label: 'Contratos por Año',
+    shortLabel: 'Por Año',
+    icon: CalendarDays,
+    description: 'Resumen anual de contratos y adendas',
+  },
+  {
+    id: 'days_confirmation' as ReportTab,
+    label: 'Dias hasta Confirmacion',
+    shortLabel: 'Dias',
+    icon: Clock,
+    description: 'Tiempo transcurrido desde creacion de cada contrato',
+  },
+];
+
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'Todos los estados' },
+  { value: 'draft', label: 'Borrador' },
+  { value: 'active', label: 'Activo' },
+  { value: 'completed', label: 'Completado' },
+  { value: 'cancelled', label: 'Cancelado' },
+];
+
+const TYPE_OPTIONS = [
+  { value: 'all', label: 'Todos los tipos' },
+  { value: 'purchase', label: 'Compra' },
+  { value: 'sale', label: 'Venta' },
+];
 
 const ReportsList: React.FC = () => {
-  const [selectedReport, setSelectedReport] = useState<string>('overview');
-  const [dateRange, setDateRange] = useState('30days');
+  const [activeTab, setActiveTab] = useState<ReportTab>('by_month');
+  const [contracts, setContracts] = useState<ReportContract[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterType, setFilterType] = useState('all');
+  const [filterYear, setFilterYear] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
 
-  // Calculate key metrics
-  const totalContractValue = mockContracts.reduce((sum, contract) => {
-    // Simplified value calculation
-    return sum + (contract.quantity * 8500); // Assuming average price
-  }, 0);
+  useEffect(() => {
+    loadContracts();
+  }, []);
 
-  const totalInventoryWeight = mockInventoryLots.reduce((sum, lot) => sum + lot.weights.dry, 0);
-  
-  const settlementsValue = mockSettlements.reduce((sum, settlement) => sum + settlement.totalValue, 0);
+  const loadContracts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('contracts')
+        .select(`
+          id, contract_number, contract_type, status, created_at,
+          parent_contract_id, adenda_number,
+          vendor:vendors(id, name),
+          buyer:buyers(id, name),
+          product:products(id, name),
+          contract_quotas(tmh, tms)
+        `)
+        .order('created_at', { ascending: false });
 
-  const reports = [
-    { id: 'overview', name: 'Resumen de Negocio', icon: BarChart3, color: 'blue' },
-    { id: 'contracts', name: 'Análisis de Contratos', icon: FileText, color: 'emerald' },
-    { id: 'inventory', name: 'Reporte de Inventario', icon: Package, color: 'orange' },
-    { id: 'logistics', name: 'Rendimiento Logístico', icon: Truck, color: 'purple' },
-    { id: 'financial', name: 'Resumen Financiero', icon: DollarSign, color: 'green' }
-  ];
+      if (error) throw error;
 
-  const getColorClasses = (color: string) => {
-    const colors = {
-      blue: 'bg-blue-50 text-blue-700 border-blue-200',
-      emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      orange: 'bg-orange-50 text-orange-700 border-orange-200',
-      purple: 'bg-purple-50 text-purple-700 border-purple-200',
-      green: 'bg-green-50 text-green-700 border-green-200'
-    };
-    return colors[color as keyof typeof colors] || 'bg-gray-50 text-gray-700 border-gray-200';
+      if (data && data.length > 0) {
+        const formatted: ReportContract[] = data.map((c: any) => {
+          const quotas: { tmh: number; tms: number }[] = c.contract_quotas || [];
+          const totalTms = quotas.reduce((s: number, q: any) => s + (q.tms || 0), 0);
+          const counterparty = c.contract_type === 'purchase' ? c.vendor : c.buyer;
+
+          return {
+            id: c.id,
+            number: c.contract_number,
+            type: c.contract_type,
+            counterpartyName: counterparty?.name || 'N/A',
+            commodityName: c.product?.name || 'N/A',
+            quantity: totalTms,
+            status: c.status || 'active',
+            createdAt: c.created_at ? new Date(c.created_at) : new Date(),
+            parentContractId: c.parent_contract_id || null,
+            adendaNumber: c.adenda_number || null,
+          };
+        });
+        setContracts(formatted);
+      } else {
+        setContracts([]);
+      }
+    } catch (err) {
+      console.error('Error loading contracts for reports:', err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const uniqueYears = Array.from(
+    new Set(contracts.map(c => c.createdAt.getFullYear().toString()))
+  ).sort((a, b) => Number(b) - Number(a));
+
+  const activeFilterCount =
+    [filterStatus, filterType, filterYear].filter(f => f !== 'all').length + (searchTerm ? 1 : 0);
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setFilterStatus('all');
+    setFilterType('all');
+    setFilterYear('all');
+  };
+
+  const filteredContracts = contracts.filter(c => {
+    const matchesSearch =
+      !searchTerm ||
+      c.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.counterpartyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.commodityName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || c.status === filterStatus;
+    const matchesType = filterType === 'all' || c.type === filterType;
+    const matchesYear =
+      filterYear === 'all' || c.createdAt.getFullYear().toString() === filterYear;
+    return matchesSearch && matchesStatus && matchesType && matchesYear;
+  });
+
+  const totalParents = filteredContracts.filter(c => !c.parentContractId).length;
+  const totalAdendas = filteredContracts.filter(c => !!c.parentContractId).length;
+  const totalPurchase = filteredContracts.filter(c => c.type === 'purchase' && !c.parentContractId).length;
+  const totalSale = filteredContracts.filter(c => c.type === 'sale' && !c.parentContractId).length;
+
+  const activeTabMeta = REPORT_TABS.find(t => t.id === activeTab)!;
 
   return (
     <div className="p-6 space-y-6">
@@ -41,162 +154,171 @@ const ReportsList: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center">
             <BarChart3 className="w-7 h-7 mr-3 text-blue-600" />
-            Reportes y Análisis
+            Reportes Generales
           </h1>
-          <p className="text-gray-600 mt-1">Inteligencia de negocios y métricas de rendimiento</p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="7days">Últimos 7 días</option>
-            <option value="30days">Últimos 30 días</option>
-            <option value="90days">Últimos 90 días</option>
-            <option value="ytd">Año hasta la fecha</option>
-          </select>
-          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            <Download className="w-4 h-4 mr-2" />
-            Exportar Reporte
-          </button>
+          <p className="text-gray-500 mt-1 text-sm">Analisis y seguimiento de contratos</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Report Navigation */}
-        <div className="space-y-2">
-          {reports.map((report) => {
-            const Icon = report.icon;
-            const isActive = selectedReport === report.id;
-            
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+          <div className="text-2xl font-bold text-gray-900">{totalParents}</div>
+          <div className="text-sm text-gray-500 mt-0.5">Contratos</div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+          <div className="text-2xl font-bold text-blue-600">{totalAdendas}</div>
+          <div className="text-sm text-gray-500 mt-0.5">Adendas</div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm flex items-center space-x-3">
+          <TrendingDown className="w-6 h-6 text-emerald-500 flex-shrink-0" />
+          <div>
+            <div className="text-2xl font-bold text-emerald-600">{totalPurchase}</div>
+            <div className="text-sm text-gray-500">Compras</div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm flex items-center space-x-3">
+          <TrendingUp className="w-6 h-6 text-blue-500 flex-shrink-0" />
+          <div>
+            <div className="text-2xl font-bold text-blue-600">{totalSale}</div>
+            <div className="text-sm text-gray-500">Ventas</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-gray-100 flex flex-wrap items-center gap-3">
+          <div className="flex-1 min-w-48 relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar contrato, contraparte, commodity..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="pl-9 pr-4 py-2 w-full border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <select
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            {STATUS_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+
+          <button
+            onClick={() => setShowFilters(p => !p)}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+              showFilters || activeFilterCount > 0
+                ? 'bg-blue-50 border-blue-400 text-blue-700'
+                : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            <span>Filtros</span>
+            {activeFilterCount > 0 && (
+              <span className="bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                {activeFilterCount}
+              </span>
+            )}
+            <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+          </button>
+
+          {activeFilterCount > 0 && (
+            <button
+              onClick={clearFilters}
+              className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg border border-gray-200 transition-colors"
+            >
+              <X className="w-4 h-4" />
+              <span>Limpiar</span>
+            </button>
+          )}
+        </div>
+
+        {showFilters && (
+          <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-4">
+            <div className="flex flex-col space-y-1">
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Tipo</label>
+              <select
+                value={filterType}
+                onChange={e => setFilterType(e.target.value)}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              >
+                {TYPE_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col space-y-1">
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Año</label>
+              <select
+                value={filterYear}
+                onChange={e => setFilterYear(e.target.value)}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              >
+                <option value="all">Todos los años</option>
+                {uniqueYears.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+
+        <div className="flex border-b border-gray-200 bg-gray-50">
+          {REPORT_TABS.map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
             return (
               <button
-                key={report.id}
-                onClick={() => setSelectedReport(report.id)}
-                className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors border ${
-                  isActive 
-                    ? getColorClasses(report.color) + ' border-2' 
-                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3.5 text-sm font-medium transition-colors border-b-2 ${
+                  isActive
+                    ? 'border-blue-600 text-blue-700 bg-white'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                <Icon className="w-5 h-5 mr-3" />
-                <span className="font-medium">{report.name}</span>
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.shortLabel}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Report Content */}
-        <div className="lg:col-span-3">
-          {selectedReport === 'overview' && (
-            <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Indicadores Clave de Rendimiento</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <FileText className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-blue-600">{mockDashboardMetrics.activeContracts}</div>
-                    <div className="text-sm text-gray-600">Contratos Activos</div>
-                  </div>
-                  <div className="text-center p-4 bg-emerald-50 rounded-lg">
-                    <Package className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-emerald-600">{totalInventoryWeight.toFixed(0)}</div>
-                    <div className="text-sm text-gray-600">TM Inventario</div>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <DollarSign className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-green-600">${(totalContractValue/1000000).toFixed(1)}M</div>
-                    <div className="text-sm text-gray-600">Valor de Contratos</div>
-                  </div>
-                  <div className="text-center p-4 bg-orange-50 rounded-lg">
-                    <TrendingUp className="w-8 h-8 text-orange-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-orange-600">${(settlementsValue/1000).toFixed(0)}K</div>
-                    <div className="text-sm text-gray-600">Liquidaciones</div>
-                  </div>
-                </div>
-              </div>
+        <div className="p-5">
+          <div className="mb-4">
+            <p className="text-sm text-gray-500">{activeTabMeta.description}</p>
+          </div>
 
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Rendimiento de Contratos</h3>
-                <div className="space-y-4">
-                  {mockContracts.map((contract) => (
-                    <div key={contract.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <div className="font-medium text-gray-900">{contract.number}</div>
-                        <div className="text-sm text-gray-500">{contract.commodity.name} - {contract.quantity} TM</div>
-                      </div>
-                      <div className="text-right">
-                        <div className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                          contract.type === 'purchase' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {contract.type === 'purchase' ? 'COMPRA' : 'VENTA'}
-                        </div>
-                        <div className="text-sm text-gray-500 mt-1 capitalize">
-                          {contract.status === 'active' ? 'activo' : 
-                           contract.status === 'draft' ? 'borrador' : 
-                           contract.status === 'completed' ? 'completado' : 'cancelado'}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
-          )}
-
-          {selectedReport === 'inventory' && (
-            <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Análisis de Inventario</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="p-4 bg-emerald-50 rounded-lg">
-                    <div className="text-2xl font-bold text-emerald-600">{mockInventoryLots.length}</div>
-                    <div className="text-sm text-gray-600">Total de Lotes</div>
-                  </div>
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{totalInventoryWeight.toFixed(1)}</div>
-                    <div className="text-sm text-gray-600">Peso Total (TM)</div>
-                  </div>
-                  <div className="p-4 bg-orange-50 rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600">
-                      {mockInventoryLots.filter(lot => lot.assays.some(a => a.status === 'pending')).length}
-                    </div>
-                    <div className="text-sm text-gray-600">Ensayos Pendientes</div>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <h4 className="font-medium text-gray-900">Inventario por Ubicación</h4>
-                  {mockInventoryLots.map((lot) => (
-                    <div key={lot.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <div className="font-medium text-gray-900">{lot.lotNumber}</div>
-                        <div className="text-sm text-gray-500">{lot.location.warehouse}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium text-gray-900">{lot.weights.dry} TM</div>
-                        <div className="text-sm text-gray-500">{lot.commodity.name}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Add similar content blocks for other report types */}
-          {selectedReport !== 'overview' && selectedReport !== 'inventory' && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {reports.find(r => r.id === selectedReport)?.name}
-              </h3>
-              <div className="text-center py-12">
-                <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">Contenido del reporte próximamente...</p>
-                <p className="text-gray-400 text-sm">Este reporte estará disponible en la próxima versión</p>
-              </div>
-            </div>
+          ) : (
+            <>
+              {activeTab === 'by_month' && (
+                <ContractsByMonth
+                  contracts={filteredContracts}
+                  onExportExcel={() => exportContractsByMonth(filteredContracts)}
+                />
+              )}
+              {activeTab === 'by_year' && (
+                <ContractsByYear
+                  contracts={filteredContracts}
+                  onExportExcel={() => exportContractsByYear(filteredContracts)}
+                />
+              )}
+              {activeTab === 'days_confirmation' && (
+                <DaysToConfirmation
+                  contracts={filteredContracts}
+                  onExportExcel={() => exportDaysToConfirmation(filteredContracts)}
+                />
+              )}
+            </>
           )}
         </div>
       </div>
