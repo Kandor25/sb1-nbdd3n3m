@@ -141,6 +141,7 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
   const uniqueYears = Array.from(new Set(parentContracts.map(c => c.createdAt.getFullYear().toString()))).sort((a, b) => Number(b) - Number(a));
 
   const activeAdvancedFiltersCount = [filterCommodity, filterCounterparty, filterYear, filterType].filter(f => f !== 'all').length;
+  const totalActiveFiltersCount = [filterCommodity, filterCounterparty, filterYear, filterType, filterStatus, searchTerm].filter(f => f && f !== 'all').length;
 
   const matchesFilters = (contract: DbContract) => {
     const matchesSearch = contract.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -171,6 +172,9 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
       return selfMatches || childMatches;
     })
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+  const hasAnyFilter = totalActiveFiltersCount > 0;
+  const baseForSummary = hasAnyFilter ? filteredParents : parentContracts;
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -369,10 +373,10 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
   };
 
   const statusSummary = {
-    draft: parentContracts.filter(c => c.status === 'draft').length,
-    active: parentContracts.filter(c => c.status === 'active').length,
-    completed: parentContracts.filter(c => c.status === 'completed').length,
-    cancelled: parentContracts.filter(c => c.status === 'cancelled').length,
+    draft: baseForSummary.filter(c => c.status === 'draft').length,
+    active: baseForSummary.filter(c => c.status === 'active').length,
+    completed: baseForSummary.filter(c => c.status === 'completed').length,
+    cancelled: baseForSummary.filter(c => c.status === 'cancelled').length,
   };
 
   const renderContractRow = (contract: DbContract, isAdenda = false) => {
@@ -648,9 +652,9 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
             >
               <SlidersHorizontal className="w-4 h-4" />
               <span>Filtros avanzados</span>
-              {activeAdvancedFiltersCount > 0 && (
+              {totalActiveFiltersCount > 0 && (
                 <span className="ml-1 bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {activeAdvancedFiltersCount}
+                  {totalActiveFiltersCount}
                 </span>
               )}
               {showAdvancedFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
