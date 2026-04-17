@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   FileText, Plus, Search, Filter, Calendar, TrendingUp, TrendingDown, AlertCircle,
   Calculator, MoreVertical, CreditCard as Edit2, FileCheck, Copy, ChevronDown, ChevronRight,
-  GitCompare, GitBranch
+  GitCompare, GitBranch, SlidersHorizontal, X, ChevronUp
 } from 'lucide-react';
 import { mockContracts, mockCounterparties } from '../../data/mockData';
 import type { Contract } from '../../types';
@@ -38,6 +38,10 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterCommodity, setFilterCommodity] = useState<string>('all');
+  const [filterCounterparty, setFilterCounterparty] = useState<string>('all');
+  const [filterYear, setFilterYear] = useState<string>('all');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showValuation, setShowValuation] = useState(false);
   const [showContractDetails, setShowContractDetails] = useState(false);
   const [showAdendaValidation, setShowAdendaValidation] = useState(false);
@@ -132,13 +136,29 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
   });
   Object.values(adendaMap).forEach(list => list.sort((a, b) => (a.adendaNumber || 0) - (b.adendaNumber || 0)));
 
+  const uniqueCommodities = Array.from(new Set(parentContracts.map(c => c.commodity.name).filter(Boolean))).sort();
+  const uniqueCounterparties = Array.from(new Set(parentContracts.map(c => c.counterparty?.name).filter(Boolean) as string[])).sort();
+  const uniqueYears = Array.from(new Set(parentContracts.map(c => c.createdAt.getFullYear().toString()))).sort((a, b) => Number(b) - Number(a));
+
+  const activeAdvancedFiltersCount = [filterCommodity, filterCounterparty, filterYear, filterType].filter(f => f !== 'all').length;
+
   const matchesFilters = (contract: DbContract) => {
     const matchesSearch = contract.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contract.commodity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (contract.counterparty?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || contract.type === filterType;
     const matchesStatus = filterStatus === 'all' || contract.status === filterStatus;
-    return matchesSearch && matchesType && matchesStatus;
+    const matchesCommodity = filterCommodity === 'all' || contract.commodity.name === filterCommodity;
+    const matchesCounterparty = filterCounterparty === 'all' || contract.counterparty?.name === filterCounterparty;
+    const matchesYear = filterYear === 'all' || contract.createdAt.getFullYear().toString() === filterYear;
+    return matchesSearch && matchesType && matchesStatus && matchesCommodity && matchesCounterparty && matchesYear;
+  };
+
+  const clearAdvancedFilters = () => {
+    setFilterCommodity('all');
+    setFilterCounterparty('all');
+    setFilterYear('all');
+    setFilterType('all');
   };
 
   const filteredParents = parentContracts
@@ -595,50 +615,144 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
           })}
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center space-x-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="p-4 flex items-center space-x-3">
             <div className="flex-1 relative">
-              <Search className="w-5 h-5 absolute left-3 top-3 text-gray-400" />
+              <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Buscar por número de contrato, commodity o contraparte..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
-            <div className="flex items-center space-x-2">
-              <Filter className="w-5 h-5 text-gray-400" />
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="all">Todos los Estados</option>
+              <option value="draft">Borrador</option>
+              <option value="active">Activo</option>
+              <option value="completed">Completado</option>
+              <option value="cancelled">Cancelado</option>
+            </select>
+            <button
+              onClick={() => setShowAdvancedFilters(prev => !prev)}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                showAdvancedFilters || activeAdvancedFiltersCount > 0
+                  ? 'bg-blue-50 border-blue-400 text-blue-700'
+                  : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              <span>Filtros avanzados</span>
+              {activeAdvancedFiltersCount > 0 && (
+                <span className="ml-1 bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {activeAdvancedFiltersCount}
+                </span>
+              )}
+              {showAdvancedFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            {(filterStatus !== 'all' || activeAdvancedFiltersCount > 0 || searchTerm) && (
+              <button
+                onClick={() => { setFilterStatus('all'); setSearchTerm(''); clearAdvancedFilters(); }}
+                className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg border border-gray-200 transition-colors"
+                title="Limpiar todos los filtros"
               >
-                <option value="all">Todos los Tipos</option>
-                <option value="purchase">Compra</option>
-                <option value="sale">Venta</option>
-              </select>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="all">Todos los Estados</option>
-                <option value="draft">Borrador</option>
-                <option value="active">Activo</option>
-                <option value="completed">Completado</option>
-                <option value="cancelled">Cancelado</option>
-              </select>
-              {(filterStatus !== 'all' || filterType !== 'all') && (
-                <button
-                  onClick={() => { setFilterStatus('all'); setFilterType('all'); }}
-                  className="px-3 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Limpiar filtros
-                </button>
+                <X className="w-4 h-4" />
+                <span>Limpiar</span>
+              </button>
+            )}
+          </div>
+
+          {showAdvancedFilters && (
+            <div className="border-t border-gray-100 px-4 py-4 bg-gray-50 rounded-b-lg">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Commodity
+                  </label>
+                  <select
+                    value={filterCommodity}
+                    onChange={(e) => setFilterCommodity(e.target.value)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors ${
+                      filterCommodity !== 'all' ? 'border-blue-400 bg-blue-50 text-blue-800 font-medium' : 'border-gray-300 bg-white'
+                    }`}
+                  >
+                    <option value="all">Todos los commodities</option>
+                    {uniqueCommodities.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Contraparte
+                  </label>
+                  <select
+                    value={filterCounterparty}
+                    onChange={(e) => setFilterCounterparty(e.target.value)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors ${
+                      filterCounterparty !== 'all' ? 'border-blue-400 bg-blue-50 text-blue-800 font-medium' : 'border-gray-300 bg-white'
+                    }`}
+                  >
+                    <option value="all">Todas las contrapartes</option>
+                    {uniqueCounterparties.map(cp => (
+                      <option key={cp} value={cp}>{cp}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Tipo de Contrato
+                  </label>
+                  <select
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors ${
+                      filterType !== 'all' ? 'border-blue-400 bg-blue-50 text-blue-800 font-medium' : 'border-gray-300 bg-white'
+                    }`}
+                  >
+                    <option value="all">Todos los tipos</option>
+                    <option value="purchase">Compra</option>
+                    <option value="sale">Venta</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Año de Creacion
+                  </label>
+                  <select
+                    value={filterYear}
+                    onChange={(e) => setFilterYear(e.target.value)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors ${
+                      filterYear !== 'all' ? 'border-blue-400 bg-blue-50 text-blue-800 font-medium' : 'border-gray-300 bg-white'
+                    }`}
+                  >
+                    <option value="all">Todos los años</option>
+                    {uniqueYears.map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              {activeAdvancedFiltersCount > 0 && (
+                <div className="mt-3 flex items-center justify-between">
+                  <p className="text-xs text-gray-500">
+                    {activeAdvancedFiltersCount} filtro{activeAdvancedFiltersCount !== 1 ? 's' : ''} avanzado{activeAdvancedFiltersCount !== 1 ? 's' : ''} activo{activeAdvancedFiltersCount !== 1 ? 's' : ''}
+                  </p>
+                  <button
+                    onClick={clearAdvancedFilters}
+                    className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                  >
+                    Limpiar filtros avanzados
+                  </button>
+                </div>
               )}
             </div>
-          </div>
+          )}
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
