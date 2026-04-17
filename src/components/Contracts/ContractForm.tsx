@@ -1723,13 +1723,15 @@ const ContractForm: React.FC<ContractFormProps> = ({ onClose, onSuccess, templat
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Lugar de Entrega <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="text"
+                      <select
                         value={formData.deliveryLocation}
                         onChange={(e) => updateFormData('deliveryLocation', e.target.value)}
-                        placeholder="Ej: Puerto del Callao, Lima, Perú"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
+                      >
+                        <option value="">Seleccionar lugar de entrega...</option>
+                        <option value="Manzanillo, Colima (Mexico)">Manzanillo, Colima (Mexico)</option>
+                        <option value="Callao, Lima (Peru)">Callao, Lima (Peru)</option>
+                      </select>
                     </div>
                   </div>
                 </div>
