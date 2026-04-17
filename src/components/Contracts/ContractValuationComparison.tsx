@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, GitCompare, ChevronRight } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, Plus, Trash2, GitCompare, ChevronRight, Search, ChevronDown } from 'lucide-react';
 
 interface ContractOption {
   id: string;
@@ -45,6 +44,129 @@ const METALS = [
 
 const PRICE_UNITS = ['$/mt', '$/lb', '$/oz', '$/ton', '€/mt', '€/lb', '€/oz'];
 const ASSAY_UNITS = ['%', 'g/t', 'oz/t', 'ppm', 'mg/kg'];
+
+interface ContractSearchSelectProps {
+  contracts: ContractOption[];
+  value: string;
+  onChange: (id: string) => void;
+  placeholder: string;
+  disabled?: boolean;
+  accentColor?: 'blue' | 'emerald';
+}
+
+const ContractSearchSelect: React.FC<ContractSearchSelectProps> = ({
+  contracts, value, onChange, placeholder, disabled = false, accentColor = 'blue'
+}) => {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const selected = contracts.find(c => c.id === value);
+
+  const filtered = contracts.filter(c => {
+    const q = query.toLowerCase();
+    return (
+      c.number.toLowerCase().includes(q) ||
+      c.commodity.toLowerCase().includes(q) ||
+      c.counterparty.toLowerCase().includes(q)
+    );
+  });
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setQuery('');
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const handleOpen = () => {
+    if (disabled) return;
+    setOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const handleSelect = (id: string) => {
+    onChange(id);
+    setOpen(false);
+    setQuery('');
+  };
+
+  const badgeBg = accentColor === 'emerald' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700';
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={handleOpen}
+        disabled={disabled}
+        className={`w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white text-left flex items-center justify-between transition-colors ${
+          disabled ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'hover:border-gray-400 cursor-pointer'
+        } ${open ? 'ring-2 ring-blue-500 border-blue-400' : ''}`}
+      >
+        <span className={selected ? 'text-gray-900' : 'text-gray-400'}>
+          {selected ? (
+            <span className="flex items-center space-x-2">
+              <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${badgeBg}`}>{selected.number}</span>
+              <span className="text-gray-600">{selected.commodity}</span>
+              <span className="text-gray-400">—</span>
+              <span className="text-gray-500">{selected.counterparty}</span>
+            </span>
+          ) : placeholder}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+          <div className="p-2 border-b border-gray-100">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Buscar por numero, commodity o contraparte..."
+                className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div className="max-h-56 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <div className="px-4 py-6 text-sm text-gray-400 text-center">Sin resultados</div>
+            ) : (
+              filtered.map(c => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => handleSelect(c.id)}
+                  className={`w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors flex items-center space-x-3 border-b border-gray-50 last:border-0 ${
+                    c.id === value ? 'bg-blue-50' : ''
+                  }`}
+                >
+                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded flex-shrink-0 ${badgeBg}`}>{c.number}</span>
+                  <span className="text-gray-700 font-medium">{c.commodity}</span>
+                  <span className="text-gray-400 text-xs">—</span>
+                  <span className="text-gray-500 text-xs">{c.counterparty}</span>
+                  <span className={`ml-auto text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                    c.type === 'purchase' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'
+                  }`}>
+                    {c.type === 'purchase' ? 'Compra' : 'Venta'}
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ContractValuationComparison: React.FC<ContractValuationComparisonProps> = ({ onClose, contracts }) => {
   const [step, setStep] = useState<Step>('select');
@@ -136,18 +258,13 @@ const ContractValuationComparison: React.FC<ContractValuationComparisonProps> = 
                     <span className="w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">A</span>
                     <h3 className="text-sm font-semibold text-gray-800">Contrato A</h3>
                   </div>
-                  <select
+                  <ContractSearchSelect
+                    contracts={contracts}
                     value={contractAId}
-                    onChange={(e) => handleContractAChange(e.target.value)}
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
-                  >
-                    <option value="">Seleccionar contrato...</option>
-                    {contracts.map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.number} — {c.commodity} — {c.counterparty}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={handleContractAChange}
+                    placeholder="Buscar contrato..."
+                    accentColor="blue"
+                  />
                   {contractA && (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-1">
                       <p className="text-xs text-blue-700 font-semibold">{contractA.number}</p>
@@ -163,21 +280,20 @@ const ContractValuationComparison: React.FC<ContractValuationComparisonProps> = 
                     <span className="w-7 h-7 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center">B</span>
                     <h3 className="text-sm font-semibold text-gray-800">Contrato B</h3>
                   </div>
-                  <select
+                  <ContractSearchSelect
+                    contracts={availableForB}
                     value={contractBId}
-                    onChange={(e) => setContractBId(e.target.value)}
-                    disabled={!contractAId}
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  >
-                    <option value="">
-                      {!contractAId ? 'Primero seleccione Contrato A' : availableForB.length === 0 ? 'No hay contratos con el mismo commodity' : 'Seleccionar contrato...'}
-                    </option>
-                    {availableForB.map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.number} — {c.commodity} — {c.counterparty}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setContractBId}
+                    placeholder={
+                      !contractAId
+                        ? 'Primero seleccione Contrato A'
+                        : availableForB.length === 0
+                        ? 'Sin contratos con el mismo commodity'
+                        : 'Buscar contrato...'
+                    }
+                    disabled={!contractAId || availableForB.length === 0}
+                    accentColor="emerald"
+                  />
                   {contractB && (
                     <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 space-y-1">
                       <p className="text-xs text-emerald-700 font-semibold">{contractB.number}</p>
