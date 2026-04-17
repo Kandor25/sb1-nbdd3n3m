@@ -9,6 +9,7 @@ import type { Contract } from '../../types';
 import ManualValuation from './ManualValuation';
 import ContractDetailsView from './ContractDetailsView';
 import AdendaValidation from './AdendaValidation';
+import ContractValuationComparison from './ContractValuationComparison';
 import { supabase } from '../../lib/supabase';
 
 interface ContractListProps {
@@ -45,6 +46,7 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
   const [showValuation, setShowValuation] = useState(false);
   const [showContractDetails, setShowContractDetails] = useState(false);
   const [showAdendaValidation, setShowAdendaValidation] = useState(false);
+  const [showValuationComparison, setShowValuationComparison] = useState(false);
   const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
   const [dbContracts, setDbContracts] = useState<DbContract[]>([]);
   const [loading, setLoading] = useState(true);
@@ -564,6 +566,18 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
       {showAdendaValidation && selectedContractId && (
         <AdendaValidation adendaId={selectedContractId} onClose={() => { setShowAdendaValidation(false); setSelectedContractId(null); }} />
       )}
+      {showValuationComparison && (
+        <ContractValuationComparison
+          onClose={() => setShowValuationComparison(false)}
+          contracts={allContracts.map(c => ({
+            id: c.id,
+            number: c.number,
+            commodity: c.commodity.name,
+            counterparty: c.counterparty?.name || '-',
+            type: c.type,
+          }))}
+        />
+      )}
 
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
@@ -574,13 +588,22 @@ const ContractList: React.FC<ContractListProps> = ({ onCreateNew, onViewDetails,
             </h1>
             <p className="text-gray-600 mt-1">Gestionar contratos de compra y venta</p>
           </div>
-          <button
-            onClick={onCreateNew}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo Contrato
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setShowValuationComparison(true)}
+              className="flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <GitCompare className="w-4 h-4 mr-2 text-blue-600" />
+              Comparacion de Valorizaciones
+            </button>
+            <button
+              onClick={onCreateNew}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Contrato
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
